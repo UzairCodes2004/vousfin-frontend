@@ -44,7 +44,7 @@ export default function FileUpload({
       >
         <Upload className="mb-3 h-10 w-10 text-slate-400" />
         <p className="text-sm font-medium text-slate-700">Drag & drop or click to upload</p>
-        <p className="mt-1 text-xs text-slate-500">{accept} ? max {maxSizeMB}MB</p>
+        <p className="mt-1 text-xs text-slate-500">{accept} &mdash; max {maxSizeMB}MB</p>
         <input
           type="file"
           accept={accept}

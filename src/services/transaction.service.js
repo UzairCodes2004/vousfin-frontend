@@ -16,16 +16,14 @@ const transactionService = {
   createInstallment: (data) => api.post('/transactions/installment', data),
   recordInstallmentPayment: (planId, data) => api.post(`/transactions/installment/${planId}/pay`, data),
 
-  // Legacy
+  // Excel import (do NOT set Content-Type manually — Axios must set it with the multipart boundary)
   importExcel: (file, onProgress) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post('/transactions/excel', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: onProgress,
-    })
+    return api.post('/transactions/excel', form, { onUploadProgress: onProgress })
   },
   confirmExcel: (rows) => api.post('/transactions/excel/confirm', { rows }),
+  downloadExcelTemplate: () => api.get('/transactions/excel/template', { responseType: 'blob' }),
   naturalLanguageParse: (text) => api.post('/transactions/nl', { text }),
   naturalLanguageConfirm: (data) => api.post('/transactions/nl/confirm', data),
 }

@@ -1,96 +1,126 @@
 import { useMemo } from 'react'
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import { formatCurrency } from '@/utils/formatters'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 
-const CustomTooltip = ({ active, payload, label, currency }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-charcoal border border-glass p-3 rounded-lg shadow-glow-cyan/10">
-        <p className="text-text-secondary text-xs mb-1">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="font-bold text-sm" style={{ color: entry.color }}>
-            {entry.name}: {formatCurrency(entry.value, currency)}
-          </p>
-        ))}
-      </div>
-    )
-  }
-  return null
+/* ── Y-axis tick: format raw PKR into readable scale ── */
+function formatPKR(val) {
+  if (val == null || isNaN(val)) return '0'
+  const abs = Math.abs(val)
+  if (abs >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000)     return `${(val / 1_000).toFixed(0)}K`
+  return String(Math.round(val))
+}
+
+/* ── Rich tooltip ── */
+function CustomTooltip({ active, payload, label, currency }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-charcoal border border-glass p-3 rounded-xl shadow-lg min-w-[160px]">
+      <p className="text-text-muted text-xs mb-2 font-medium">{label}</p>
+      {payload.map((entry, i) => {
+        if (entry.value == null) return null
+        const isConf = entry.name === 'Upper Bound' || entry.name === 'Lower Bound'
+        if (isConf) return null   // hide raw confidence lines from tooltip
+        return (
+          <div key={i} className="flex items-center justify-between gap-4">
+            <span className="text-xs" style={{ color: entry.color }}>{entry.name}</span>
+            <span className="text-sm font-bold" style={{ color: entry.color }}>
+              {formatCurrency(entry.value, currency)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 /**
- * ForecastChart handles stitching historical data and predicted data
- * together into a unified AreaChart.
+ * ForecastChart
+ *
+ * Props
+ *   historical  – [{period, date, value}]  raw PKR integers
+ *   predicted   – [{period, date, value}]  raw PKR integers
+ *   upper       – number[]  upper confidence bound per predicted point (optional)
+ *   lower       – number[]  lower confidence bound per predicted point (optional)
+ *   metricName  – 'revenue' | 'expenses' | 'netCashFlow'
  */
-export default function ForecastChart({ historical = [], predicted = [], metricName = 'Value' }) {
-  const currency = useBusinessStore((s) => s.currency)
+export default function ForecastChart({
+  historical = [],
+  predicted  = [],
+  upper      = [],
+  lower      = [],
+  metricName = 'revenue',
+}) {
+  const currency = useBusinessStore(s => s.currency)
 
+  const COLOR = {
+    revenue:     '#34d399',
+    expenses:    '#f87171',
+    netCashFlow: '#06b6d4',
+  }[metricName] || '#06b6d4'
+
+  const CONF_COLOR = COLOR   // same hue, low opacity for band
+
+  /* ── Build unified chart dataset ── */
   const chartData = useMemo(() => {
-    // We want to link the last historical point to the first predicted point
-    // so the chart line doesn't break.
-    let combined = []
+    const data = []
 
-    if (historical.length > 0) {
-      combined = historical.map(item => ({
-        ...item,
-        actual: item.value,
+    // Historical points
+    historical.forEach(pt => {
+      data.push({
+        label:    pt.period || '',
+        date:     pt.date,
+        actual:   pt.value ?? 0,
         forecast: null,
-      }))
-    }
+        bandUpper: null,
+        bandLower: null,
+        isProjected: false,
+      })
+    })
 
-    if (predicted.length > 0) {
-      // Connect the lines by copying the last actual value as the start of the forecast
-      if (historical.length > 0) {
-        const lastHistorical = historical[historical.length - 1]
-        combined.push({
-          date: lastHistorical.date,
-          actual: null,
-          forecast: lastHistorical.value, // start the dashed line from here
-          isProjected: true
-        })
-      }
-
-      predicted.forEach(item => {
-        combined.push({
-          date: item.date,
-          actual: null,
-          forecast: item.value,
-          isProjected: true
-        })
+    // Stitch connector — carry last actual value so chart line doesn't break
+    if (historical.length > 0 && predicted.length > 0) {
+      const last = historical[historical.length - 1]
+      data.push({
+        label:    last.period || '',
+        date:     last.date,
+        actual:   null,
+        forecast: last.value ?? 0,
+        bandUpper: upper[0] ?? (last.value ? last.value * 1.04 : null),
+        bandLower: lower[0] ?? (last.value ? last.value * 0.96 : null),
+        isProjected: true,
       })
     }
 
-    return combined
-  }, [historical, predicted])
+    // Predicted points with confidence bands
+    predicted.forEach((pt, i) => {
+      data.push({
+        label:    pt.period || '',
+        date:     pt.date,
+        actual:   null,
+        forecast: pt.value ?? 0,
+        bandUpper: upper[i] != null ? upper[i] : (pt.value ? Math.round(pt.value * (1.04 + i * 0.015)) : null),
+        bandLower: lower[i] != null ? lower[i] : (pt.value ? Math.round(pt.value * (1 - 0.04 - i * 0.015)) : null),
+        isProjected: true,
+      })
+    })
 
-  // Determine colors based on metric
-  const colorMap = {
-    revenue: '#34d399', // Emerald
-    expenses: '#f87171', // Red
-    netCashFlow: '#06b6d4', // Cyan
-    default: '#06b6d4',
-  }
-  const themeColor = colorMap[metricName.toLowerCase()] || colorMap.default
+    return data
+  }, [historical, predicted, upper, lower])
 
-  // Find the point where projection begins to draw a reference line
-  const projectionStartPoint = useMemo(() => {
-    return chartData.find(d => d.isProjected)?.date
-  }, [chartData])
+  const projectionStart = useMemo(
+    () => chartData.find(d => d.isProjected)?.label,
+    [chartData]
+  )
 
-  if (!chartData || chartData.length === 0) {
+  if (!chartData.length) {
     return (
-      <div className="h-64 flex items-center justify-center text-text-muted border border-glass border-dashed rounded-xl">
-        No forecast data available. Generate a forecast to begin.
+      <div className="h-64 flex items-center justify-center text-text-muted border border-glass border-dashed rounded-xl text-sm">
+        No forecast data available.
       </div>
     )
   }
@@ -98,73 +128,109 @@ export default function ForecastChart({ historical = [], predicted = [], metricN
   return (
     <div className="w-full h-80 sm:h-96">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={chartData}
-          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-        >
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
           <defs>
-            {/* Actual Gradient */}
-            <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={themeColor} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={themeColor} stopOpacity={0} />
+            <linearGradient id={`grad-actual-${metricName}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={COLOR} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={COLOR} stopOpacity={0.02} />
             </linearGradient>
-            {/* Forecast Gradient (Lighter, dashed feel in CSS usually, but we lower opacity) */}
-            <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={themeColor} stopOpacity={0.15} />
-              <stop offset="95%" stopColor={themeColor} stopOpacity={0} />
+            <linearGradient id={`grad-forecast-${metricName}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={COLOR} stopOpacity={0.18} />
+              <stop offset="95%" stopColor={COLOR} stopOpacity={0.02} />
+            </linearGradient>
+            <linearGradient id={`grad-band-${metricName}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stopColor={CONF_COLOR} stopOpacity={0.10} />
+              <stop offset="100%" stopColor={CONF_COLOR} stopOpacity={0.02} />
             </linearGradient>
           </defs>
+
           <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-          <XAxis 
-            dataKey="date" 
-            stroke="#64748B" 
-            fontSize={12} 
-            tickLine={false} 
+
+          <XAxis
+            dataKey="label"
+            stroke="#64748B"
+            fontSize={11}
+            tickLine={false}
             axisLine={false}
-            tickFormatter={(val) => {
-              // Basic formatter e.g., "Jan 26"
-              if (!val) return ''
-              const d = new Date(val)
-              return `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear().toString().slice(-2)}`
-            }}
           />
-          <YAxis 
-            stroke="#64748B" 
-            fontSize={12} 
-            tickLine={false} 
+
+          <YAxis
+            stroke="#64748B"
+            fontSize={11}
+            tickLine={false}
             axisLine={false}
-            tickFormatter={(val) => {
-               // format millions/thousands
-               if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`
-               if (val >= 1000) return `${(val / 1000).toFixed(1)}k`
-               return val
-            }}
+            tickFormatter={formatPKR}
+            width={52}
           />
-          <Tooltip content={<CustomTooltip currency={currency} />} />
-          
-          {projectionStartPoint && (
-            <ReferenceLine x={projectionStartPoint} stroke="#64748B" strokeDasharray="3 3" label={{ position: 'top', value: 'Forecast', fill: '#64748B', fontSize: 10 }} />
+
+          <Tooltip
+            content={<CustomTooltip currency={currency} />}
+            cursor={{ stroke: COLOR, strokeWidth: 1, strokeDasharray: '4 4' }}
+          />
+
+          {projectionStart && (
+            <ReferenceLine
+              x={projectionStart}
+              stroke="#64748B"
+              strokeDasharray="4 4"
+              label={{ position: 'insideTopRight', value: 'Forecast →', fill: '#64748B', fontSize: 10 }}
+            />
           )}
 
-          <Area 
-            type="monotone" 
-            dataKey="actual" 
+          {/* Confidence band — upper fill */}
+          <Area
+            type="monotone"
+            dataKey="bandUpper"
+            name="Upper Bound"
+            stroke="none"
+            fill={`url(#grad-band-${metricName})`}
+            fillOpacity={1}
+            connectNulls
+            legendType="none"
+            dot={false}
+            activeDot={false}
+          />
+
+          {/* Confidence band — lower fill (covers the inner area so band = upper - lower) */}
+          <Area
+            type="monotone"
+            dataKey="bandLower"
+            name="Lower Bound"
+            stroke="none"
+            fill="transparent"
+            fillOpacity={1}
+            connectNulls
+            legendType="none"
+            dot={false}
+            activeDot={false}
+          />
+
+          {/* Historical actual line */}
+          <Area
+            type="monotone"
+            dataKey="actual"
             name="Actual"
-            stroke={themeColor} 
-            strokeWidth={2}
-            fillOpacity={1} 
-            fill="url(#colorActual)" 
+            stroke={COLOR}
+            strokeWidth={2.5}
+            fill={`url(#grad-actual-${metricName})`}
+            fillOpacity={1}
+            dot={{ fill: COLOR, r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: COLOR }}
             connectNulls
           />
-          <Area 
-            type="monotone" 
-            dataKey="forecast" 
-            name="Predicted"
-            stroke={themeColor} 
+
+          {/* Forecast dashed line */}
+          <Area
+            type="monotone"
+            dataKey="forecast"
+            name="Forecast"
+            stroke={COLOR}
             strokeWidth={2}
-            strokeDasharray="5 5"
-            fillOpacity={1} 
-            fill="url(#colorForecast)" 
+            strokeDasharray="6 4"
+            fill={`url(#grad-forecast-${metricName})`}
+            fillOpacity={1}
+            dot={{ fill: COLOR, r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: COLOR }}
             connectNulls
           />
         </AreaChart>
