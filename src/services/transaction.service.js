@@ -8,7 +8,10 @@ const transactionService = {
   reverse: (id) => api.delete(`/transactions/${id}`),
   
   // AR/AP & Settlements
-  getOutstandingBalances: (type) => api.get('/transactions/outstanding', { params: { type } }),
+  getOutstandingBalances: (type, opts = {}) =>
+    api.get('/transactions/outstanding', {
+      params: { type, ...(opts.withAging ? { withAging: 'true' } : {}) },
+    }),
   recordPayment: (data) => api.post('/transactions/payment', data),
   getSettlementHistory: (id) => api.get(`/transactions/${id}/settlements`),
 

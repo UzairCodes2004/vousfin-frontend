@@ -27,11 +27,19 @@ function StatCard({ icon: Icon, label, value, colorClass }) {
 }
 
 // ─── Filter tabs ───────────────────────────────────────────────────────────────
-
+//   scan    – fresh scan result (in-memory, includes confidence + breakdown)
+//   pending – stored alerts still awaiting review (includes 'rescanned')
+//   legit   – previously marked legitimate (suppressed in future scans)
+//   fraud   – confirmed fraud (kept tracked)
+//   ignored – dismissed by user (suppressed)
+//   history – everything for this business
 const TABS = [
-  { key: 'scan',    label: 'Latest Scan' },
-  { key: 'pending', label: 'Pending Review' },
-  { key: 'history', label: 'All Alerts' },
+  { key: 'scan',     label: 'Latest Scan',  status: null              },
+  { key: 'pending',  label: 'Pending',      status: 'pending'         },
+  { key: 'legit',    label: 'Legit',        status: 'marked_legit'    },
+  { key: 'fraud',    label: 'Fraud',        status: 'confirmed_fraud' },
+  { key: 'ignored',  label: 'Ignored',      status: 'ignored'         },
+  { key: 'history',  label: 'All',          status: null              },
 ]
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -59,22 +67,27 @@ export default function AnomalyReviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const runScan = useCallback(async () => {
+  const runScan = useCallback(async (opts = {}) => {
     try {
-      await fetchAnomalies()
+      const result = await fetchAnomalies(opts)
       setActiveTab('scan')
-      toast.success('Isolation Forest scan complete')
+      const msg = opts.force ? 'Force re-scan complete' : 'Ensemble scan complete'
+      if (result?.suppressed > 0) {
+        toast.success(`${msg} (${result.suppressed} previously cleared)`)
+      } else {
+        toast.success(msg)
+      }
     } catch (e) {
       toast.error(getErrorMessage(e))
     }
   }, [fetchAnomalies])
 
-  const handleTabChange = useCallback(async (tab) => {
-    setActiveTab(tab)
-    if (tab === 'scan') return // already in store from last scan
+  const handleTabChange = useCallback(async (tabKey) => {
+    setActiveTab(tabKey)
+    if (tabKey === 'scan') return
+    const tab = TABS.find(t => t.key === tabKey)
     try {
-      const status = tab === 'pending' ? 'pending' : null
-      await fetchStoredAlerts(status)
+      await fetchStoredAlerts(tab?.status || null)
     } catch (e) {
       toast.error(getErrorMessage(e))
     }
@@ -83,28 +96,30 @@ export default function AnomalyReviewPage() {
   const handleClassify = useCallback(async (anomaly, action) => {
     const alertId = anomaly.alertId || anomaly.id
     if (!alertId) {
-      // scan result only — no alertId yet; just give feedback
-      if (action === 'fraud') toast.error('Flagged as potential fraud')
-      else toast.success('Marked as legitimate')
+      // Scan result before persistence — just feedback to user
+      if (action === 'fraud')      toast.error('Flagged as potential fraud')
+      else if (action === 'ignore') toast.success('Anomaly ignored')
+      else                          toast.success('Marked as legitimate')
       return
     }
     try {
       await reviewAnomaly(String(alertId), action)
-      if (action === 'fraud') {
-        toast.error('Transaction flagged as potential fraud')
-      } else {
-        toast.success('Transaction marked as legitimate')
-      }
+      if      (action === 'fraud')  toast.error('Transaction flagged as potential fraud')
+      else if (action === 'ignore') toast.success('Anomaly ignored — will be suppressed in future scans')
+      else                          toast.success('Transaction marked as legitimate')
     } catch (e) {
       toast.error(getErrorMessage(e))
     }
   }, [reviewAnomaly])
 
-  const pending = anomalyStats?.pending ?? null
-  const confirmed = anomalyStats?.confirmed_issue ?? null
-  const reviewed = anomalyStats?.valid ?? null
-  const totalAlerts = pending != null && confirmed != null && reviewed != null
-    ? pending + confirmed + reviewed
+  // Stats merge new + legacy field names from the backend
+  const pending  = (anomalyStats?.pending ?? 0) + (anomalyStats?.pending_review ?? 0)
+                  + (anomalyStats?.rescanned ?? 0)
+  const confirmed = (anomalyStats?.confirmed_fraud ?? 0) + (anomalyStats?.confirmed_issue ?? 0)
+  const legit     = (anomalyStats?.marked_legit ?? 0) + (anomalyStats?.valid ?? 0)
+  const ignored   = anomalyStats?.ignored ?? 0
+  const totalAlerts = anomalyStats
+    ? pending + confirmed + legit + ignored
     : null
 
   const scanTotal = lastScanResult?.totalScanned ?? null
@@ -124,9 +139,20 @@ export default function AnomalyReviewPage() {
             Isolation Forest ML model analyses your last 90 days of transactions for fraud and irregularities.
           </p>
         </div>
-        <Button onClick={runScan} loading={loading} icon={RefreshCw}>
-          Run Scan
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => runScan()} loading={loading} icon={RefreshCw}>
+            Run Scan
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => runScan({ force: true })}
+            loading={loading}
+            title="Re-score every transaction, including ones you previously cleared"
+            className="text-xs"
+          >
+            Force re-scan
+          </Button>
+        </div>
       </div>
 
       {/* ── Stats cards ──────────────────────────────────────────────────── */}
@@ -178,26 +204,43 @@ export default function AnomalyReviewPage() {
       )}
 
       {/* ── Tab bar ──────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 p-1 rounded-xl bg-glass-panel border border-glass w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-              activeTab === tab.key
-                ? 'bg-cyan text-navy font-bold shadow-sm'
-                : 'text-text-secondary hover:text-text-primary'
-            )}
-          >
-            {tab.label}
-            {tab.key === 'pending' && pending != null && pending > 0 && (
-              <span className="ml-2 px-1.5 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400 text-[10px] font-bold">
-                {pending}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-glass-panel border border-glass w-fit">
+        {TABS.map((tab) => {
+          const tabCount =
+            tab.key === 'pending'  ? pending   :
+            tab.key === 'legit'    ? legit     :
+            tab.key === 'fraud'    ? confirmed :
+            tab.key === 'ignored'  ? ignored   :
+            tab.key === 'history'  ? totalAlerts :
+                                     null
+          return (
+            <button
+              key={tab.key}
+              onClick={() => handleTabChange(tab.key)}
+              className={cn(
+                'px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5',
+                activeTab === tab.key
+                  ? 'bg-cyan text-navy font-bold shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
+              )}
+            >
+              {tab.label}
+              {tabCount != null && tabCount > 0 && (
+                <span className={cn(
+                  'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
+                  activeTab === tab.key
+                    ? 'bg-navy/20 text-navy'
+                    : tab.key === 'pending' ? 'bg-yellow-400/20 text-yellow-400'
+                    : tab.key === 'fraud'   ? 'bg-red-400/20 text-red-400'
+                    : tab.key === 'legit'   ? 'bg-emerald-400/20 text-emerald-400'
+                    :                          'bg-glass-panel text-text-muted'
+                )}>
+                  {tabCount}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* ── Anomaly list ─────────────────────────────────────────────────── */}

@@ -58,15 +58,15 @@ export const useAIStore = create((set, get) => ({
   // ─── Anomaly detection ───────────────────────────────────────────────────────
 
   /**
-   * Trigger a fresh Isolation Forest scan.
-   * The backend scores all recent transactions and returns formatted anomalies[].
+   * Trigger a fresh anomaly scan (ensemble: IF + Z + heuristics + behavioural).
+   * @param {object} opts - { force?: boolean }
+   *                       force=true re-scores even previously-cleared txns
    */
-  fetchAnomalies: async () => {
+  fetchAnomalies: async (opts = {}) => {
     set({ loading: true })
     try {
-      const { data } = await aiService.anomalyDetection()
+      const { data } = await aiService.anomalyDetection(opts)
       const payload = data.data || {}
-      // payload.anomalies is always an array (backend guarantees this)
       const anomalies = Array.isArray(payload.anomalies) ? payload.anomalies : []
       set({ anomalies, lastScanResult: payload, loading: false })
       return payload
@@ -77,8 +77,8 @@ export const useAIStore = create((set, get) => ({
   },
 
   /**
-   * Load previously stored alerts from the database.
-   * Useful for the "History" tab or page refresh.
+   * Load previously stored alerts from the DB.
+   * @param {string|null} status - 'pending'|'marked_legit'|'confirmed_fraud'|'ignored'|'rescanned'|null
    */
   fetchStoredAlerts: async (status = null, page = 1) => {
     set({ loading: true })
@@ -97,18 +97,31 @@ export const useAIStore = create((set, get) => ({
   },
 
   /**
-   * Review an alert (mark as legitimate or fraud).
-   * Removes it from the pending list in state.
+   * Review an alert.
+   * @param {string} alertId
+   * @param {'legitimate'|'fraud'|'ignore'} action
+   * @param {string} notes
+   *
+   * Optimistic update: removes the alert from the visible list immediately,
+   * then refreshes stats so cards reflect the new counts.
    */
-  reviewAnomaly: async (alertId, action) => {
-    await aiService.reviewAnomalyAlert(alertId, action)
+  reviewAnomaly: async (alertId, action, notes = '') => {
+    // Optimistic remove
+    const prev = get().anomalies
     set((s) => ({
       anomalies: s.anomalies.filter(
         (a) => String(a.alertId || a.id) !== String(alertId)
       ),
     }))
-    // Refresh stats after review
-    get().fetchAnomalyStats().catch(() => {})
+    try {
+      await aiService.reviewAnomalyAlert(alertId, action, notes)
+      // Refresh stats after review
+      get().fetchAnomalyStats().catch(() => {})
+    } catch (e) {
+      // Rollback on failure
+      set({ anomalies: prev })
+      throw e
+    }
   },
 
   /**

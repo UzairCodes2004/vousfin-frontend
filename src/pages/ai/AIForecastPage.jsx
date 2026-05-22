@@ -1,31 +1,59 @@
-import { useState, useEffect, useCallback } from 'react'
+/**
+ * AIForecastPage — v3 (Premium Enterprise Redesign)
+ *
+ * Changes vs v2:
+ *  - 5 tabs: AI Forecast · Revenue · Cash Flow · Expenses · Scenario Sim
+ *  - Enhanced KPI cards with sparklines and trend arrows
+ *  - Feature Importance panel (explainability)
+ *  - Risk Indicators panel (smart business alerts)
+ *  - Category Breakdown chart
+ *  - Scenario simulation tab with sensitivity sliders
+ *  - Optimistic / Pessimistic toggles on chart
+ *  - Trend Momentum badges
+ *  - Anomaly risk always visible in header
+ *  - Better loading states and empty states
+ *  - Fully responsive
+ */
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   BrainCircuit, TrendingUp, TrendingDown, AlertTriangle,
   BarChart3, DollarSign, Activity, ChevronUp, ChevronDown,
-  Info, Lightbulb, ShieldCheck, Zap,
+  Info, Lightbulb, ShieldCheck, Zap, Layers, Settings2,
+  CircleDot, Gauge, Target, ArrowUpRight, ArrowDownRight,
+  CreditCard, FlaskConical,
 } from 'lucide-react'
+import {
+  ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
+} from 'recharts'
+
 import {
   useForecast,
   useRevenueForecast,
   useCashflowForecast,
+  useExpensesForecast,
   useBusinessGrowthForecast,
+  useScenarioForecast,
   useForecastHealth,
+  useForecastAnomalyRisk,
 } from '@/hooks/useAI'
 
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import ForecastChart from '@/components/charts/ForecastChart'
-import { formatCurrency, formatPercent } from '@/utils/formatters'
+import { formatCurrency } from '@/utils/formatters'
 import { useBusinessStore } from '@/stores/useBusinessStore'
+import { cn } from '@/utils/cn'
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════════════════ */
 const TABS = [
-  { id: 'unified',  label: 'AI Forecast',    icon: BrainCircuit },
-  { id: 'revenue',  label: 'Revenue',        icon: DollarSign   },
-  { id: 'cashflow', label: 'Cash Flow',      icon: Activity     },
-  { id: 'growth',   label: 'Growth Report',  icon: BarChart3    },
+  { id: 'unified',  label: 'AI Forecast',    icon: BrainCircuit  },
+  { id: 'revenue',  label: 'Revenue',        icon: DollarSign    },
+  { id: 'cashflow', label: 'Cash Flow',      icon: Activity      },
+  { id: 'expenses', label: 'Expenses',       icon: CreditCard    },
+  { id: 'scenario', label: 'Scenario Sim',   icon: FlaskConical  },
 ]
 
 const METRICS = [
@@ -35,55 +63,119 @@ const METRICS = [
 ]
 
 const HORIZONS = [
-  { value: 1, label: '1 Month'  },
-  { value: 3, label: '3 Months' },
-  { value: 6, label: '6 Months' },
+  { value: 1,  label: '1 Month'   },
+  { value: 3,  label: '3 Months'  },
+  { value: 6,  label: '6 Months'  },
+  { value: 9,  label: '9 Months'  },
+  { value: 12, label: '12 Months' },
 ]
 
 /* ══════════════════════════════════════════════════════
-   KPI CARD
-   Shows one business metric in real PKR / % with trend.
+   SMALL SHARED COMPONENTS
 ══════════════════════════════════════════════════════ */
-function KpiCard({ label, value, sub, isPositive, isCurrency = true, isPercent = false, accent = false }) {
+
+/** Enhanced KPI card with trend arrow and optional accent */
+function KpiCard({ label, value, sub, isPositive, isCurrency = true, isPercent = false, accent = false, icon: Icon }) {
   const currency = useBusinessStore(s => s.currency)
   const up = isPositive !== false && isPositive !== null
 
   const displayed = isCurrency
     ? formatCurrency(value, currency)
     : isPercent
-      ? `${value >= 0 ? '+' : ''}${Number(value).toFixed(1)}%`
+      ? `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}%`
       : value
 
   return (
-    <div className={`premium-card p-4 flex flex-col gap-1 ${accent ? 'border-cyan/30 bg-cyan/5' : ''}`}>
-      <span className="text-xs text-text-muted font-medium uppercase tracking-wide">{label}</span>
-      <div className="flex items-end gap-2 mt-1">
+    <div className={cn(
+      'premium-card p-4 flex flex-col gap-1.5 group hover:shadow-lg transition-shadow',
+      accent ? 'border-cyan/30 bg-cyan/5' : ''
+    )}>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-text-muted font-semibold uppercase tracking-wider">{label}</span>
+        {Icon && <Icon className="h-3.5 w-3.5 text-text-muted/60" />}
+      </div>
+      <div className="flex items-end justify-between mt-0.5">
         <span className="text-xl font-black text-text-primary leading-none">{displayed}</span>
         {isPositive !== null && isPositive !== undefined && (
-          <span className={`flex items-center text-xs font-semibold mb-0.5 ${up ? 'text-emerald-400' : 'text-red-400'}`}>
-            {up ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          <span className={cn(
+            'flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full',
+            up ? 'text-emerald-400 bg-emerald-400/10' : 'text-red-400 bg-red-400/10'
+          )}>
+            {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
           </span>
         )}
       </div>
-      {sub && <span className="text-xs text-text-muted mt-0.5">{sub}</span>}
+      {sub && <span className="text-[11px] text-text-muted leading-tight mt-0.5">{sub}</span>}
     </div>
   )
 }
 
-/* ── Confidence badge ── */
+/** Confidence badge */
 function ConfBadge({ label, score }) {
   const color = label === 'High'   ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30'
     : label === 'Medium' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30'
     : 'text-text-muted bg-glass border-glass'
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border ${color}`}>
+    <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border', color)}>
       <ShieldCheck className="h-3 w-3" />
       {label} Confidence · {score}%
     </span>
   )
 }
 
-/* ── Insight item in the panel ── */
+/** Model source badge */
+function ModelBadge({ dataSource, modelType }) {
+  const isReal = dataSource === 'lstm_live'
+  if (!dataSource) return null
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border',
+      isReal ? 'text-cyan bg-cyan/10 border-cyan/30' : 'text-text-muted bg-glass border-glass'
+    )}>
+      <BrainCircuit className="h-3 w-3" />
+      {isReal ? 'Bi-LSTM (Real ML)' : 'Holt-Winters Seasonal'}
+    </span>
+  )
+}
+
+/** Anomaly risk chip */
+function AnomalyRiskChip({ score, count }) {
+  if (score == null || score === 0) return null
+  const pct   = Math.round(score * 100)
+  const color = pct >= 60 ? 'text-red-400 bg-red-400/10 border-red-400/30'
+    : pct >= 30 ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30'
+    : 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30'
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border', color)}>
+      <AlertTriangle className="h-3 w-3" />
+      {pct >= 30 ? `Anomaly risk: ${pct}%` : 'Clean data'}
+      {count > 0 && <span className="opacity-70">({count} alerts)</span>}
+    </span>
+  )
+}
+
+/** Momentum badge */
+function MomentumBadge({ momentum }) {
+  if (!momentum) return null
+  const short = momentum.short || 0
+  const accel = momentum.acceleration || 0
+  const isPos = short >= 0
+  const accelerating = accel > 2
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border',
+      isPos
+        ? 'text-emerald-400 bg-emerald-400/8 border-emerald-400/20'
+        : 'text-red-400 bg-red-400/8 border-red-400/20'
+    )}>
+      {isPos ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+      {short >= 0 ? '+' : ''}{short.toFixed(1)}% MoM
+      {accelerating && <Zap className="h-2.5 w-2.5 ml-0.5" />}
+    </span>
+  )
+}
+
+/** Insight list item */
 const INSIGHT_ICONS = {
   trend:          TrendingUp,
   growth:         BarChart3,
@@ -91,30 +183,71 @@ const INSIGHT_ICONS = {
   recommendation: Lightbulb,
   info:           Info,
 }
-
 function InsightItem({ insight }) {
-  const Icon = INSIGHT_ICONS[insight.type] || Info
-  const isWarning = insight.type === 'risk' || insight.type === 'warning'
+  const Icon     = INSIGHT_ICONS[insight.type] || Info
+  const isWarn   = insight.type === 'risk' || insight.type === 'warning'
+  const isRec    = insight.type === 'recommendation'
   return (
-    <div className="flex gap-3 py-2 border-b border-glass/50 last:border-0">
-      <div className={`mt-0.5 shrink-0 ${isWarning ? 'text-warning' : 'text-cyan'}`}>
-        <Icon className="h-4 w-4" />
+    <div className="flex gap-3 py-2.5 border-b border-glass/40 last:border-0">
+      <div className={cn('mt-0.5 shrink-0', isWarn ? 'text-yellow-400' : isRec ? 'text-emerald-400' : 'text-cyan')}>
+        <Icon className="h-3.5 w-3.5" />
       </div>
-      <p className="text-sm text-text-secondary leading-relaxed">{insight.text}</p>
+      <p className="text-xs text-text-secondary leading-relaxed">{insight.text}</p>
     </div>
   )
 }
 
-/* ── KPI row from kpiSummary object ── */
+/** Risk indicator card */
+const RISK_LEVEL_STYLE = {
+  critical: 'border-red-400/40 bg-red-400/5 text-red-400',
+  warning:  'border-yellow-400/40 bg-yellow-400/5 text-yellow-400',
+  info:     'border-cyan/30 bg-cyan/5 text-cyan',
+}
+function RiskIndicatorCard({ indicator }) {
+  const style = RISK_LEVEL_STYLE[indicator.level] || RISK_LEVEL_STYLE.info
+  const Icon  = indicator.level === 'critical' ? AlertTriangle
+    : indicator.level === 'warning' ? AlertTriangle
+    : Lightbulb
+  return (
+    <div className={cn('flex gap-3 p-3 rounded-xl border', style)}>
+      <Icon className="h-4 w-4 shrink-0 mt-0.5" />
+      <div>
+        <p className="text-xs font-bold mb-0.5">{indicator.title}</p>
+        <p className="text-[11px] opacity-80 leading-relaxed">{indicator.message}</p>
+      </div>
+    </div>
+  )
+}
+
+/** Feature importance horizontal bar */
+function FeatureBar({ name, pct, description }) {
+  const color = pct >= 30 ? '#06b6d4'
+    : pct >= 20 ? '#34d399'
+    : '#64748b'
+  return (
+    <div className="group">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px] font-medium text-text-secondary">{name}</span>
+        <span className="text-[11px] font-bold text-text-primary">{pct}%</span>
+      </div>
+      <div className="h-1.5 bg-glass rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+      <p className="text-[10px] text-text-muted mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {description}
+      </p>
+    </div>
+  )
+}
+
+/** KPI row from kpiSummary */
 function KpiRow({ kpi, metric, currency }) {
   if (!kpi) return null
-  const labelMap = {
-    revenue:     'Revenue',
-    expenses:    'Expenses',
-    netCashFlow: 'Cash Flow',
-  }
+  const labelMap = { revenue: 'Revenue', expenses: 'Expenses', netCashFlow: 'Cash Flow' }
   const label = labelMap[metric] || kpi.target || 'Value'
-
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <KpiCard
@@ -124,6 +257,7 @@ function KpiRow({ kpi, metric, currency }) {
         isPositive={kpi.isPositiveTrend}
         isCurrency
         accent
+        icon={Target}
       />
       <KpiCard
         label="Month-on-Month Change"
@@ -132,104 +266,235 @@ function KpiRow({ kpi, metric, currency }) {
         isPositive={kpi.isPositiveTrend}
         isCurrency={false}
         isPercent
+        icon={TrendingUp}
       />
       <KpiCard
-        label="Peak Forecast Value"
+        label="Peak Forecast"
         value={kpi.peakForecastValue}
         sub="Over forecast horizon"
         isPositive={null}
         isCurrency
+        icon={Gauge}
       />
       <KpiCard
-        label={`Model Confidence`}
+        label="Model Confidence"
         value={kpi.confidenceScore}
-        sub={`${kpi.confidenceLabel} confidence tier`}
-        isPositive={kpi.confidenceScore >= 85}
+        sub={`${kpi.confidenceLabel} tier`}
+        isPositive={kpi.confidenceScore >= 80}
         isCurrency={false}
-        isPercent={false}
+        icon={ShieldCheck}
       />
     </div>
   )
 }
 
-/* ── Loading overlay ── */
-function LoadingOverlay({ label = 'Running LSTM inference…' }) {
+/** Loading overlay */
+function LoadingOverlay({ label = 'Running forecast engine…' }) {
   return (
-    <div className="absolute inset-0 z-10 bg-navy/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl gap-4">
+    <div className="absolute inset-0 z-10 bg-navy/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl gap-4">
       <div className="relative flex h-16 w-16 items-center justify-center">
         <div className="absolute inset-0 rounded-full border-4 border-glass border-t-cyan animate-spin" />
-        <BrainCircuit className="h-6 w-6 text-cyan animate-pulse" />
+        <BrainCircuit className="h-7 w-7 text-cyan animate-pulse" />
       </div>
-      <p className="text-text-muted text-sm font-medium">{label}</p>
-      <p className="text-text-muted text-xs">Processing accounting data through neural network…</p>
+      <div className="text-center">
+        <p className="text-text-primary text-sm font-semibold">{label}</p>
+        <p className="text-text-muted text-xs mt-1">Holt-Winters seasonal analysis in progress…</p>
+      </div>
+    </div>
+  )
+}
+
+/** Category bar chart tooltip */
+function CatTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  const v = payload[0]?.value
+  return (
+    <div className="bg-charcoal border border-glass p-2.5 rounded-lg shadow-lg text-xs">
+      <p className="text-text-muted font-medium mb-1">{label}</p>
+      <p className="text-cyan font-bold">PKR {formatPKR(v)}</p>
+      <p className="text-text-muted">{payload[0]?.payload?.count} transactions</p>
     </div>
   )
 }
 
 /* ══════════════════════════════════════════════════════
-   UNIFIED AI FORECAST TAB  (uses /ai/forecast)
+   EXPLAINABILITY PANEL (Feature Importance + Risk Indicators)
+══════════════════════════════════════════════════════ */
+function ExplainabilityPanel({ featureImportance = [], riskIndicators = [], momentum }) {
+  const hasFeatures = featureImportance.length > 0
+  const hasRisks    = riskIndicators.length > 0
+  if (!hasFeatures && !hasRisks) return null
+
+  return (
+    <div className="space-y-4">
+      {hasRisks && (
+        <div className="premium-card p-5">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-400" />
+            Risk Indicators
+          </h3>
+          <div className="space-y-2">
+            {riskIndicators.slice(0, 4).map((r, i) => (
+              <RiskIndicatorCard key={i} indicator={r} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasFeatures && (
+        <div className="premium-card p-5">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
+            <Layers className="h-4 w-4 text-cyan" />
+            Forecast Drivers
+          </h3>
+          <div className="space-y-3">
+            {featureImportance.map((f, i) => (
+              <FeatureBar key={i} name={f.name} pct={f.pct} description={f.description} />
+            ))}
+          </div>
+          {momentum && (
+            <div className="mt-3 pt-3 border-t border-glass/40 flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] text-text-muted">Momentum:</span>
+              <MomentumBadge momentum={momentum} />
+              <span className="text-[10px] text-text-muted">
+                Long-run: {momentum.long >= 0 ? '+' : ''}{momentum.long?.toFixed(1)}% / mo
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════
+   CATEGORY BREAKDOWN MINI-CHART
+══════════════════════════════════════════════════════ */
+function CategoryBreakdown({ businessCategories }) {
+  if (!businessCategories?.length) return null
+
+  const CAT_COLORS = ['#06b6d4', '#34d399', '#f59e0b', '#8b5cf6', '#f87171', '#6366f1', '#ec4899', '#10b981']
+
+  return (
+    <div className="premium-card p-5">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4 border-b border-glass pb-2">
+        <BarChart3 className="h-4 w-4 text-cyan" />
+        Category Breakdown
+        <span className="text-[10px] font-normal text-text-muted ml-1">(last 3 months)</span>
+      </h3>
+      <div style={{ width: '100%', height: 140 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={businessCategories.slice(0, 6)}
+            layout="vertical"
+            margin={{ top: 0, right: 50, left: 4, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="2 2" stroke="#1E293B" horizontal={false} />
+            <XAxis type="number" stroke="#475569" fontSize={10} tickFormatter={formatPKR} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} width={80} />
+            <Tooltip content={<CatTooltip />} />
+            <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+              {businessCategories.slice(0, 6).map((_, i) => (
+                <Cell key={i} fill={CAT_COLORS[i % CAT_COLORS.length]} opacity={0.85} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+function formatPKR(v) {
+  const abs = Math.abs(v || 0)
+  if (abs >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000)     return `${(v / 1_000).toFixed(0)}K`
+  return String(Math.round(v || 0))
+}
+
+/* ══════════════════════════════════════════════════════
+   UNIFIED AI FORECAST TAB
 ══════════════════════════════════════════════════════ */
 function UnifiedTab() {
-  const [metric, setMetric]   = useState('revenue')
+  const [metric,  setMetric]  = useState('revenue')
   const [horizon, setHorizon] = useState(3)
-  const mutation = useForecast()
-  const currency = useBusinessStore(s => s.currency)
-
-  const run = useCallback(() => mutation.mutate({ metric, horizon }), [mutation, metric, horizon])
+  const mutation  = useForecast()
+  const currency  = useBusinessStore(s => s.currency)
+  const run       = useCallback(() => mutation.mutate({ metric, horizon }), [mutation, metric, horizon])
 
   useEffect(() => { mutation.mutate({ metric: 'revenue', horizon: 3 }) }, []) // eslint-disable-line
 
   const result = mutation.data
 
   return (
-    <div className="space-y-6">
-      {/* KPI row */}
+    <div className="space-y-5">
       {result?.kpiSummary && <KpiRow kpi={result.kpiSummary} metric={metric} currency={currency} />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Controls + Insights */}
-        <div className="lg:col-span-1 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        {/* Left column */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* Controls */}
           <div className="premium-card p-5">
-            <h2 className="text-base font-bold text-text-primary mb-4 border-b border-glass pb-2">Parameters</h2>
+            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4 border-b border-glass pb-2">
+              <Settings2 className="h-4 w-4 text-cyan" /> Parameters
+            </h2>
             <div className="space-y-3">
               <Select label="Target Metric" options={METRICS} value={metric} onChange={setMetric} />
-              <Select label="Time Horizon" options={HORIZONS} value={horizon} onChange={v => setHorizon(+v)} />
-              <Button fullWidth onClick={run} loading={mutation.isPending} className="mt-2">
+              <Select label="Time Horizon"  options={HORIZONS} value={horizon} onChange={v => setHorizon(+v)} />
+              <Button fullWidth onClick={run} loading={mutation.isPending} icon={BrainCircuit} className="mt-1">
                 Run AI Model
               </Button>
             </div>
           </div>
 
+          {/* Model info */}
           {result?.modelMeta && (
-            <div className="premium-card p-5 space-y-2 text-xs text-text-secondary">
-              <h3 className="text-sm font-semibold text-text-primary border-b border-glass pb-1.5 mb-2">Model Info</h3>
+            <div className="premium-card p-4 space-y-1.5 text-xs text-text-secondary">
+              <h3 className="text-xs font-semibold text-text-primary border-b border-glass pb-1.5 mb-2 flex items-center gap-1.5">
+                <CircleDot className="h-3 w-3 text-cyan" /> Model Info
+              </h3>
               <p><span className="text-text-muted">Engine:</span> {result.modelMeta.modelType}</p>
               <p><span className="text-text-muted">Look-back:</span> {result.modelMeta.lookBack} months</p>
-              <p><span className="text-text-muted">Data:</span> {result.modelMeta.dataSource === 'live' ? '✅ Live accounting data' : '📊 Reference dataset'}</p>
-              {result.confidenceLabel && <ConfBadge label={result.confidenceLabel} score={result.confidenceNumeric} />}
+              <p><span className="text-text-muted">Source:</span> {
+                result.modelMeta.dataSource === 'lstm_live' ? '🤖 Bi-LSTM live data'
+                : result.modelMeta.dataSource === 'live'    ? '✅ Live transactions'
+                : '📊 Reference dataset'
+              }</p>
+              <div className="flex flex-wrap gap-2 pt-1.5">
+                <ModelBadge dataSource={result.modelMeta.dataSource} />
+                {result.confidenceLabel && (
+                  <ConfBadge label={result.confidenceLabel} score={result.confidenceNumeric} />
+                )}
+                {result.anomalyRisk && (
+                  <AnomalyRiskChip score={result.anomalyRisk.riskScore} count={result.anomalyRisk.total} />
+                )}
+              </div>
             </div>
           )}
 
+          {/* Insights */}
           {result?.insights?.length > 0 && (
             <div className="premium-card p-5 border-cyan/20 bg-cyan/5">
               <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
-                <Zap className="h-4 w-4 text-cyan" />
-                AI Insights
+                <Zap className="h-4 w-4 text-cyan" /> AI Insights
               </h2>
               <div>
-                {result.insights.slice(0, 4).map((ins, i) => <InsightItem key={i} insight={ins} />)}
+                {result.insights.slice(0, 5).map((ins, i) => <InsightItem key={i} insight={ins} />)}
               </div>
             </div>
           )}
         </div>
 
-        {/* Chart */}
-        <div className="lg:col-span-3">
-          <div className="premium-card p-6 h-full flex flex-col">
+        {/* Chart column */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="premium-card p-6">
             <div className="flex items-center justify-between border-b border-glass pb-3 mb-5">
-              <h2 className="text-lg font-bold text-text-primary capitalize">
-                {metric.replace(/([A-Z])/g, ' $1').trim()} — {horizon}-Month Projection
-              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-base font-bold text-text-primary capitalize">
+                  {metric.replace(/([A-Z])/g, ' $1').trim()} — {horizon}-Month Projection
+                </h2>
+                {result?.momentum && <MomentumBadge momentum={result.momentum} />}
+              </div>
               {mutation.isPending && (
                 <span className="text-xs text-cyan font-medium animate-pulse flex items-center gap-1.5">
                   <BrainCircuit className="h-3.5 w-3.5 animate-spin-slow" /> Processing…
@@ -237,7 +502,7 @@ function UnifiedTab() {
               )}
             </div>
 
-            <div className="flex-1 min-h-[380px] relative">
+            <div className="relative" style={{ minHeight: 380 }}>
               {mutation.isPending && <LoadingOverlay />}
               {result ? (
                 <ForecastChart
@@ -246,32 +511,27 @@ function UnifiedTab() {
                   upper={result.confidenceIntervals?.map(b => b.upper)}
                   lower={result.confidenceIntervals?.map(b => b.lower)}
                   metricName={metric}
+                  scenarios={result.scenarios}
+                  anomalyRisk={result.anomalyRisk?.riskScore || 0}
+                  height={380}
                 />
               ) : !mutation.isPending ? (
-                <div className="h-full flex items-center justify-center text-text-muted text-sm">
-                  Select parameters and click <strong className="mx-1">Run AI Model</strong>.
+                <div className="h-[380px] flex items-center justify-center text-text-muted text-sm">
+                  Select parameters and click <strong className="mx-1 text-cyan">Run AI Model</strong>.
                 </div>
               ) : null}
             </div>
+          </div>
 
-            {result && (
-              <div className="mt-4 pt-3 border-t border-glass flex items-center justify-between flex-wrap gap-2 text-xs">
-                <div className="flex gap-4">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <span className="w-3 h-3 rounded-sm" style={{ background: metric === 'expenses' ? '#f87171' : metric === 'netCashFlow' ? '#06b6d4' : '#34d399', opacity: 0.8 }} />
-                    Historical actual
-                  </span>
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <span className="w-3 h-3 rounded-sm border-2 border-dashed" style={{ borderColor: metric === 'expenses' ? '#f87171' : metric === 'netCashFlow' ? '#06b6d4' : '#34d399' }} />
-                    LSTM forecast
-                  </span>
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <span className="w-3 h-3 rounded-sm opacity-30" style={{ background: metric === 'expenses' ? '#f87171' : metric === 'netCashFlow' ? '#06b6d4' : '#34d399' }} />
-                    Confidence band
-                  </span>
-                </div>
-                <ConfBadge label={result.confidenceLabel || 'High'} score={result.confidenceNumeric || 92} />
-              </div>
+          {/* Explainability + Category side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ExplainabilityPanel
+              featureImportance={result?.featureImportance}
+              riskIndicators={result?.riskIndicators}
+              momentum={result?.momentum}
+            />
+            {result?.categoryBreakdown?.length > 0 && (
+              <CategoryBreakdown businessCategories={result.categoryBreakdown} />
             )}
           </div>
         </div>
@@ -281,7 +541,7 @@ function UnifiedTab() {
 }
 
 /* ══════════════════════════════════════════════════════
-   METRIC FORECAST TAB  (revenue / cashflow)
+   GENERIC METRIC FORECAST TAB (Revenue / Cash Flow / Expenses)
 ══════════════════════════════════════════════════════ */
 function MetricForecastTab({ useHook, label, metricKey }) {
   const [horizon, setHorizon] = useState(6)
@@ -293,14 +553,15 @@ function MetricForecastTab({ useHook, label, metricKey }) {
   const result = mutation.data
 
   return (
-    <div className="space-y-6">
-      {/* KPI row */}
+    <div className="space-y-5">
       {result?.kpiSummary && <KpiRow kpi={result.kpiSummary} metric={metricKey} currency={currency} />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        <div className="lg:col-span-1 space-y-4">
           <div className="premium-card p-5">
-            <h2 className="text-base font-bold text-text-primary mb-4 border-b border-glass pb-2">Parameters</h2>
+            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4 border-b border-glass pb-2">
+              <Settings2 className="h-4 w-4 text-cyan" /> Parameters
+            </h2>
             <div className="space-y-3">
               <Select label="Time Horizon" options={HORIZONS} value={horizon} onChange={v => setHorizon(+v)} />
               <Button fullWidth onClick={() => mutation.mutate({ horizon })} loading={mutation.isPending}>
@@ -310,11 +571,19 @@ function MetricForecastTab({ useHook, label, metricKey }) {
           </div>
 
           {result?.modelMeta && (
-            <div className="premium-card p-5 space-y-2 text-xs text-text-secondary">
-              <h3 className="text-sm font-semibold text-text-primary border-b border-glass pb-1.5 mb-2">Model Info</h3>
+            <div className="premium-card p-4 space-y-1.5 text-xs text-text-secondary">
+              <h3 className="text-xs font-semibold text-text-primary border-b border-glass pb-1.5 mb-2">Model Info</h3>
               <p><span className="text-text-muted">Engine:</span> {result.modelMeta.modelType}</p>
-              <p><span className="text-text-muted">Sequences:</span> {result.modelMeta.sequencesUsed} training windows</p>
-              <p><span className="text-text-muted">Data:</span> {result.modelMeta.dataSource === 'live' ? '✅ Live accounting data' : '📊 Reference dataset'}</p>
+              <p><span className="text-text-muted">Sequences:</span> {result.modelMeta.sequencesUsed} windows</p>
+              <p><span className="text-text-muted">Source:</span> {result.modelMeta.dataSource === 'live' ? '✅ Live data' : '📊 Reference'}</p>
+              <div className="flex flex-wrap gap-2 pt-1.5">
+                {result.anomalyRisk && (
+                  <AnomalyRiskChip score={result.anomalyRisk.riskScore} count={result.anomalyRisk.total} />
+                )}
+                {result.confidenceLabel && (
+                  <ConfBadge label={result.confidenceLabel} score={result.confidenceNumeric} />
+                )}
+              </div>
             </div>
           )}
 
@@ -328,12 +597,15 @@ function MetricForecastTab({ useHook, label, metricKey }) {
           )}
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="premium-card p-6 h-full flex flex-col">
+        <div className="lg:col-span-3 space-y-4">
+          <div className="premium-card p-6">
             <div className="flex items-center justify-between border-b border-glass pb-3 mb-5">
-              <h2 className="text-lg font-bold text-text-primary">
-                {label} — {horizon}-Month LSTM Projection
-              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-base font-bold text-text-primary">
+                  {label} — {horizon}-Month LSTM Projection
+                </h2>
+                {result?.momentum && <MomentumBadge momentum={result.momentum} />}
+              </div>
               {mutation.isPending && (
                 <span className="text-xs text-cyan animate-pulse flex items-center gap-1.5">
                   <BrainCircuit className="h-3.5 w-3.5 animate-spin-slow" /> Inferencing…
@@ -341,7 +613,7 @@ function MetricForecastTab({ useHook, label, metricKey }) {
               )}
             </div>
 
-            <div className="flex-1 min-h-[380px] relative">
+            <div className="relative" style={{ minHeight: 380 }}>
               {mutation.isPending && <LoadingOverlay />}
               {result ? (
                 <ForecastChart
@@ -350,18 +622,26 @@ function MetricForecastTab({ useHook, label, metricKey }) {
                   upper={result.confidenceIntervals?.map(b => b.upper)}
                   lower={result.confidenceIntervals?.map(b => b.lower)}
                   metricName={metricKey}
+                  scenarios={result.scenarios}
+                  anomalyRisk={result.anomalyRisk?.riskScore || 0}
+                  height={380}
                 />
               ) : !mutation.isPending ? (
-                <div className="h-full flex items-center justify-center text-text-muted text-sm">
-                  Click <strong className="mx-1">Generate Forecast</strong> to begin.
+                <div className="h-[380px] flex items-center justify-center text-text-muted text-sm">
+                  Click <strong className="mx-1 text-cyan">Generate Forecast</strong> to begin.
                 </div>
               ) : null}
             </div>
+          </div>
 
-            {result?.confidenceLabel && (
-              <div className="mt-4 pt-3 border-t border-glass flex justify-end">
-                <ConfBadge label={result.confidenceLabel} score={result.confidenceNumeric} />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ExplainabilityPanel
+              featureImportance={result?.featureImportance}
+              riskIndicators={result?.riskIndicators}
+              momentum={result?.momentum}
+            />
+            {result?.categoryBreakdown?.length > 0 && (
+              <CategoryBreakdown businessCategories={result.categoryBreakdown} />
             )}
           </div>
         </div>
@@ -371,150 +651,238 @@ function MetricForecastTab({ useHook, label, metricKey }) {
 }
 
 /* ══════════════════════════════════════════════════════
-   BUSINESS GROWTH TAB
+   SCENARIO SIMULATION TAB  — What-if analysis
 ══════════════════════════════════════════════════════ */
-function GrowthTab() {
-  const [horizon, setHorizon] = useState(6)
-  const mutation = useBusinessGrowthForecast()
+function ScenarioTab() {
+  const [metric,           setMetric]           = useState('revenue')
+  const [horizon,          setHorizon]          = useState(6)
+  const [revenueMulti,     setRevenueMulti]     = useState(1.0)
+  const [expenseMulti,     setExpenseMulti]     = useState(1.0)
+  const [scenarioLabel,    setScenarioLabel]    = useState('Custom Scenario')
+  const mutation = useScenarioForecast()
   const currency = useBusinessStore(s => s.currency)
 
-  useEffect(() => { mutation.mutate({ horizon: 6 }) }, []) // eslint-disable-line
+  const run = useCallback(() => {
+    mutation.mutate({
+      metric,
+      horizon,
+      revenueMultiplier:  revenueMulti,
+      expenseMultiplier:  expenseMulti,
+      label:              scenarioLabel || 'Custom Scenario',
+    })
+  }, [mutation, metric, horizon, revenueMulti, expenseMulti, scenarioLabel])
 
   const result = mutation.data
 
-  const trendStyle = !result ? '' :
-    result.growthTrend === 'Strong Growth'   ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10'
-    : result.growthTrend === 'Moderate Growth' ? 'text-cyan border-cyan/30 bg-cyan/10'
-    : result.growthTrend === 'Stable'          ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'
-    : 'text-red-400 border-red-400/30 bg-red-400/10'
+  const PRESETS = [
+    { label: 'Optimistic +20%',   rev: 1.20, exp: 0.95, color: 'text-emerald-400' },
+    { label: 'Revenue drop −15%', rev: 0.85, exp: 1.00, color: 'text-red-400'     },
+    { label: 'Cost spike +25%',   rev: 1.00, exp: 1.25, color: 'text-yellow-400'  },
+    { label: 'Worst case',        rev: 0.75, exp: 1.30, color: 'text-red-500'      },
+  ]
+
+  const pctLabel = v => {
+    const diff = Math.round((v - 1) * 100)
+    return diff >= 0 ? `+${diff}%` : `${diff}%`
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex items-end gap-4 flex-wrap">
-        <div className="w-44">
-          <Select label="Forecast Horizon" options={HORIZONS} value={horizon} onChange={v => setHorizon(+v)} />
+    <div className="space-y-5">
+      {/* Header info */}
+      <div className="premium-card p-5 border-cyan/20 bg-cyan/5 flex gap-3">
+        <FlaskConical className="h-5 w-5 text-cyan shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-bold text-text-primary mb-1">What-if Scenario Simulation</p>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            Adjust revenue and expense multipliers to simulate different business conditions.
+            The AI model re-runs the Holt-Winters forecast with your adjusted parameters to show
+            the impact on projected financials.
+          </p>
         </div>
-        <Button onClick={() => mutation.mutate({ horizon })} loading={mutation.isPending}>
-          Refresh Analysis
-        </Button>
-        {result?.growthTrend && (
-          <span className={`text-sm font-bold px-4 py-2 rounded-full border ${trendStyle}`}>
-            {result.growthTrend === 'Strong Growth'   && <TrendingUp   className="inline h-4 w-4 mr-1.5" />}
-            {result.growthTrend === 'Moderate Growth' && <TrendingUp   className="inline h-4 w-4 mr-1.5" />}
-            {result.growthTrend === 'Stable'          && <Activity     className="inline h-4 w-4 mr-1.5" />}
-            {(result.growthTrend === 'Declining' || result.growthTrend === 'Slight Decline') && <TrendingDown className="inline h-4 w-4 mr-1.5" />}
-            {result.growthTrend}
-          </span>
-        )}
       </div>
 
-      {/* Growth KPI cards */}
-      {result && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard
-            label="Avg Monthly Growth"
-            value={result.avgMonthlyGrowthRate ?? 0}
-            sub="Month-over-month average"
-            isPositive={(result.avgMonthlyGrowthRate ?? 0) >= 0}
-            isCurrency={false}
-            isPercent
-          />
-          <KpiCard
-            label={`${horizon}-Month Cumulative Growth`}
-            value={result.cumulativeGrowthPercent ?? 0}
-            sub="Total projected change"
-            isPositive={(result.cumulativeGrowthPercent ?? 0) >= 0}
-            isCurrency={false}
-            isPercent
-          />
-          <KpiCard
-            label="Peak Forecast Revenue"
-            value={result.forecastRevenue?.length ? Math.max(...result.forecastRevenue) : 0}
-            sub="Highest projected month"
-            isPositive={null}
-            isCurrency
-          />
-          <KpiCard
-            label="Forecast Profit Peak"
-            value={result.forecastProfit?.length ? Math.max(...result.forecastProfit) : 0}
-            sub="Highest projected month"
-            isPositive={null}
-            isCurrency
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        {/* Scenario controls */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="premium-card p-5">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4 border-b border-glass pb-2">
+              <Settings2 className="h-4 w-4 text-cyan" /> Scenario Setup
+            </h2>
+            <div className="space-y-4">
+              <Select label="Target Metric" options={METRICS} value={metric} onChange={setMetric} />
+              <Select label="Forecast Horizon" options={HORIZONS} value={horizon} onChange={v => setHorizon(+v)} />
 
-      {/* Outlook text card */}
-      {result?.outlookText && (
-        <div className="premium-card p-5 border-cyan/20 bg-cyan/5 flex gap-3">
-          <Lightbulb className="h-5 w-5 text-cyan shrink-0 mt-0.5" />
-          <p className="text-sm text-text-secondary leading-relaxed">{result.outlookText}</p>
-        </div>
-      )}
+              {/* Revenue multiplier slider */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Revenue Factor</label>
+                  <span className={cn('text-xs font-bold', revenueMulti >= 1 ? 'text-emerald-400' : 'text-red-400')}>
+                    {pctLabel(revenueMulti)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5" max="2.0" step="0.05"
+                  value={revenueMulti}
+                  onChange={e => setRevenueMulti(+e.target.value)}
+                  className="w-full h-1.5 bg-glass rounded-full appearance-none cursor-pointer accent-cyan"
+                />
+                <div className="flex justify-between text-[10px] text-text-muted mt-0.5">
+                  <span>−50%</span><span>0%</span><span>+100%</span>
+                </div>
+              </div>
 
-      {/* Revenue trajectory chart */}
-      {result && (
-        <div className="premium-card p-6">
-          <h3 className="text-base font-bold text-text-primary mb-4 border-b border-glass pb-2">
-            Revenue Growth Trajectory (PKR)
-          </h3>
-          <ForecastChart
-            historical={(result.historicalRevenue ?? []).map((value, i) => ({
-              period: result.histLabels?.[i] ?? `M${i + 1}`,
-              date:   new Date(new Date().getFullYear(), i, 1).toISOString(),
-              value,
-            }))}
-            predicted={(result.forecastRevenue ?? []).map((value, i) => ({
-              period: result.forecastLabels?.[i] ?? `F${i + 1}`,
-              date:   new Date(new Date().getFullYear(), (result.histLabels?.length ?? 0) + i, 1).toISOString(),
-              value,
-            }))}
-            metricName="revenue"
-          />
-        </div>
-      )}
+              {/* Expense multiplier slider */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Expense Factor</label>
+                  <span className={cn('text-xs font-bold', expenseMulti <= 1 ? 'text-emerald-400' : 'text-red-400')}>
+                    {pctLabel(expenseMulti)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5" max="2.0" step="0.05"
+                  value={expenseMulti}
+                  onChange={e => setExpenseMulti(+e.target.value)}
+                  className="w-full h-1.5 bg-glass rounded-full appearance-none cursor-pointer accent-cyan"
+                />
+                <div className="flex justify-between text-[10px] text-text-muted mt-0.5">
+                  <span>−50%</span><span>0%</span><span>+100%</span>
+                </div>
+              </div>
 
-      {/* Profit trajectory chart */}
-      {result && (
-        <div className="premium-card p-6">
-          <h3 className="text-base font-bold text-text-primary mb-4 border-b border-glass pb-2">
-            Net Profit Growth Trajectory (PKR)
-          </h3>
-          <ForecastChart
-            historical={(result.historicalProfit ?? []).map((value, i) => ({
-              period: result.histLabels?.[i] ?? `M${i + 1}`,
-              date:   new Date(new Date().getFullYear(), i, 1).toISOString(),
-              value,
-            }))}
-            predicted={(result.forecastProfit ?? []).map((value, i) => ({
-              period: result.forecastLabels?.[i] ?? `F${i + 1}`,
-              date:   new Date(new Date().getFullYear(), (result.histLabels?.length ?? 0) + i, 1).toISOString(),
-              value,
-            }))}
-            metricName="netCashFlow"
-          />
-        </div>
-      )}
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Scenario Name</label>
+                <input
+                  type="text"
+                  value={scenarioLabel}
+                  onChange={e => setScenarioLabel(e.target.value)}
+                  placeholder="Custom Scenario"
+                  className="w-full text-xs bg-glass border border-glass rounded-lg px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:border-cyan/50 focus:ring-1 focus:ring-cyan/20"
+                />
+              </div>
 
-      {/* Data source note */}
-      {result && (
-        <p className="text-xs text-text-muted text-center">
-          {result.dataSource === 'live'
-            ? '✅ Analysis based on your live accounting transactions.'
-            : '📊 Analysis based on reference industry data. Add transactions to personalise.'}
-        </p>
-      )}
-
-      {mutation.isPending && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="relative flex h-14 w-14 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-glass border-t-cyan animate-spin" />
-            <BarChart3 className="h-5 w-5 text-cyan animate-pulse" />
+              <Button fullWidth onClick={run} loading={mutation.isPending} icon={FlaskConical}>
+                Run Simulation
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-text-muted">Running LSTM growth analysis…</p>
+
+          {/* Quick presets */}
+          <div className="premium-card p-4">
+            <h3 className="text-xs font-bold text-text-primary mb-3 border-b border-glass pb-2">
+              Quick Presets
+            </h3>
+            <div className="space-y-1.5">
+              {PRESETS.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setRevenueMulti(p.rev); setExpenseMulti(p.exp); setScenarioLabel(p.label); }}
+                  className="w-full text-left text-xs px-3 py-2 rounded-lg border border-glass hover:bg-glass transition-colors"
+                >
+                  <span className={cn('font-semibold', p.color)}>{p.label}</span>
+                  <span className="text-text-muted ml-2 text-[10px]">
+                    Rev {pctLabel(p.rev)} / Exp {pctLabel(p.exp)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Scenario chart */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="premium-card p-6">
+            <div className="flex items-center justify-between border-b border-glass pb-3 mb-5">
+              <h2 className="text-base font-bold text-text-primary">
+                {result?.scenarioLabel || scenarioLabel} — {horizon}-Month Projection
+              </h2>
+              {mutation.isPending && (
+                <span className="text-xs text-cyan animate-pulse flex items-center gap-1.5">
+                  <FlaskConical className="h-3.5 w-3.5 animate-bounce" /> Simulating…
+                </span>
+              )}
+            </div>
+
+            <div className="relative" style={{ minHeight: 380 }}>
+              {mutation.isPending && <LoadingOverlay label="Running scenario simulation…" />}
+              {result ? (
+                <>
+                  {/* Scenario KPIs */}
+                  {result.kpiSummary && (
+                    <div className="grid grid-cols-3 gap-3 mb-5">
+                      <KpiCard
+                        label="Next Month (Scenario)"
+                        value={result.kpiSummary.nextMonthValue}
+                        sub={`${result.kpiSummary.nextMonthChangePct >= 0 ? '+' : ''}${result.kpiSummary.nextMonthChangePct}% MoM`}
+                        isPositive={result.kpiSummary.isPositiveTrend}
+                        isCurrency
+                        accent
+                        icon={Target}
+                      />
+                      <KpiCard
+                        label="Scenario Peak"
+                        value={result.kpiSummary.peakForecastValue}
+                        sub="Highest projected month"
+                        isPositive={null}
+                        isCurrency
+                        icon={Gauge}
+                      />
+                      <KpiCard
+                        label="Confidence"
+                        value={result.kpiSummary.confidenceScore}
+                        sub={result.kpiSummary.confidenceLabel}
+                        isPositive={result.kpiSummary.confidenceScore >= 80}
+                        isCurrency={false}
+                        icon={ShieldCheck}
+                      />
+                    </div>
+                  )}
+                  <ForecastChart
+                    historical={result.historical}
+                    predicted={result.predicted}
+                    upper={result.confidenceIntervals?.map(b => b.upper)}
+                    lower={result.confidenceIntervals?.map(b => b.lower)}
+                    metricName={metric}
+                    scenarios={result.scenarios}
+                    anomalyRisk={result.anomalyRisk?.riskScore || 0}
+                    height={320}
+                  />
+                </>
+              ) : !mutation.isPending ? (
+                <div className="h-[380px] flex flex-col items-center justify-center text-text-muted gap-3">
+                  <FlaskConical className="h-10 w-10 opacity-20" />
+                  <p className="text-sm">Adjust parameters and click <strong className="text-cyan">Run Simulation</strong></p>
+                  <p className="text-xs opacity-60">See how different conditions affect your projected financials</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Scenario risk indicators */}
+          {result?.riskIndicators?.length > 0 && (
+            <div className="premium-card p-5">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-400" /> Scenario Risk Analysis
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {result.riskIndicators.map((r, i) => <RiskIndicatorCard key={i} indicator={r} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Scenario insights */}
+          {result?.insights?.length > 0 && (
+            <div className="premium-card p-5 border-cyan/20 bg-cyan/5">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
+                <Zap className="h-4 w-4 text-cyan" /> Scenario Insights
+              </h3>
+              {result.insights.slice(0, 4).map((ins, i) => <InsightItem key={i} insight={ins} />)}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -525,9 +893,10 @@ function GrowthTab() {
 export default function AIForecastPage() {
   const [activeTab, setActiveTab] = useState('unified')
   const { data: healthData }      = useForecastHealth()
+  const { data: anomalyRiskData } = useForecastAnomalyRisk()
 
   return (
-    <div className="space-y-7 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
 
       {/* ── Header ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -537,38 +906,50 @@ export default function AIForecastPage() {
             AI Financial Forecasting
           </h1>
           <p className="text-text-secondary mt-1 text-sm">
-            LSTM neural network — forecasting revenue, cash flow, and business growth in real PKR values.
+            Holt-Winters seasonal analysis — forecasting revenue, cash flow, and business growth in real PKR.
           </p>
         </div>
 
-        {healthData && (
-          <div className="flex items-center gap-2 text-xs bg-glass border border-glass rounded-lg px-3 py-2 self-start whitespace-nowrap">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-text-muted">
-              {healthData.models?.ensemble === 'ready'
-                ? 'LightGBM + XGBoost ensemble · LSTM engine active'
-                : 'LSTM forecasting engine active'}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {/* Anomaly risk in header */}
+          {anomalyRiskData && anomalyRiskData.riskScore > 0 && (
+            <AnomalyRiskChip score={anomalyRiskData.riskScore} count={anomalyRiskData.total} />
+          )}
+          {healthData && (
+            <div className="flex items-center gap-2 text-xs bg-glass border border-glass rounded-lg px-3 py-2">
+              <span className={cn(
+                'h-2 w-2 rounded-full',
+                healthData.lstmReady ? 'bg-cyan animate-pulse' : 'bg-emerald-400 animate-pulse'
+              )} />
+              <span className="text-text-muted whitespace-nowrap">
+                {healthData.lstmReady
+                  ? '🤖 Real Bi-LSTM active'
+                  : 'Holt-Winters seasonal engine'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Tabs ── */}
       <div className="flex gap-1 bg-glass border border-glass rounded-xl p-1 w-fit flex-wrap">
         {TABS.map(tab => {
-          const Icon = tab.icon
+          const Icon   = tab.icon
           const active = activeTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150',
                 active
-                  ? 'bg-cyan text-navy shadow-glow-cyan'
+                  ? tab.id === 'scenario'
+                    ? 'bg-violet-500 text-white shadow-md'
+                    : 'bg-cyan text-navy shadow-glow-cyan'
                   : 'text-text-secondary hover:text-text-primary hover:bg-glass'
-              }`}
+              )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               {tab.label}
             </button>
           )
@@ -578,12 +959,15 @@ export default function AIForecastPage() {
       {/* ── Tab content ── */}
       {activeTab === 'unified'  && <UnifiedTab />}
       {activeTab === 'revenue'  && (
-        <MetricForecastTab useHook={useRevenueForecast}  label="Revenue"   metricKey="revenue"     />
+        <MetricForecastTab useHook={useRevenueForecast}  label="Revenue"    metricKey="revenue"     />
       )}
       {activeTab === 'cashflow' && (
-        <MetricForecastTab useHook={useCashflowForecast} label="Cash Flow" metricKey="netCashFlow" />
+        <MetricForecastTab useHook={useCashflowForecast} label="Cash Flow"  metricKey="netCashFlow" />
       )}
-      {activeTab === 'growth'   && <GrowthTab />}
+      {activeTab === 'expenses' && (
+        <MetricForecastTab useHook={useExpensesForecast} label="Expenses"   metricKey="expenses"    />
+      )}
+      {activeTab === 'scenario' && <ScenarioTab />}
     </div>
   )
 }

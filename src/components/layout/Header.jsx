@@ -6,16 +6,26 @@ export default function Header({ toggleMobileDrawer }) {
   const user = useAuthStore((s) => s.user)
   const location = useLocation()
 
-  // Simple title generator based on route
+  // Page title based on current route
   const getPageTitle = () => {
     const path = location.pathname
-    if (path.includes('/dashboard')) return 'Dashboard'
-    if (path.includes('/transactions')) return 'Transactions'
-    if (path.includes('/customers')) return 'Customers'
-    if (path.includes('/vendors')) return 'Vendors'
-    if (path.includes('/reports')) return 'Reports'
-    if (path.includes('/ai')) return 'AI Assistant'
-    if (path.includes('/business')) return 'Business Settings'
+    if (path.startsWith('/dashboard'))           return 'Dashboard'
+    if (path.startsWith('/accounts'))            return 'Accounts'
+    if (path.startsWith('/transactions'))        return 'Transactions'
+    if (path.startsWith('/sales/receivables'))   return 'Receivables'
+    if (path.startsWith('/purchases/payables'))  return 'Payables'
+    if (path.match(/^\/customers\/[^/]+/))       return 'Customer Detail'
+    if (path.startsWith('/customers'))           return 'Customers'
+    if (path.match(/^\/vendors\/[^/]+/))         return 'Vendor Detail'
+    if (path.startsWith('/vendors'))             return 'Vendors'
+    if (path.startsWith('/sales'))               return 'Sales'
+    if (path.startsWith('/purchases'))           return 'Purchases'
+    if (path.startsWith('/financial-reports'))   return 'Financial Reports'
+    if (path.startsWith('/ai-analyst'))          return 'AI Analyst'
+    if (path.startsWith('/ai/assistant'))        return 'AI Assistant'
+    if (path.startsWith('/ai'))                  return 'AI'
+    if (path.startsWith('/reports'))             return 'Reports'
+    if (path.startsWith('/business'))            return 'Business Settings'
     return 'vousFin'
   }
 

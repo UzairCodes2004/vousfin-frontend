@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 import api from '@/services/api'
 import { forecastService } from '@/services/forecast.service'
 
-// ── Existing: AI module forecast (uses /ai/forecast) ──
+// ── AI module forecast (uses /ai/forecast route — backward compat) ──
 export function useForecast() {
   return useMutation({
     mutationFn: async ({ metric, horizon }) => {
@@ -16,33 +16,60 @@ export function useForecast() {
   })
 }
 
-// ── Revenue forecast via dedicated LSTM endpoint ──
+// ── Dedicated LSTM endpoints ──
 export function useRevenueForecast() {
   return useMutation({
     mutationFn: ({ horizon = 6 }) => forecastService.revenue(horizon),
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to generate revenue forecast')
-    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to generate revenue forecast'),
   })
 }
 
-// ── Cash flow forecast via dedicated LSTM endpoint ──
 export function useCashflowForecast() {
   return useMutation({
     mutationFn: ({ horizon = 6 }) => forecastService.cashflow(horizon),
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to generate cash flow forecast')
-    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to generate cash flow forecast'),
   })
 }
 
-// ── Business growth forecast ──
+export function useExpensesForecast() {
+  return useMutation({
+    mutationFn: ({ horizon = 6 }) => forecastService.expenses(horizon),
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to generate expense forecast'),
+  })
+}
+
 export function useBusinessGrowthForecast() {
   return useMutation({
     mutationFn: ({ horizon = 6 }) => forecastService.businessGrowth(horizon),
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to generate growth forecast')
-    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to generate growth forecast'),
+  })
+}
+
+// ── NEW: Scenario simulation ──
+export function useScenarioForecast() {
+  return useMutation({
+    mutationFn: (params) => forecastService.scenario(params),
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to run scenario simulation'),
+  })
+}
+
+// ── NEW: Category breakdown ──
+export function useCategoryBreakdown(months = 3) {
+  return useQuery({
+    queryKey: ['categoryBreakdown', months],
+    queryFn:  () => forecastService.categoryBreakdown(months),
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  })
+}
+
+// ── NEW: Anomaly risk for forecast ──
+export function useForecastAnomalyRisk() {
+  return useQuery({
+    queryKey: ['forecastAnomalyRisk'],
+    queryFn:  forecastService.anomalyRisk,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 }
 
@@ -50,7 +77,7 @@ export function useBusinessGrowthForecast() {
 export function useForecastHealth() {
   return useQuery({
     queryKey: ['forecastHealth'],
-    queryFn: forecastService.health,
+    queryFn:  forecastService.health,
     staleTime: 5 * 60 * 1000,
     retry: false,
   })

@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import Drawer from '@/components/ui/Drawer'
+import GlobalAIWidget from '@/components/ai/GlobalAIWidget'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 
@@ -47,6 +48,9 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
+
+      {/* Global AI Assistant widget — persists across all route changes */}
+      <GlobalAIWidget />
     </div>
   )
 }

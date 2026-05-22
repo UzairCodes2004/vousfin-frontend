@@ -10,17 +10,20 @@ const aiService = {
   forecast: (metric, horizon) =>
     api.post('/ai/forecast', { metric, horizon }),
 
-  // Triggers a fresh Isolation Forest scan; returns scan summary + anomalies[]
-  anomalyDetection: () =>
-    api.post('/ai/anomaly-scan'),
+  // Triggers a fresh anomaly scan; returns scan summary + anomalies[]
+  // Pass { force: true } to override decision-suppression (full re-scan)
+  anomalyDetection: (opts = {}) =>
+    api.post('/ai/anomaly-scan', opts),
 
-  // Fetches previously stored alerts from DB (paginated)
+  // Fetches previously stored alerts from DB (paginated, filterable by status)
+  // Supported statuses: pending | marked_legit | confirmed_fraud | ignored | rescanned
   getAnomalyAlerts: (params = {}) =>
     api.get('/ai/anomaly-alerts', { params }),
 
-  // Review a stored alert: action = 'legitimate' | 'fraud'
-  reviewAnomalyAlert: (alertId, action) =>
-    api.put(`/ai/anomaly-alerts/${alertId}/review`, { action }),
+  // Review a stored alert: action = 'legitimate' | 'fraud' | 'ignore'
+  // Optional `notes` for reviewer comments
+  reviewAnomalyAlert: (alertId, action, notes = '') =>
+    api.put(`/ai/anomaly-alerts/${alertId}/review`, { action, notes }),
 
   // Alert counts by status for stats cards
   getAnomalyStats: () =>

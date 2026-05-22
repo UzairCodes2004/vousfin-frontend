@@ -1,85 +1,193 @@
-import { NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import {
   LayoutDashboard,
   Receipt,
   Users,
   Briefcase,
-  LineChart,
   BrainCircuit,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   BookOpen,
-  PieChart,
-  Scale,
-  MessageSquare,
-  ShieldAlert,
-  Download
+  FileBarChart2,
+  ShoppingCart,
+  PackageOpen,
+  Wallet,
+  CreditCard,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 
-const navItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Accounts', href: '/accounts', icon: BookOpen },
-  { name: 'Transactions', href: '/transactions', icon: Receipt },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Vendors', href: '/vendors', icon: Briefcase },
-  { name: 'Income Statement', href: '/reports/income-statement', icon: LineChart },
-  { name: 'Balance Sheet', href: '/reports/balance-sheet', icon: Scale },
-  { name: 'Cash Flow', href: '/reports/cash-flow', icon: PieChart },
-  { name: 'Trial Balance', href: '/reports/trial-balance', icon: BookOpen },
-  { name: 'Export Reports', href: '/reports/export', icon: Download },
-  { name: 'AI Forecast', href: '/ai/forecast', icon: BrainCircuit },
-  { name: 'AI Assistant', href: '/ai/assistant', icon: MessageSquare },
-  { name: 'Anomaly Detection', href: '/ai/anomaly', icon: ShieldAlert },
-  { name: 'Settings', href: '/business/settings', icon: Settings },
+/*
+ * Two kinds of entries:
+ *   - { kind: 'link',  name, href, icon }
+ *   - { kind: 'group', name, icon, key, children: [...links] }
+ */
+const NAV = [
+  { kind: 'link',  name: 'Dashboard',    href: '/dashboard',    icon: LayoutDashboard },
+  { kind: 'link',  name: 'Accounts',     href: '/accounts',     icon: BookOpen        },
+  { kind: 'link',  name: 'Transactions', href: '/transactions', icon: Receipt         },
+  {
+    kind: 'group', name: 'Sales', icon: ShoppingCart, key: 'sales',
+    children: [
+      { name: 'Customers',   href: '/customers',         icon: Users  },
+      { name: 'Receivables', href: '/sales/receivables', icon: Wallet },
+    ],
+  },
+  {
+    kind: 'group', name: 'Purchases', icon: PackageOpen, key: 'purchases',
+    children: [
+      { name: 'Vendors',  href: '/vendors',           icon: Briefcase  },
+      { name: 'Payables', href: '/purchases/payables', icon: CreditCard },
+    ],
+  },
+  { kind: 'link',  name: 'Financial Reports', href: '/financial-reports', icon: FileBarChart2 },
+  { kind: 'link',  name: 'AI Analyst',        href: '/ai-analyst',        icon: BrainCircuit  },
+  { kind: 'link',  name: 'Settings',          href: '/business/settings', icon: Settings      },
 ]
+
+/* Decide which group should be expanded based on current URL */
+function activeGroupKey(pathname) {
+  for (const item of NAV) {
+    if (item.kind === 'group') {
+      if (item.children.some((c) => pathname.startsWith(c.href))) return item.key
+    }
+  }
+  return null
+}
 
 export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false, closeMobile }) {
   const logout = useAuthStore((s) => s.logout)
+  const location = useLocation()
+
+  /*
+   * Group open state is DERIVED from the active route, with a manual override
+   * map that lets the user collapse/expand against the default. Auto-derived
+   * state in render avoids the "setState in effect" anti-pattern.
+   */
+  const activeKey = activeGroupKey(location.pathname)
+  const [overrides, setOverrides] = useState({})
+
+  const compact = isCollapsed && !isMobile  // text-hidden mode
+
+  const isGroupOpen = (key) =>
+    Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : key === activeKey
+
+  const toggleGroup = (key) =>
+    setOverrides((m) => ({ ...m, [key]: !isGroupOpen(key) }))
+
+  /* ── Renderers ────────────────────────────────────────────────────── */
+
+  const linkClass = (isActive) => cn(
+    'group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-premium',
+    isActive
+      ? 'bg-glass-panel text-cyan border border-glass shadow-glow-cyan/10'
+      : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary',
+    compact && 'justify-center px-0'
+  )
+
+  const renderLink = (item) => (
+    <NavLink
+      key={item.name}
+      to={item.href}
+      onClick={isMobile ? closeMobile : undefined}
+      className={({ isActive }) => linkClass(isActive)}
+      title={compact ? item.name : undefined}
+    >
+      <item.icon className={cn('flex-shrink-0', compact ? 'h-5 w-5' : 'mr-3 h-5 w-5')} />
+      {!compact && item.name}
+    </NavLink>
+  )
+
+  const renderGroupChild = (child, depth = 1) => (
+    <NavLink
+      key={child.name}
+      to={child.href}
+      onClick={isMobile ? closeMobile : undefined}
+      className={({ isActive }) => cn(
+        'group flex items-center rounded-lg text-sm font-medium transition-premium',
+        depth === 1 && !compact ? 'pl-10 pr-3 py-2' : 'px-3 py-2.5',
+        isActive
+          ? 'bg-glass-panel text-cyan border border-glass'
+          : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary',
+        compact && 'justify-center px-0'
+      )}
+      title={compact ? child.name : undefined}
+    >
+      <child.icon className={cn('flex-shrink-0', compact ? 'h-5 w-5' : 'mr-3 h-4 w-4')} />
+      {!compact && child.name}
+    </NavLink>
+  )
+
+  const renderGroup = (item) => {
+    /* In collapsed mode: show children as flat icons (no expand toggle) */
+    if (compact) {
+      return (
+        <div key={item.key} className="space-y-1.5">
+          {item.children.map((c) => renderGroupChild(c, 0))}
+        </div>
+      )
+    }
+
+    const isOpen = isGroupOpen(item.key)
+    const anyChildActive = item.children.some((c) => location.pathname.startsWith(c.href))
+
+    return (
+      <div key={item.key}>
+        <button
+          type="button"
+          onClick={() => toggleGroup(item.key)}
+          className={cn(
+            'group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-premium',
+            anyChildActive
+              ? 'text-cyan'
+              : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
+          )}
+        >
+          <span className="flex items-center">
+            <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+            {item.name}
+          </span>
+          <ChevronDown className={cn(
+            'h-4 w-4 transition-transform duration-200',
+            isOpen ? 'rotate-0' : '-rotate-90'
+          )} />
+        </button>
+        {isOpen && (
+          <div className="mt-1 space-y-1">
+            {item.children.map((c) => renderGroupChild(c, 1))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  /* ── Body ─────────────────────────────────────────────────────────── */
 
   const SidebarContent = (
     <div className="flex h-full flex-col justify-between">
       <div>
-        <div className={cn("flex items-center mb-8 px-4", isCollapsed && !isMobile ? "justify-center" : "justify-between")}>
-          {(!isCollapsed || isMobile) && (
+        <div className={cn(
+          'flex items-center mb-8 px-4',
+          compact ? 'justify-center' : 'justify-between'
+        )}>
+          {!compact && (
             <span className="text-2xl font-black tracking-tight text-text-primary">
               vous<span className="text-gradient">Fin</span>
             </span>
           )}
-          {isCollapsed && !isMobile && (
+          {compact && (
             <span className="text-2xl font-black text-cyan">vF</span>
           )}
         </div>
 
         <nav className="space-y-1.5 px-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              onClick={isMobile ? closeMobile : undefined}
-              className={({ isActive }) =>
-                cn(
-                  'group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-premium',
-                  isActive
-                    ? 'bg-glass-panel text-cyan border border-glass shadow-glow-cyan/10'
-                    : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary',
-                  isCollapsed && !isMobile && 'justify-center px-0'
-                )
-              }
-              title={isCollapsed && !isMobile ? item.name : undefined}
-            >
-              <item.icon
-                className={cn(
-                  'flex-shrink-0 transition-colors',
-                  isCollapsed && !isMobile ? 'h-5 w-5' : 'mr-3 h-5 w-5'
-                )}
-              />
-              {(!isCollapsed || isMobile) && item.name}
-            </NavLink>
-          ))}
+          {NAV.map((item) =>
+            item.kind === 'link' ? renderLink(item) : renderGroup(item)
+          )}
         </nav>
       </div>
 
@@ -88,8 +196,8 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
           <button
             onClick={toggleCollapse}
             className={cn(
-              "flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-glass-hover transition-premium",
-              isCollapsed ? "justify-center" : ""
+              'flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-glass-hover transition-premium',
+              isCollapsed ? 'justify-center' : ''
             )}
           >
             {isCollapsed ? <ChevronRight className="h-5 w-5" /> : (
@@ -102,13 +210,13 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
         <button
           onClick={logout}
           className={cn(
-            "flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-premium",
-            isCollapsed && !isMobile && "justify-center"
+            'flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-premium',
+            compact && 'justify-center'
           )}
-          title={isCollapsed && !isMobile ? "Log out" : undefined}
+          title={compact ? 'Log out' : undefined}
         >
-          <LogOut className={cn("flex-shrink-0", isCollapsed && !isMobile ? "h-5 w-5" : "mr-3 h-5 w-5")} />
-          {(!isCollapsed || isMobile) && "Log out"}
+          <LogOut className={cn('flex-shrink-0', compact ? 'h-5 w-5' : 'mr-3 h-5 w-5')} />
+          {!compact && 'Log out'}
         </button>
       </div>
     </div>
@@ -123,11 +231,11 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
             isCollapsed ? 'w-20' : 'w-64'
           )}
         >
-          <div className="flex-1 py-6">{SidebarContent}</div>
+          <div className="flex-1 py-6 overflow-y-auto scrollbar-thin">{SidebarContent}</div>
         </aside>
       )}
       {isMobile && (
-        <div className="flex-1 py-6">{SidebarContent}</div>
+        <div className="flex-1 py-6 overflow-y-auto scrollbar-thin">{SidebarContent}</div>
       )}
     </>
   )

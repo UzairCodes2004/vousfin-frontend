@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { MessageSquare, LayoutList, Upload, CheckCircle, AlertTriangle, Loader2, X } from 'lucide-react'
+import { MessageSquare, LayoutList, Upload, CheckCircle, AlertTriangle, Loader2, X, ChevronUp, ChevronDown } from 'lucide-react'
 import Modal from '@/components/modals/Modal'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
@@ -570,11 +570,27 @@ function StructuredFormTab({ currency, onSuccess, onCancel }) {
   )
 }
 
+// ─── Confidence badge ─────────────────────────────────────────────────────────
+function ConfBadge({ label, score }) {
+  const cls =
+    label === 'High'   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+    label === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                         'bg-red-500/10 text-red-400 border-red-500/20'
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold leading-none ${cls}`}>
+      {score}%
+    </span>
+  )
+}
+
 // ─── Tab 3: Excel / CSV Import ─────────────────────────────────────────────────
 function ExcelTab({ onSuccess, onCancel }) {
-  const [step, setStep] = useState('upload') // 'upload' | 'preview'
-  const [preview, setPreview] = useState(null)
-  const fileInputRef = useRef(null)
+  const [step, setStep]         = useState('upload') // 'upload' | 'preview'
+  const [preview, setPreview]   = useState(null)
+  const [rows, setRows]         = useState([])       // editable copy of validRows
+  const [editingIdx, setEditingIdx] = useState(null) // index of row being inline-edited
+  const [showErrors, setShowErrors] = useState(false)
+  const fileInputRef            = useRef(null)
   const [dragOver, setDragOver] = useState(false)
 
   const excelPreview = useExcelPreview()
@@ -583,100 +599,213 @@ function ExcelTab({ onSuccess, onCancel }) {
   const handleFile = async (file) => {
     if (!file) return
     const ext = file.name.split('.').pop().toLowerCase()
-    if (!['xlsx', 'xls', 'csv'].includes(ext)) {
-      return
-    }
+    if (!['xlsx', 'xls', 'csv'].includes(ext)) return
     const result = await excelPreview.mutateAsync(file)
     if (result) {
       setPreview(result)
+      setRows(result.validRows ? [...result.validRows] : [])
       setStep('preview')
+      setEditingIdx(null)
     }
   }
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    setDragOver(false)
+    e.preventDefault(); setDragOver(false)
     const file = e.dataTransfer.files?.[0]
     if (file) handleFile(file)
   }
 
   const handleConfirm = async () => {
-    if (!preview?.validRows?.length) return
-    await excelConfirm.mutateAsync(preview.validRows)
+    if (!rows.length) return
+    await excelConfirm.mutateAsync(rows)
     onSuccess()
   }
 
+  // Inline-edit helpers
+  const updateRow = (idx, field, value) =>
+    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
+
+  const fmtDate = (raw) => {
+    if (!raw) return '—'
+    const s = typeof raw === 'string' ? raw : new Date(raw).toISOString()
+    return s.split('T')[0]
+  }
+  const fmtAmt = (n) => Number(n || 0).toLocaleString('en-PK')
+
+  // ── Preview step ─────────────────────────────────────────────────────────────
   if (step === 'preview' && preview) {
+    const stats = preview.confidenceStats || {}
+    const fi    = preview.fileInfo        || {}
+    const dupes = preview.duplicatesFound || 0
+
     return (
-      <div className="space-y-5 animate-fade-in">
-        {/* Summary Banner */}
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-glass-panel border border-glass">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-text-primary">{preview.validCount} rows ready to import</p>
-            {preview.invalidCount > 0 && (
-              <p className="text-xs text-amber-400 mt-0.5">{preview.invalidCount} rows have errors and will be skipped</p>
-            )}
+      <div className="space-y-4 animate-fade-in">
+
+        {/* ── Summary bar ── */}
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-glass bg-glass-panel px-4 py-3">
+          <div className="space-y-0.5">
+            <p className="text-sm font-semibold text-text-primary">
+              {rows.length} rows ready to import
+              {preview.invalidCount > 0 && (
+                <span className="ml-2 text-xs text-amber-400">({preview.invalidCount} skipped)</span>
+              )}
+            </p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {fi.format && (
+                <span className="text-text-muted font-mono uppercase">{fi.format}</span>
+              )}
+              {stats.high   > 0 && <span className="text-emerald-400">● {stats.high} High</span>}
+              {stats.medium > 0 && <span className="text-amber-400">● {stats.medium} Medium</span>}
+              {stats.low    > 0 && <span className="text-red-400">● {stats.low} Low confidence</span>}
+              {dupes        > 0 && <span className="text-amber-400">⚠ {dupes} duplicate{dupes > 1 ? 's' : ''}</span>}
+            </div>
           </div>
-          <Button variant="ghost" onClick={() => setStep('upload')} disabled={excelConfirm.isPending}>
-            <X className="h-4 w-4 mr-1" /> Change File
+          <Button variant="ghost" size="sm" onClick={() => { setStep('upload'); setPreview(null); setRows([]); }}
+            disabled={excelConfirm.isPending}>
+            <X className="h-3.5 w-3.5 mr-1" /> Change file
           </Button>
         </div>
 
-        {/* Error List */}
+        {/* ── Error list (collapsible) ── */}
         {preview.errors?.length > 0 && (
-          <div className="max-h-32 overflow-y-auto scrollbar-thin space-y-1 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-            {preview.errors.map((err, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs text-red-400">
-                <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                <span>Row {err.row}: {err.message}</span>
-              </div>
-            ))}
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5">
+            <button type="button" onClick={() => setShowErrors(v => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-red-400">
+              <span><AlertTriangle className="inline h-3 w-3 mr-1" />{preview.errors.length} row{preview.errors.length > 1 ? 's' : ''} with errors — click to {showErrors ? 'hide' : 'view'}</span>
+              {showErrors ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+            {showErrors && (
+              <ul className="max-h-36 overflow-auto border-t border-red-500/20 divide-y divide-red-500/10">
+                {preview.errors.map((e, i) => (
+                  <li key={i} className="px-3 py-1.5 text-xs text-red-400">
+                    <span className="font-semibold">Row {e.row}</span>
+                    {e.field && e.field !== 'general' && <span className="ml-1 rounded bg-red-500/10 px-1 font-mono text-[10px]">{e.field}</span>}
+                    {' '}{e.message}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {/* Preview Table */}
-        <div className="overflow-x-auto scrollbar-thin rounded-lg border border-glass max-h-64">
-          <table className="w-full text-sm">
+        {/* ── Preview table with confidence + inline edit ── */}
+        <div className="overflow-x-auto scrollbar-thin rounded-lg border border-glass max-h-72">
+          <table className="w-full text-xs">
             <thead className="sticky top-0 bg-bg3 border-b border-glass">
               <tr>
-                {['Date', 'Description', 'Type', 'Amount', 'Debit', 'Credit'].map(h => (
-                  <th key={h} className="text-left px-3 py-2 text-xs font-medium text-text-secondary uppercase tracking-wider">{h}</th>
+                {['#', 'Date', 'Description', 'Amount', 'Debit → Credit', 'Conf.'].map(h => (
+                  <th key={h} className="px-2 py-2 text-left font-medium text-text-secondary uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-glass">
-              {preview.validRows.map((row, idx) => (
-                <tr key={idx} className="hover:bg-glass-hover transition-colors">
-                  <td className="px-3 py-2 text-text-secondary whitespace-nowrap">{row.transactionDate?.split('T')[0] || row.date}</td>
-                  <td className="px-3 py-2 text-text-primary max-w-[180px] truncate">{row.description}</td>
-                  <td className="px-3 py-2 text-text-secondary">{row.transactionType}</td>
-                  <td className="px-3 py-2 text-text-primary font-medium">{row.amount}</td>
-                  <td className="px-3 py-2 text-text-secondary truncate max-w-[100px]">{row.debitAccountName || row.debitAccount || '—'}</td>
-                  <td className="px-3 py-2 text-text-secondary truncate max-w-[100px]">{row.creditAccountName || row.creditAccount || '—'}</td>
-                </tr>
-              ))}
+              {rows.map((row, idx) => {
+                const isEditing  = editingIdx === idx
+                const hasDupe    = row.isDuplicate
+                const hasInferred = row.inferredFields?.length > 0
+                const hasWarning = row.warnings?.length > 0
+
+                return (
+                  <tr key={idx}
+                    className={`transition-colors ${hasDupe ? 'bg-amber-500/5' : ''} ${isEditing ? 'bg-cyan/5' : 'hover:bg-glass-hover'}`}>
+
+                    {/* Row # */}
+                    <td className="px-2 py-1.5 text-text-muted w-8 text-center">
+                      {row.originalRow ?? idx + 2}
+                    </td>
+
+                    {/* Date */}
+                    <td className="px-2 py-1.5 whitespace-nowrap text-text-secondary">
+                      {isEditing ? (
+                        <input
+                          type="date"
+                          className="w-28 rounded bg-glass-panel border border-cyan/40 px-1.5 py-0.5 text-text-primary focus:outline-none"
+                          value={fmtDate(row.transactionDate)}
+                          onChange={e => updateRow(idx, 'transactionDate', e.target.value)}
+                        />
+                      ) : fmtDate(row.transactionDate)}
+                    </td>
+
+                    {/* Description — click to inline-edit */}
+                    <td className="px-2 py-1.5 max-w-[180px]">
+                      {isEditing ? (
+                        <input
+                          autoFocus
+                          className="w-full rounded bg-glass-panel border border-cyan/40 px-1.5 py-0.5 text-text-primary focus:outline-none"
+                          value={row.description || ''}
+                          onChange={e => updateRow(idx, 'description', e.target.value)}
+                          onBlur={() => setEditingIdx(null)}
+                          onKeyDown={e => e.key === 'Enter' && setEditingIdx(null)}
+                        />
+                      ) : (
+                        <span
+                          className="block truncate text-text-primary cursor-text hover:text-cyan"
+                          title={`${row.description}${hasWarning ? '\n⚠ ' + row.warnings.join('\n⚠ ') : ''}`}
+                          onClick={() => setEditingIdx(idx)}
+                        >
+                          {row.description}
+                          {hasInferred && <span title={`AI inferred: ${row.inferredFields.join(', ')}`} className="ml-1 text-cyan">✦</span>}
+                          {hasDupe     && <span title="Possible duplicate" className="ml-1 text-amber-400">⚠</span>}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Amount */}
+                    <td className="px-2 py-1.5 font-medium text-text-primary whitespace-nowrap text-right">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          className="w-24 rounded bg-glass-panel border border-cyan/40 px-1.5 py-0.5 text-text-primary text-right focus:outline-none"
+                          value={row.amount}
+                          onChange={e => updateRow(idx, 'amount', parseFloat(e.target.value) || 0)}
+                        />
+                      ) : fmtAmt(row.amount)}
+                    </td>
+
+                    {/* Debit → Credit */}
+                    <td className="px-2 py-1.5 text-text-secondary max-w-[160px]">
+                      <span className="truncate block" title={`${row.debitAccountName} → ${row.creditAccountName}`}>
+                        {(row.debitAccountName || '—').split(' ').slice(0,2).join(' ')}
+                        <span className="text-text-muted mx-0.5">→</span>
+                        {(row.creditAccountName || '—').split(' ').slice(0,2).join(' ')}
+                      </span>
+                    </td>
+
+                    {/* Confidence badge */}
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      <ConfBadge label={row.confidenceLabel || 'High'} score={row.confidenceScore ?? 100} />
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
+        {rows.length > 0 && (
+          <p className="text-center text-[10px] text-text-muted">
+            Click any description to edit inline · ✦ = AI-inferred field · ⚠ = possible duplicate
+          </p>
+        )}
 
-        <div className="flex justify-between gap-3 pt-4 border-t border-glass">
+        <div className="flex justify-between gap-3 pt-3 border-t border-glass">
           <Button variant="ghost" onClick={onCancel} disabled={excelConfirm.isPending}>Cancel</Button>
           <Button
             onClick={handleConfirm}
             loading={excelConfirm.isPending}
-            disabled={!preview.validCount}
+            disabled={!rows.length}
           >
-            Import {preview.validCount} Transactions
+            Import {rows.length} Transaction{rows.length !== 1 ? 's' : ''}
           </Button>
         </div>
       </div>
     )
   }
 
+  // ── Upload step ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
       <p className="text-sm text-text-secondary">
-        Upload an Excel (.xlsx) or CSV file. Required columns: <span className="text-cyan font-mono text-xs">date, description, amount, debitAccountName, creditAccountName</span>.
+        Upload a spreadsheet and VousFin will parse, validate, and let you review before saving.
       </p>
 
       {/* Drop Zone */}
@@ -696,7 +825,7 @@ function ExcelTab({ onSuccess, onCancel }) {
         )}
         <div className="text-center">
           <p className="font-medium text-text-primary">Drop file here or click to browse</p>
-          <p className="text-xs text-text-muted mt-1">Supports .xlsx, .xls, .csv — max 10 MB</p>
+          <p className="text-xs text-text-muted mt-1">.xlsx · .xls · .csv — max 10 MB</p>
         </div>
         <input
           ref={fileInputRef}
@@ -707,10 +836,11 @@ function ExcelTab({ onSuccess, onCancel }) {
         />
       </div>
 
-      {/* Template Download Hint */}
-      <div className="p-3 rounded-lg bg-glass-panel border border-glass text-xs text-text-muted space-y-1">
-        <p className="font-medium text-text-secondary">Expected columns (in any order):</p>
-        <p className="font-mono">date | description | amount | debitAccountName | creditAccountName | transactionType (optional)</p>
+      {/* Column guide */}
+      <div className="rounded-lg border border-glass bg-glass-panel p-3 text-xs">
+        <p className="font-medium text-text-secondary mb-1">Required columns (in any order, fuzzy-matched):</p>
+        <p className="font-mono text-text-muted">date · description · amount · debit account · credit account</p>
+        <p className="font-mono text-text-muted mt-0.5 text-[10px]">Optional: type · mode · customer · vendor · reference · notes</p>
       </div>
 
       <div className="flex justify-end pt-2 border-t border-glass">
