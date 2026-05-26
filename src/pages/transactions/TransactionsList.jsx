@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-import { useTransactions, useUpdateTransactionDate } from '@/hooks/useTransactions'
+import { useInfiniteTransactions, useUpdateTransactionDate } from '@/hooks/useTransactions'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
@@ -48,7 +48,6 @@ const TYPE_VARIANT = {
 const INFLOW_TYPES = new Set(['income', 'cash sale', 'credit sale', 'payment received'])
 const OUTFLOW_TYPES = new Set(['expense', 'cash purchase', 'credit purchase', 'payment made'])
 const FILTERS = ['All', 'Income', 'Expense', 'AR/AP', 'Transfer']
-const PAGE_SIZE = 50
 
 // ─── memoized sub-components ──────────────────────────────────────────────────
 
@@ -206,24 +205,27 @@ export default function TransactionsList() {
   const [reversalTarget, setReversalTarget] = useState(null)
   const [editDateTarget, setEditDateTarget] = useState(null)
   const [expandedRows,   setExpandedRows]   = useState({})
-  const [limit,          setLimit]          = useState(PAGE_SIZE)
 
   const currency = useBusinessStore(s => s.currency)
 
-  // Expanding-limit strategy: single query key per limit value.
-  // On mutation success TanStack invalidates ['transactions'] prefix,
-  // refetching with current limit → correct data without accumulation bugs.
   const queryParams = useMemo(() => ({
-    limit,
     sortBy: 'transactionDate',
-    sortOrder: -1,   // sent as number; backend: !=='asc' → -1
-  }), [limit])
+    sortOrder: -1,
+  }), [])
 
-  const { data, isLoading, isFetching } = useTransactions(queryParams)
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteTransactions(queryParams)
 
-  const docs  = useMemo(() => data?.docs  ?? [], [data?.docs])
-  const total = data?.total ?? 0
-  const hasMore = docs.length < total
+  // Flatten all fetched pages into a single array — new pages are appended
+  // in-place so existing rows never unmount during a fetch.
+  const docs  = useMemo(() => data?.pages?.flatMap(p => p.docs) ?? [], [data?.pages])
+  const total = data?.pages?.[0]?.total ?? 0
 
   // Client-side filter (applied on top of loaded pages)
   const filtered = useMemo(() => {
@@ -270,15 +272,15 @@ export default function TransactionsList() {
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMore && !isFetching) {
-          setLimit(l => l + PAGE_SIZE)
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
         }
       },
-      { rootMargin: '200px' }   // start loading before the user hits the very bottom
+      { rootMargin: '200px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [hasMore, isFetching])
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="space-y-3 animate-fade-in">
@@ -453,13 +455,13 @@ export default function TransactionsList() {
 
         {/* ── Infinite scroll sentinel ──────────────────────────── */}
         <div ref={sentinelRef} className="border-t border-glass">
-          {isFetching && (
+          {isFetchingNextPage && (
             <div className="flex items-center justify-center gap-2 py-4 text-xs text-text-muted">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan" />
               Loading more transactions…
             </div>
           )}
-          {!hasMore && !isLoading && docs.length > 0 && (
+          {!hasNextPage && !isLoading && docs.length > 0 && (
             <p className="py-3 text-center text-[11px] text-text-muted">
               All {total} transactions loaded
             </p>

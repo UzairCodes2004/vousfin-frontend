@@ -1,6 +1,44 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import api from '@/services/api'
+
+const INFINITE_PAGE_SIZE = 50
+
+function parseTransactionPage(data, pageParam) {
+  const inner = data.data || {}
+  return {
+    docs:  Array.isArray(inner.data) ? inner.data : Array.isArray(inner) ? inner : [],
+    total: inner.total ?? 0,
+    page:  inner.page  ?? pageParam,
+    limit: inner.limit ?? INFINITE_PAGE_SIZE,
+  }
+}
+
+/**
+ * Infinite-scroll version — appends pages as the user scrolls.
+ * Keyed under ['transactions', ...] so existing mutation invalidations hit it.
+ */
+export function useInfiniteTransactions(filters = {}) {
+  return useInfiniteQuery({
+    queryKey: ['transactions', 'infinite', filters],
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams()
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') params.append(key, String(val))
+      })
+      params.set('page', pageParam)
+      params.set('limit', INFINITE_PAGE_SIZE)
+      const { data } = await api.get(`/transactions?${params.toString()}`)
+      return parseTransactionPage(data, pageParam)
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const fetched = lastPage.page * lastPage.limit
+      return fetched < lastPage.total ? lastPage.page + 1 : undefined
+    },
+    staleTime: 60 * 1000,
+  })
+}
 
 export function useTransactions(filters = {}) {
   return useQuery({
@@ -10,21 +48,9 @@ export function useTransactions(filters = {}) {
       Object.entries(filters).forEach(([key, val]) => {
         if (val) params.append(key, val)
       })
-
       const { data } = await api.get(`/transactions?${params.toString()}`)
-      // Backend returns { data: { data: [...], total, page, limit } }
-      // Normalize to { docs: [...], total, page, limit }
-      const inner = data.data || {}
-      return {
-        docs: Array.isArray(inner.data) ? inner.data : Array.isArray(inner) ? inner : [],
-        total: inner.total ?? 0,
-        page: inner.page ?? 1,
-        limit: inner.limit ?? 25,
-      }
+      return parseTransactionPage(data, 1)
     },
-    // 60-second stale window: prevents redundant refetch on tab focus / component remount.
-    // Mutations call queryClient.invalidateQueries(['transactions']) so fresh data is always
-    // loaded immediately after a write — this only suppresses background re-fetches.
     staleTime: 60 * 1000,
   })
 }
