@@ -12,6 +12,7 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { useAccounts } from '@/hooks/useAccounts'
 import { useCustomers, useVendors } from '@/hooks/useParties'
+import { useInventoryItems } from '@/hooks/useInventory'
 import {
   useCreateTransaction,
   useCreateInstallmentTransaction,
@@ -646,9 +647,10 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const createTx            = useCreateTransaction()
   const createInstallmentTx = useCreateInstallmentTransaction()
 
-  const { data: rawAccounts }  = useAccounts()
-  const { data: rawCustomers } = useCustomers()
-  const { data: rawVendors }   = useVendors()
+  const { data: rawAccounts }   = useAccounts()
+  const { data: rawCustomers }  = useCustomers()
+  const { data: rawVendors }    = useVendors()
+  const { data: rawInventory }  = useInventoryItems()
 
   const accounts = useMemo(() => {
     const d = rawAccounts
@@ -662,6 +664,12 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
     const d = rawVendors
     return Array.isArray(d?.docs) ? d.docs : Array.isArray(d?.vendors) ? d.vendors : Array.isArray(d) ? d : []
   }, [rawVendors])
+
+  const inventoryItems = useMemo(() => {
+    const d = rawInventory
+    const arr = Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []
+    return arr.filter(i => i.isActive !== false)
+  }, [rawInventory])
 
   const {
     register,
@@ -709,6 +717,10 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null)
   const [selectedVendorId,   setSelectedVendorId]   = useState(null)
   const [nlPartyFilled,      setNlPartyFilled]      = useState(false)
+
+  // Phase 3.5 Step 3 — Inventory state
+  const [selectedInventoryItemId, setSelectedInventoryItemId] = useState(null)
+  const [inventoryQty, setInventoryQty] = useState(1)
 
   // Party objects with balance data for the combobox
   const customerParties = useMemo(() =>
@@ -815,6 +827,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       setSelectedCustomerId(null)
       setSelectedVendorId(null)
       setNlPartyFilled(false)
+      setSelectedInventoryItemId(null)
+      setInventoryQty(1)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues, accounts.length, customerParties.length, vendorParties.length])
@@ -912,6 +926,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       if (vendorName?.trim())      extras.vendorName           = vendorName.trim()
       if (selectedCustomerId)      extras.customerId           = selectedCustomerId
       if (selectedVendorId)        extras.vendorId             = selectedVendorId
+      if (selectedInventoryItemId) extras.inventoryItemId      = selectedInventoryItemId
+      if (selectedInventoryItemId && inventoryQty > 0) extras.inventoryQty = inventoryQty
       if (referenceNumber?.trim()) extras.transactionReference = referenceNumber.trim()
       if (invoiceNumber?.trim())   extras.invoiceNumber        = invoiceNumber.trim()
       if (notes?.trim())           extras.notes                = notes.trim()
@@ -1140,6 +1156,60 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
           )}
           <Input label="Invoice / Bill Number (optional)" placeholder="e.g., INV-2024-042 or BILL-007"
             {...register('invoiceNumber')} />
+        </div>
+      )}
+
+      {/* Inventory Item Selector — shown for Inventory Sale / Inventory Purchase */}
+      {(transactionType === 'Inventory Sale' || transactionType === 'Inventory Purchase') && inventoryItems.length > 0 && (
+        <div className="animate-fade-in p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
+          <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">
+            Inventory Item
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
+              <Select
+                label="Select Item"
+                options={[
+                  { value: '', label: '— Select inventory item —' },
+                  ...inventoryItems.map(i => ({
+                    value: i._id,
+                    label: `${i.name}${i.sku ? ` (${i.sku})` : ''} — Stock: ${i.currentStock} ${i.unit || 'units'}`,
+                    subtitle: `Cost: ${i.unitCostPrice.toLocaleString()} per unit${i.currentStock <= i.reorderLevel ? ' · LOW STOCK' : ''}`,
+                  }))
+                ]}
+                value={selectedInventoryItemId || ''}
+                onChange={(val) => setSelectedInventoryItemId(val || null)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1">Quantity</label>
+              <input
+                type="number" min="1" step="1"
+                value={inventoryQty}
+                onChange={e => setInventoryQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-cyan focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+          {selectedInventoryItemId && (() => {
+            const item = inventoryItems.find(i => i._id === selectedInventoryItemId)
+            if (!item) return null
+            const cogsEst = Math.round(inventoryQty * item.unitCostPrice * 100) / 100
+            return (
+              <div className="flex flex-wrap gap-4 text-[11px] text-text-muted pt-1 border-t border-emerald-500/15">
+                <span>Avg cost: <span className="text-text-primary font-medium">{item.unitCostPrice.toLocaleString()}</span>/unit</span>
+                <span>Estimated COGS: <span className="text-amber-400 font-semibold">{cogsEst.toLocaleString()}</span></span>
+                {item.currentStock <= item.reorderLevel && (
+                  <span className="text-red-400 font-semibold">⚠ Low stock — only {item.currentStock} remaining</span>
+                )}
+              </div>
+            )
+          })()}
+          {transactionType === 'Inventory Sale' && (
+            <p className="text-[11px] text-text-muted">
+              COGS journal lines will be auto-generated: DR Cost of Goods Sold / CR Inventory.
+            </p>
+          )}
         </div>
       )}
 
