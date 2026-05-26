@@ -21,6 +21,7 @@ import {
   useExcelConfirm,
   usePreSaveCheck,
 } from '@/hooks/useTransactions'
+import { useCurrentPeriod } from '@/hooks/useFiscalYear'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
 import { buildGroupedAccountOptions } from '@/utils/accountOptions'
@@ -648,6 +649,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const createTx            = useCreateTransaction()
   const createInstallmentTx = useCreateInstallmentTransaction()
   const preSaveCheck        = usePreSaveCheck()
+  const { data: currentPeriod } = useCurrentPeriod()
 
   const { data: rawAccounts }   = useAccounts()
   const { data: rawCustomers }  = useCustomers()
@@ -991,6 +993,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   }
 
   const isPending = isSubmitting || createTx.isPending || createInstallmentTx.isPending
+  const isPeriodLocked = periodStatus === 'locked'
 
   const fDown  = watch('downPayment')          || 0
   const fCount = watch('installmentCount')     || 1
@@ -1003,8 +1006,41 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const hasCompoundJournal = aiJournalLines.length > 2
   const aiReviewReasons = Array.isArray(initialValues?._reviewReasons) ? initialValues._reviewReasons : []
 
+  // Compute period status for the currently selected date
+  const selectedDate = watch('transactionDate')
+  const periodStatus = currentPeriod && selectedDate
+    ? (new Date(selectedDate) >= new Date(currentPeriod.startDate) &&
+       new Date(selectedDate) <= new Date(currentPeriod.endDate)
+         ? currentPeriod.status
+         : null)
+    : currentPeriod?.status ?? null
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-2">
+
+      {/* Phase 5.1 — Accounting Period Status Banner */}
+      {periodStatus === 'locked' && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 animate-fade-in">
+          <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-400">Period Locked</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              The accounting period for this date is permanently locked. Transactions cannot be saved.
+            </p>
+          </div>
+        </div>
+      )}
+      {periodStatus === 'closed' && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-fade-in">
+          <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-400">Period Closed — {currentPeriod?.name}</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              This period is closed. Contact your administrator to reopen it before posting transactions.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* AI Prefill Banner — shown when NL parser populated the form */}
       {nlAiBanner && (
@@ -1375,7 +1411,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
 
       <div className="flex justify-end gap-3 pt-4 border-t border-glass">
         <Button variant="ghost" type="button" onClick={onCancel} disabled={isPending}>Cancel</Button>
-        <Button type="submit" loading={isPending || preSaveCheck.isPending}>
+        <Button type="submit" loading={isPending || preSaveCheck.isPending} disabled={isPeriodLocked}>
           {isInstallment ? 'Create Instalment Plan' : 'Record Transaction'}
         </Button>
       </div>
