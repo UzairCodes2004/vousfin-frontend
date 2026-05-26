@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import api from '@/services/api'
 import { forecastService } from '@/services/forecast.service'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // ── AI module forecast (uses /ai/forecast route — backward compat) ──
 export function useForecast() {
@@ -55,20 +56,24 @@ export function useScenarioForecast() {
 
 // ── NEW: Category breakdown ──
 export function useCategoryBreakdown(months = 3) {
+  const businessId = useAuthStore(s => s.user?.businessId)
   return useQuery({
-    queryKey: ['categoryBreakdown', months],
+    queryKey: ['categoryBreakdown', businessId, months],
     queryFn:  () => forecastService.categoryBreakdown(months),
     staleTime: 10 * 60 * 1000,
+    enabled: !!businessId,
     retry: false,
   })
 }
 
 // ── NEW: Anomaly risk for forecast ──
 export function useForecastAnomalyRisk() {
+  const businessId = useAuthStore(s => s.user?.businessId)
   return useQuery({
-    queryKey: ['forecastAnomalyRisk'],
+    queryKey: ['forecastAnomalyRisk', businessId],
     queryFn:  forecastService.anomalyRisk,
     staleTime: 5 * 60 * 1000,
+    enabled: !!businessId,
     retry: false,
   })
 }
