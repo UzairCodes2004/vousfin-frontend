@@ -303,8 +303,8 @@ function InstallmentJournalPreview({
   )
 }
 
-// ─── Creatable Party Combobox ─────────────────────────────────────────────────
-function PartyInput({ label, suggestions, value, onChange, placeholder }) {
+// ─── Creatable Party Combobox (Phase 3.5 Step 2) ─────────────────────────────
+function PartyInput({ label, suggestions, value, onChange, placeholder, parties = [], onSelectId, aiSuggested, selectedBalance }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const filtered = useMemo(() =>
@@ -316,31 +316,72 @@ function PartyInput({ label, suggestions, value, onChange, placeholder }) {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [close])
-  const handleSelect = (name) => { onChange(name); setOpen(false) }
+
+  const handleSelect = (name) => {
+    onChange(name)
+    setOpen(false)
+    const match = parties.find(p => p.name.toLowerCase() === name.toLowerCase())
+    if (onSelectId) onSelectId(match ? match.id : null)
+  }
+
   const showNew = value?.trim() && !suggestions.some(s => s.toLowerCase() === value.trim().toLowerCase())
+
+  const getBalance = (name) => {
+    const p = parties.find(p => p.name.toLowerCase() === name.toLowerCase())
+    return p?.balance
+  }
 
   return (
     <div className="relative" ref={ref}>
-      <label className="block text-xs font-medium text-text-secondary mb-1">{label}</label>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-medium text-text-secondary">{label}</label>
+        {aiSuggested && value && (
+          <span className="text-[10px] text-cyan font-medium flex items-center gap-1">
+            <Sparkles className="h-2.5 w-2.5" /> AI suggested
+          </span>
+        )}
+      </div>
       <input
         type="text"
         autoComplete="off"
         className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm placeholder:text-text-muted focus:border-cyan focus:outline-none transition-colors"
         placeholder={placeholder}
         value={value || ''}
-        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onChange={e => { onChange(e.target.value); setOpen(true); if (onSelectId) onSelectId(null) }}
         onFocus={() => setOpen(true)}
       />
+      {/* Outstanding balance badge when known party selected */}
+      {value && selectedBalance != null && selectedBalance > 0 && (
+        <p className="mt-1 text-[11px] text-amber-400 font-medium">
+          Outstanding balance: {selectedBalance.toLocaleString()}
+        </p>
+      )}
+      {value && selectedBalance === 0 && (
+        <p className="mt-1 text-[11px] text-emerald-400">No outstanding balance</p>
+      )}
       {open && (filtered.length > 0 || showNew) && (
         <div className="absolute z-50 w-full mt-1 rounded-lg border border-glass bg-navy shadow-xl overflow-hidden">
-          {filtered.map(name => (
-            <div key={name} onMouseDown={() => handleSelect(name)} className="px-3 py-2 text-sm text-text-primary hover:bg-glass-hover cursor-pointer">
-              {name}
-            </div>
-          ))}
+          {filtered.map(name => {
+            const bal = getBalance(name)
+            return (
+              <div key={name} onMouseDown={() => handleSelect(name)}
+                className="px-3 py-2 text-sm text-text-primary hover:bg-glass-hover cursor-pointer flex items-center justify-between gap-2">
+                <span>{name}</span>
+                {bal != null && bal > 0 && (
+                  <span className="text-[10px] text-amber-400 font-medium flex-shrink-0">
+                    Due: {bal.toLocaleString()}
+                  </span>
+                )}
+                {bal === 0 && (
+                  <span className="text-[10px] text-emerald-400 flex-shrink-0">Paid</span>
+                )}
+              </div>
+            )
+          })}
           {showNew && (
-            <div onMouseDown={() => handleSelect(value.trim())} className="px-3 py-2 text-sm text-cyan hover:bg-cyan/10 cursor-pointer border-t border-glass">
-              + Add "{value.trim()}" as new
+            <div onMouseDown={() => handleSelect(value.trim())}
+              className="px-3 py-2 text-sm text-cyan hover:bg-cyan/10 cursor-pointer border-t border-glass">
+              + Add &quot;{value.trim()}&quot; as new
             </div>
           )}
         </div>
@@ -664,6 +705,28 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   // Track auto-resolution outcome so UI can show "AI auto-selected" badges
   const [autoResolved, setAutoResolved] = useState({ debit: null, credit: null })
 
+  // Phase 3.5 Step 2 — party ID tracking (set when user picks existing party)
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null)
+  const [selectedVendorId,   setSelectedVendorId]   = useState(null)
+  const [nlPartyFilled,      setNlPartyFilled]      = useState(false)
+
+  // Party objects with balance data for the combobox
+  const customerParties = useMemo(() =>
+    customers.map(c => ({
+      id:      c._id,
+      name:    c.fullName || c.businessName || '',
+      balance: c.currentReceivableBalance ?? null,
+    })).filter(p => p.name)
+  , [customers])
+
+  const vendorParties = useMemo(() =>
+    vendors.map(v => ({
+      id:      v._id,
+      name:    v.vendorName || v.name || '',
+      balance: v.currentPayableBalance ?? null,
+    })).filter(p => p.name)
+  , [vendors])
+
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
     if (initialValues) {
@@ -717,6 +780,25 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         interestMethod:       initialValues.interestMethod       || 'reducing_balance',
       })
       setNlAiBanner(true)
+
+      // Auto-match NLP-supplied party names to existing party IDs
+      const nlCustomer = initialValues.customerName?.trim()
+      const nlVendor   = initialValues.vendorName?.trim()
+      if (nlCustomer) {
+        const match = customerParties.find(p => p.name.toLowerCase() === nlCustomer.toLowerCase())
+        setSelectedCustomerId(match ? match.id : null)
+        setNlPartyFilled(true)
+      } else {
+        setSelectedCustomerId(null)
+      }
+      if (nlVendor) {
+        const match = vendorParties.find(p => p.name.toLowerCase() === nlVendor.toLowerCase())
+        setSelectedVendorId(match ? match.id : null)
+        if (nlVendor) setNlPartyFilled(true)
+      } else {
+        setSelectedVendorId(null)
+      }
+
       // Auto-open optional details if NL detected tax/currency/payment-method info
       if (initialValues.taxAmount || initialValues.taxRate ||
           (initialValues.txnCurrency && initialValues.txnCurrency !== currency) ||
@@ -730,9 +812,12 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       setNlAiBanner(false)
       setPresetId(null)
       setAutoResolved({ debit: null, credit: null })
+      setSelectedCustomerId(null)
+      setSelectedVendorId(null)
+      setNlPartyFilled(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialValues, accounts.length])
+  }, [initialValues, accounts.length, customerParties.length, vendorParties.length])
 
   const preset = useMemo(() => getPresetById(presetId), [presetId])
   const allAccountOptions = useMemo(() => buildGroupedAccountOptions(accounts), [accounts])
@@ -762,12 +847,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
     [allAccountOptions, effectiveFilters.credit]
   )
 
-  const customerSuggestions = useMemo(() =>
-    customers.map(c => c.fullName || c.name || c.businessName).filter(Boolean)
-  , [customers])
-  const vendorSuggestions = useMemo(() =>
-    vendors.map(v => v.vendorName || v.name).filter(Boolean)
-  , [vendors])
+  const customerSuggestions = useMemo(() => customerParties.map(p => p.name), [customerParties])
+  const vendorSuggestions   = useMemo(() => vendorParties.map(p => p.name),   [vendorParties])
 
   const debitAccountId  = watch('debitAccountId')
   const creditAccountId = watch('creditAccountId')
@@ -829,6 +910,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       if (transactionType)         extras.transactionType      = transactionType
       if (customerName?.trim())    extras.customerName         = customerName.trim()
       if (vendorName?.trim())      extras.vendorName           = vendorName.trim()
+      if (selectedCustomerId)      extras.customerId           = selectedCustomerId
+      if (selectedVendorId)        extras.vendorId             = selectedVendorId
       if (referenceNumber?.trim()) extras.transactionReference = referenceNumber.trim()
       if (invoiceNumber?.trim())   extras.invoiceNumber        = invoiceNumber.trim()
       if (notes?.trim())           extras.notes                = notes.trim()
@@ -1030,14 +1113,30 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       {(requiresCustomer || requiresVendor) && (
         <div className="animate-fade-in p-4 rounded-xl bg-cyan/5 border border-cyan/20 space-y-4">
           {requiresCustomer && (
-            <PartyInput label="Customer (optional)" suggestions={customerSuggestions}
-              value={watch('customerName') || ''} onChange={(val) => setValue('customerName', val)}
-              placeholder="Type or select a customer name…" />
+            <PartyInput
+              label="Customer (optional)"
+              suggestions={customerSuggestions}
+              parties={customerParties}
+              value={watch('customerName') || ''}
+              onChange={(val) => setValue('customerName', val)}
+              onSelectId={(id) => setSelectedCustomerId(id)}
+              selectedBalance={customerParties.find(p => p.name.toLowerCase() === (watch('customerName') || '').toLowerCase())?.balance}
+              aiSuggested={nlPartyFilled && !!initialValues?.customerName}
+              placeholder="Type or select a customer name…"
+            />
           )}
           {requiresVendor && (
-            <PartyInput label="Vendor / Supplier (optional)" suggestions={vendorSuggestions}
-              value={watch('vendorName') || ''} onChange={(val) => setValue('vendorName', val)}
-              placeholder="Type or select a vendor name…" />
+            <PartyInput
+              label="Vendor / Supplier (optional)"
+              suggestions={vendorSuggestions}
+              parties={vendorParties}
+              value={watch('vendorName') || ''}
+              onChange={(val) => setValue('vendorName', val)}
+              onSelectId={(id) => setSelectedVendorId(id)}
+              selectedBalance={vendorParties.find(p => p.name.toLowerCase() === (watch('vendorName') || '').toLowerCase())?.balance}
+              aiSuggested={nlPartyFilled && !!initialValues?.vendorName}
+              placeholder="Type or select a vendor name…"
+            />
           )}
           <Input label="Invoice / Bill Number (optional)" placeholder="e.g., INV-2024-042 or BILL-007"
             {...register('invoiceNumber')} />
