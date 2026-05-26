@@ -993,7 +993,6 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   }
 
   const isPending = isSubmitting || createTx.isPending || createInstallmentTx.isPending
-  const isPeriodLocked = periodStatus === 'locked'
 
   const fDown  = watch('downPayment')          || 0
   const fCount = watch('installmentCount')     || 1
@@ -1006,7 +1005,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const hasCompoundJournal = aiJournalLines.length > 2
   const aiReviewReasons = Array.isArray(initialValues?._reviewReasons) ? initialValues._reviewReasons : []
 
-  // Compute period status for the currently selected date
+  // Compute period status for the currently selected date — must come before isPeriodLocked
   const selectedDate = watch('transactionDate')
   const periodStatus = currentPeriod && selectedDate
     ? (new Date(selectedDate) >= new Date(currentPeriod.startDate) &&
@@ -1014,6 +1013,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
          ? currentPeriod.status
          : null)
     : currentPeriod?.status ?? null
+  const isPeriodLocked = periodStatus === 'locked'
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-2">
