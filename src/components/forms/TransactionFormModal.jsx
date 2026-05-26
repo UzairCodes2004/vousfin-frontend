@@ -19,6 +19,7 @@ import {
   useNLPreview,
   useExcelPreview,
   useExcelConfirm,
+  usePreSaveCheck,
 } from '@/hooks/useTransactions'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
@@ -646,6 +647,7 @@ const TX_TYPE_OPTIONS = [
 function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const createTx            = useCreateTransaction()
   const createInstallmentTx = useCreateInstallmentTransaction()
+  const preSaveCheck        = usePreSaveCheck()
 
   const { data: rawAccounts }   = useAccounts()
   const { data: rawCustomers }  = useCustomers()
@@ -717,6 +719,10 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null)
   const [selectedVendorId,   setSelectedVendorId]   = useState(null)
   const [nlPartyFilled,      setNlPartyFilled]      = useState(false)
+
+  // Phase 3.5 Step 5 — Pre-save warning state
+  const [preSaveWarnings,  setPreSaveWarnings]  = useState([])
+  const [preSaveAcknowledged, setPreSaveAcknowledged] = useState(false)
 
   // Phase 3.5 Step 3 — Inventory state
   const [selectedInventoryItemId, setSelectedInventoryItemId] = useState(null)
@@ -829,6 +835,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       setNlPartyFilled(false)
       setSelectedInventoryItemId(null)
       setInventoryQty(1)
+      setPreSaveWarnings([])
+      setPreSaveAcknowledged(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues, accounts.length, customerParties.length, vendorParties.length])
@@ -919,6 +927,32 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         txnCurrency, exchangeRate, taxAmount, taxRate,
         ...base
       } = data
+
+      // Phase 3.5 Step 5 — pre-save check (advisory only, non-blocking)
+      if (!preSaveAcknowledged) {
+        try {
+          const checkResult = await preSaveCheck.mutateAsync({
+            transactionDate:  data.transactionDate,
+            amount:           data.amount,
+            debitAccountId:   data.debitAccountId,
+            creditAccountId:  data.creditAccountId,
+            transactionType,
+            taxAmount,
+            taxRate,
+            invoiceNumber,
+            customerName,
+            vendorName,
+          })
+          const allWarnings = checkResult?.warnings || []
+          if (allWarnings.length > 0) {
+            setPreSaveWarnings(allWarnings)
+            setPreSaveAcknowledged(true) // next submit bypasses the check
+            return // stop here — user must click submit again to confirm
+          }
+        } catch {
+          // pre-save check network error — proceed silently
+        }
+      }
 
       const extras = {}
       if (transactionType)         extras.transactionType      = transactionType
@@ -1325,9 +1359,23 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         )}
       </div>
 
+      {/* Pre-save warnings — shown after first submit attempt */}
+      {preSaveWarnings.length > 0 && preSaveAcknowledged && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+            <p className="text-sm font-semibold text-amber-300">Review before saving</p>
+          </div>
+          <ul className="text-xs text-amber-400/90 list-disc list-inside space-y-1">
+            {preSaveWarnings.map((w, i) => <li key={i}>{w}</li>)}
+          </ul>
+          <p className="text-xs text-amber-400/70">Click &quot;Record Transaction&quot; again to save anyway.</p>
+        </div>
+      )}
+
       <div className="flex justify-end gap-3 pt-4 border-t border-glass">
         <Button variant="ghost" type="button" onClick={onCancel} disabled={isPending}>Cancel</Button>
-        <Button type="submit" loading={isPending}>
+        <Button type="submit" loading={isPending || preSaveCheck.isPending}>
           {isInstallment ? 'Create Instalment Plan' : 'Record Transaction'}
         </Button>
       </div>

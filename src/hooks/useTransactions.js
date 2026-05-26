@@ -172,6 +172,22 @@ export function useUpdateTransactionDate() {
 }
 
 /**
+ * Phase 3.5 Step 5 — Pre-save accountant check.
+ * Runs duplicate, tax, party, and unusual-amount warnings before saving.
+ * Returns { warnings, suggestions, duplicateRisk } — never blocks the save.
+ */
+export function usePreSaveCheck() {
+  return useMutation({
+    mutationFn: async (txData) => {
+      const { data } = await api.post('/ai/pre-save-check', txData)
+      return data.data
+    },
+    // Silent on error — pre-save checks are advisory; network failure must not block save
+    onError: () => {},
+  })
+}
+
+/**
  * Reverse a posted transaction.
  * POST /transactions/:id/reverse
  */
