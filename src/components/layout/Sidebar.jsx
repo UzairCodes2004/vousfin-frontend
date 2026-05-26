@@ -18,14 +18,10 @@ import {
   PackageOpen,
   Wallet,
   CreditCard,
-  Scale,
-  LineChart,
-  PieChart,
   TrendingUp,
   ShieldAlert,
   Lightbulb,
   Sparkles,
-  Download,
   CalendarDays,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -57,16 +53,7 @@ const NAV = [
       { name: 'Payables', href: '/purchases/payables', icon: CreditCard },
     ],
   },
-  {
-    kind: 'group', name: 'Financial Reports', icon: FileBarChart2, key: 'reports',
-    children: [
-      { name: 'Income Statement', href: '/financial-reports/income-statement', icon: LineChart },
-      { name: 'Balance Sheet',    href: '/financial-reports/balance-sheet',    icon: Scale     },
-      { name: 'Cash Flow',        href: '/financial-reports/cash-flow',        icon: PieChart  },
-      { name: 'Trial Balance',    href: '/financial-reports/trial-balance',    icon: BookOpen  },
-      { name: 'Export',           href: '/financial-reports/export',           icon: Download  },
-    ],
-  },
+  { kind: 'link', name: 'Financial Reports', href: '/financial-reports/income-statement', activePrefix: '/financial-reports', icon: FileBarChart2 },
   {
     kind: 'group', name: 'AI Analyst', icon: BrainCircuit, key: 'ai-analyst',
     children: [
@@ -125,7 +112,11 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
       key={item.name}
       to={item.href}
       onClick={isMobile ? closeMobile : undefined}
-      className={({ isActive }) => linkClass(isActive)}
+      className={({ isActive }) =>
+        linkClass(item.activePrefix
+          ? location.pathname.startsWith(item.activePrefix)
+          : isActive)
+      }
       title={compact ? item.name : undefined}
     >
       <item.icon className={cn('flex-shrink-0', compact ? 'h-5 w-5' : 'mr-3 h-5 w-5')} />
