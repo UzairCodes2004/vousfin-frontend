@@ -44,10 +44,10 @@ export default function TaxReportPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input type="date" value={dateRange.startDate}
-            onChange={e => setDateRange(p => ({ ...p, startDate: e.target.value }))} className="w-36" />
+            onChange={e => setDateRange(p => ({ ...p, startDate: e.target.value }))} containerClassName="w-36" />
           <span className="text-text-muted text-sm">to</span>
           <Input type="date" value={dateRange.endDate}
-            onChange={e => setDateRange(p => ({ ...p, endDate: e.target.value }))} className="w-36" />
+            onChange={e => setDateRange(p => ({ ...p, endDate: e.target.value }))} containerClassName="w-36" />
           <ExportButton data={exportData} filename={`tax-report-${dateRange.endDate}.csv`} />
         </div>
       </div>

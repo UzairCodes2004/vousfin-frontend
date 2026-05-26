@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, ChevronDown, ChevronRight } from 'lucide-react'
+import { CheckCircle, XCircle, ChevronDown, ChevronRight, Scale } from 'lucide-react'
 import { useBalanceSheet } from '@/hooks/useReports'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
@@ -33,12 +33,15 @@ export default function BalanceSheetPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-text-primary tracking-tight">Balance Sheet</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
+            <Scale className="h-6 w-6 text-cyan" />
+            Balance Sheet
+          </h1>
           <p className="text-text-secondary mt-1 text-sm">Financial position — Assets, Liabilities, Equity</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-text-muted text-sm">As of</span>
-          <Input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} className="w-36" />
+          <Input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} containerClassName="w-36" />
           <ExportButton data={exportData} filename={`balance-sheet-${asOfDate}.csv`}
             headers={[{ key: 'Category', label: 'Category' }, { key: 'Amount', label: 'Amount' }]} />
         </div>

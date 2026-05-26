@@ -9,6 +9,7 @@ export const Input = forwardRef(({
   icon: Icon,
   type = 'text',
   className,
+  containerClassName,
   id,
   name,
   ...props
@@ -19,7 +20,7 @@ export const Input = forwardRef(({
   const inputType = isPassword && showPassword ? 'text' : type
 
   return (
-    <div className="w-full">
+    <div className={cn('w-full', containerClassName)}>
       {label && (
         <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-text-secondary">
           {label}

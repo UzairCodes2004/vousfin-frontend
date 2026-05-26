@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, LineChart } from 'lucide-react'
 import { useIncomeStatement } from '@/hooks/useReports'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
@@ -38,15 +38,18 @@ export default function IncomeStatementPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-text-primary tracking-tight">Income Statement</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
+            <LineChart className="h-6 w-6 text-cyan" />
+            Income Statement
+          </h1>
           <p className="text-text-secondary mt-1 text-sm">Profit & Loss — Revenue, Gross Profit, EBITDA, Net Income</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input type="date" value={dateRange.startDate}
-            onChange={e => setDateRange(p => ({ ...p, startDate: e.target.value }))} className="w-36" />
+            onChange={e => setDateRange(p => ({ ...p, startDate: e.target.value }))} containerClassName="w-36" />
           <span className="text-text-muted text-sm">to</span>
           <Input type="date" value={dateRange.endDate}
-            onChange={e => setDateRange(p => ({ ...p, endDate: e.target.value }))} className="w-36" />
+            onChange={e => setDateRange(p => ({ ...p, endDate: e.target.value }))} containerClassName="w-36" />
           <ExportButton data={exportData} filename={`income-statement-${dateRange.endDate}.csv`}
             headers={[{ key: 'Category', label: 'Category' }, { key: 'Amount', label: 'Amount' }]} />
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PieChart } from 'lucide-react'
 import { useCashFlow } from '@/hooks/useReports'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
@@ -39,23 +40,26 @@ export default function CashFlowPage() {
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-text-primary tracking-tight">Statement of Cash Flows</h1>
-          <p className="text-text-secondary mt-1">Track where your money is going.</p>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
+            <PieChart className="h-6 w-6 text-cyan" />
+            Cash Flow Statement
+          </h1>
+          <p className="text-text-secondary mt-1 text-sm">Operating, investing and financing activities</p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <Input 
-            type="date" 
-            value={dateRange.startDate} 
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            type="date"
+            value={dateRange.startDate}
             onChange={e => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-            className="w-36"
+            containerClassName="w-36"
           />
-          <span className="text-text-muted">to</span>
-          <Input 
-            type="date" 
-            value={dateRange.endDate} 
+          <span className="text-text-muted text-sm">to</span>
+          <Input
+            type="date"
+            value={dateRange.endDate}
             onChange={e => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-            className="w-36"
+            containerClassName="w-36"
           />
           <ExportButton 
             data={exportData} 

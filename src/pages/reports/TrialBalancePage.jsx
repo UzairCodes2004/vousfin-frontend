@@ -45,7 +45,7 @@ export default function TrialBalancePage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
             <Scale className="h-6 w-6 text-cyan" />
@@ -54,14 +54,10 @@ export default function TrialBalancePage() {
           <p className="text-text-secondary mt-1 text-sm">Verify debits equal credits — with opening & closing balances</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1">
-            <span className="text-text-muted text-xs">From</span>
-            <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-32 text-sm" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-text-muted text-xs">As of</span>
-            <Input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} className="w-32 text-sm" />
-          </div>
+          <span className="text-text-muted text-xs">From</span>
+          <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} containerClassName="w-32" />
+          <span className="text-text-muted text-xs">As of</span>
+          <Input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} containerClassName="w-32" />
           <ExportButton data={exportData} filename={`trial-balance-${asOfDate}.csv`} />
         </div>
       </div>
