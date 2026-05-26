@@ -26,6 +26,7 @@ import {
   Lightbulb,
   Sparkles,
   Download,
+  CalendarDays,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -74,6 +75,7 @@ const NAV = [
       { name: 'AI Insights',       href: '/ai-analyst/insights',  icon: Lightbulb    },
     ],
   },
+  { kind: 'link',  name: 'Fiscal Years',  href: '/accounting/fiscal-years', icon: CalendarDays },
   { kind: 'link',  name: 'AI Assistant', href: '/ai/assistant',      icon: Sparkles  },
   { kind: 'link',  name: 'Settings',     href: '/business/settings', icon: Settings  },
 ]

@@ -182,7 +182,7 @@ export function usePostAdjustingEntry() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (entryData) => {
-      const { data } = await api.post('/fiscal-years/adjusting-entries', entryData)
+      const { data } = await api.post('/fiscal-years/adjusting-entry', entryData)
       return data.data
     },
     onSuccess: () => {
