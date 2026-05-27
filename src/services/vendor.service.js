@@ -9,6 +9,7 @@ const vendorService = {
   getVendorBalance: (id) => api.get(`/vendors/${id}/balance`),
   getVendorTransactions: (id, params) => api.get(`/vendors/${id}/transactions`, { params }),
   getVendorStats: (id) => api.get(`/vendors/${id}/stats`),
+  getVendorStatement: (id, params) => api.get(`/vendors/${id}/statement`, { params }),
   toggleActive: (id) => api.patch(`/vendors/${id}/toggle-active`),
 };
 

@@ -342,3 +342,39 @@ export function useCustomerStatement(id, params = {}) {
     staleTime: 60 * 1000,
   })
 }
+
+/**
+ * Mark AP entries as OVERDUE where dueDate < today.
+ */
+export function useRefreshOverdueAP() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await transactionService.refreshOverdueAP()
+      return data.data
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['outstanding'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      const updated = result?.updated || 0
+      if (updated === 0) toast.success('No new overdue payables found.')
+      else toast.success(`${updated} payable${updated !== 1 ? 's' : ''} marked as overdue.`)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+/**
+ * Fetch a vendor's chronological statement (AP ledger with running balance).
+ */
+export function useVendorStatement(id, params = {}) {
+  return useQuery({
+    queryKey: ['vendor-statement', id, params],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await vendorService.getVendorStatement(id, params)
+      return data.data
+    },
+    staleTime: 60 * 1000,
+  })
+}
