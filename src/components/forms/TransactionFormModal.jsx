@@ -229,7 +229,10 @@ function InstallmentJournalPreview({
   return (
     <div className="rounded-lg border border-cyan/20 bg-navy/40 overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-cyan/15 bg-cyan/5">
-        <span className="text-[10px] font-bold text-cyan uppercase tracking-wider">GAAP / IFRS — Compound Journal Entry</span>
+        <div>
+          <span className="text-[10px] font-bold text-cyan uppercase tracking-wider">GAAP / IFRS — Compound Journal Entry</span>
+          <span className="ml-1.5 text-[9px] text-cyan/50 normal-case tracking-normal">(accounting standards)</span>
+        </div>
         <span className="ml-auto text-[10px] text-text-muted">at purchase date</span>
       </div>
 
@@ -605,37 +608,77 @@ function NLTab({ onParsed }) {
   )
 }
 
+// ─── GAAP term → plain English map (shown in pre-save warning panel) ─────────
+const GAAP_PLAIN_ENGLISH = {
+  'MATCHING_PRINCIPLE': 'Revenue & costs must land in the same period',
+  'ACCRUAL_BASIS':      'Record when earned/owed, not when cash changes hands',
+  'IAS 21':             'foreign currency accounting rule',
+  'IFRS 9':             'financial asset impairment / write-off rule',
+  'GAAP':               'Generally Accepted Accounting Principles',
+  'IFRS':               'International Financial Reporting Standards',
+}
+
+function applyGAAPGloss(text) {
+  let t = text
+  Object.entries(GAAP_PLAIN_ENGLISH).forEach(([term, plain]) => {
+    // Only replace the FIRST occurrence so the brackets don't repeat mid-sentence
+    t = t.replace(new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`), `${term} (${plain})`)
+  })
+  return t
+}
+
+// ─── Invoice / Bill number auto-generator ─────────────────────────────────────
+const SALE_TYPES_FOR_INV  = ['Cash Sale','Credit Sale','Inventory Sale','Payment Received','Advance from Customer','GST Collection']
+const BILL_TYPES_FOR_BILL = ['Cash Purchase','Credit Purchase','Inventory Purchase','Payment Made','Prepaid Expense']
+
+function generateDocNumber(txType) {
+  const d = new Date()
+  const yyyymm = d.getFullYear().toString() + String(d.getMonth() + 1).padStart(2, '0')
+  const rand   = String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0')
+  if (SALE_TYPES_FOR_INV.includes(txType))  return `INV-${yyyymm}-${rand}`
+  if (BILL_TYPES_FOR_BILL.includes(txType)) return `BILL-${yyyymm}-${rand}`
+  return null
+}
+
 // ─── Transaction Type options ─────────────────────────────────────────────────
 const TX_TYPE_OPTIONS = [
   { value: '', label: '— Auto-detect from accounts —' },
-  { value: 'Cash Sale',             label: 'Cash Sale',                    group: 'Sales & Revenue' },
-  { value: 'Credit Sale',           label: 'Credit Sale (A/R Invoice)',    group: 'Sales & Revenue' },
-  { value: 'Inventory Sale',        label: 'Inventory Sale',               group: 'Sales & Revenue' },
-  { value: 'Payment Received',      label: 'Payment Received',             group: 'Sales & Revenue' },
-  { value: 'GST Collection',        label: 'GST Collected on Sale',        group: 'Sales & Revenue' },
-  { value: 'Advance from Customer', label: 'Advance from Customer',        group: 'Sales & Revenue' },
-  { value: 'Refund',                label: 'Customer Refund',              group: 'Sales & Revenue' },
-  { value: 'Cash Purchase',         label: 'Cash Purchase / Expense',      group: 'Purchases & Expenses' },
-  { value: 'Credit Purchase',       label: 'Credit Purchase (A/P Bill)',   group: 'Purchases & Expenses' },
-  { value: 'Inventory Purchase',    label: 'Inventory Purchase',           group: 'Purchases & Expenses' },
-  { value: 'Payment Made',          label: 'Payment Made (to Vendor)',     group: 'Purchases & Expenses' },
-  { value: 'Prepaid Expense',       label: 'Prepaid Expense',              group: 'Purchases & Expenses' },
-  { value: 'Interest Payment',      label: 'Interest Payment',             group: 'Purchases & Expenses' },
-  { value: 'Salary',                label: 'Salary / Payroll',             group: 'Payroll & Taxes' },
-  { value: 'GST Payment',           label: 'GST Payment to Authority',     group: 'Payroll & Taxes' },
-  { value: 'WHT Payment',           label: 'WHT Payment',                  group: 'Payroll & Taxes' },
-  { value: 'Asset Purchase',        label: 'Asset Purchase',               group: 'Assets & Capital' },
-  { value: 'Depreciation',          label: 'Depreciation Entry',           group: 'Assets & Capital' },
-  { value: 'Owner Investment',      label: 'Owner Investment',             group: 'Assets & Capital' },
-  { value: 'Owner Withdrawal',      label: 'Owner Withdrawal / Drawing',   group: 'Assets & Capital' },
-  { value: 'Loan Disbursement',     label: 'Loan Received',                group: 'Financing' },
-  { value: 'Loan Repayment',        label: 'Loan Repayment',               group: 'Financing' },
-  { value: 'Installment Payment',   label: 'Installment Payment',          group: 'Financing' },
-  { value: 'Bank Transfer',         label: 'Bank / Cash Transfer',         group: 'Transfers & Adjustments' },
-  { value: 'Transfer',              label: 'Internal Transfer',            group: 'Transfers & Adjustments' },
-  { value: 'Journal Entry',         label: 'Manual Journal Entry',         group: 'Transfers & Adjustments' },
-  { value: 'Income',                label: 'Income (legacy)',              group: 'Legacy' },
-  { value: 'Expense',               label: 'Expense (legacy)',             group: 'Legacy' },
+  // ── Sales & Revenue ──────────────────────────────────────────────────────────
+  { value: 'Cash Sale',             label: 'Cash Sale',                         group: 'Sales & Revenue' },
+  { value: 'Credit Sale',           label: 'Credit Sale (A/R Invoice)',         group: 'Sales & Revenue' },
+  { value: 'Inventory Sale',        label: 'Inventory Sale',                    group: 'Sales & Revenue' },
+  { value: 'Payment Received',      label: 'Payment Received from Customer',    group: 'Sales & Revenue' },
+  { value: 'GST Collection',        label: 'GST / VAT Collected on Sale',       group: 'Sales & Revenue' },
+  { value: 'Advance from Customer', label: 'Advance from Customer (Deposit)',   group: 'Sales & Revenue' },
+  { value: 'Refund',                label: 'Customer Refund',                   group: 'Sales & Revenue' },
+  { value: 'Income',                label: 'Other Income / Revenue',            group: 'Sales & Revenue' },
+  // ── Purchases & Expenses ─────────────────────────────────────────────────────
+  { value: 'Cash Purchase',         label: 'Cash Purchase / Expense',           group: 'Purchases & Expenses' },
+  { value: 'Credit Purchase',       label: 'Credit Purchase (A/P Bill)',        group: 'Purchases & Expenses' },
+  { value: 'Inventory Purchase',    label: 'Inventory / Stock Purchase',        group: 'Purchases & Expenses' },
+  { value: 'Payment Made',          label: 'Payment Made to Vendor',            group: 'Purchases & Expenses' },
+  { value: 'Prepaid Expense',       label: 'Prepaid Expense (paid in advance)', group: 'Purchases & Expenses' },
+  { value: 'Interest Payment',      label: 'Interest / Finance Charge',         group: 'Purchases & Expenses' },
+  { value: 'Expense',               label: 'General Expense',                   group: 'Purchases & Expenses' },
+  // ── Payroll & Taxes ──────────────────────────────────────────────────────────
+  { value: 'Salary',                label: 'Salary / Payroll Payment',          group: 'Payroll & Taxes' },
+  { value: 'GST Payment',           label: 'GST / VAT Remitted to Authority',   group: 'Payroll & Taxes' },
+  { value: 'WHT Payment',           label: 'Withholding Tax (WHT) Payment',     group: 'Payroll & Taxes' },
+  // ── Assets & Depreciation ────────────────────────────────────────────────────
+  { value: 'Asset Purchase',        label: 'Asset Purchase (fixed/tangible)',   group: 'Assets & Capital' },
+  { value: 'Depreciation',          label: 'Depreciation Entry (non-cash)',     group: 'Assets & Capital' },
+  { value: 'Owner Investment',      label: 'Owner Investment / Capital Intro',  group: 'Assets & Capital' },
+  { value: 'Owner Withdrawal',      label: 'Owner Withdrawal / Drawing',        group: 'Assets & Capital' },
+  // ── Financing ────────────────────────────────────────────────────────────────
+  { value: 'Loan Disbursement',     label: 'Loan Received',                     group: 'Financing' },
+  { value: 'Loan Repayment',        label: 'Loan Repayment (principal)',        group: 'Financing' },
+  { value: 'Installment Payment',   label: 'Installment / EMI Payment',        group: 'Financing' },
+  // ── Adjustments & Transfers ──────────────────────────────────────────────────
+  { value: 'Bank Transfer',         label: 'Bank / Cash Transfer',              group: 'Adjustments & Transfers' },
+  { value: 'Transfer',              label: 'Internal Transfer',                 group: 'Adjustments & Transfers' },
+  { value: 'Journal Entry',         label: 'Manual Journal Entry (advanced)',   group: 'Adjustments & Transfers' },
+  { value: 'Adjusting Entry',       label: 'Adjusting Entry (accrual/deferral)',group: 'Adjustments & Transfers' },
+  { value: 'Opening Balance',       label: 'Opening Balance Entry',             group: 'Adjustments & Transfers' },
 ]
 
 // ─── Tab 2: Structured Form ───────────────────────────────────────────────────
@@ -717,7 +760,11 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
 
   // Phase 3.5 Step 5 — Pre-save warning state
   const [preSaveWarnings,  setPreSaveWarnings]  = useState([])
+  // preSaveAcknowledged = true means warnings were already shown once → bypass check on next submit
   const [preSaveAcknowledged, setPreSaveAcknowledged] = useState(false)
+
+  // Auto-generated invoice/bill number tracking
+  const [invoiceAutoGenerated, setInvoiceAutoGenerated] = useState(false)
 
   // Phase 3.5 Step 3 — Inventory state
   const [selectedInventoryItemId, setSelectedInventoryItemId] = useState(null)
@@ -878,6 +925,24 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues, accounts.length, customerParties.length, vendorParties.length])
+
+  // ── Auto-generate invoice/bill number when transaction type implies one ───────
+  const watchedInvoiceNumber = watch('invoiceNumber')
+  useEffect(() => {
+    if (!transactionType) return
+    // Don't overwrite a user-typed or AI-provided number
+    if (watchedInvoiceNumber?.trim() && !invoiceAutoGenerated) return
+    const generated = generateDocNumber(transactionType)
+    if (generated) {
+      setValue('invoiceNumber', generated)
+      setInvoiceAutoGenerated(true)
+    } else if (invoiceAutoGenerated) {
+      // Transaction type changed to something that doesn't need an auto number
+      setValue('invoiceNumber', '')
+      setInvoiceAutoGenerated(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionType])
 
   const allAccountOptions = useMemo(() => buildGroupedAccountOptions(accounts), [accounts])
 
@@ -1258,11 +1323,30 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
               placeholder="Type or select a vendor name…"
             />
           )}
-          <Input
-            label={requiresCustomer ? 'Invoice Number (optional)' : 'Bill / PO Number (optional)'}
-            placeholder={requiresCustomer ? 'e.g., INV-2024-042' : 'e.g., BILL-007 or PO-2024-012'}
-            {...register('invoiceNumber')}
-          />
+          {/* Invoice / Bill number with auto-generate indicator */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-text-secondary">
+                {requiresCustomer ? 'Invoice Number' : 'Bill / PO Number'}
+              </label>
+              {invoiceAutoGenerated && watchedInvoiceNumber?.trim() && (
+                <span className="text-[10px] text-cyan/70 flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  Auto-generated — type to override
+                </span>
+              )}
+            </div>
+            <input
+              type="text"
+              className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm placeholder:text-text-muted focus:border-cyan focus:outline-none transition-colors"
+              placeholder={requiresCustomer ? 'e.g., INV-202601-00042' : 'e.g., BILL-202601-00042'}
+              {...register('invoiceNumber')}
+              onChange={(e) => {
+                register('invoiceNumber').onChange(e)
+                setInvoiceAutoGenerated(false)
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -1332,6 +1416,30 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         </button>
         {showOptional && (
           <div className="px-4 pb-4 pt-1 space-y-4 border-t border-glass animate-fade-in">
+            {/* Invoice number inside More Options (only for non-AR/AP types) */}
+            {!requiresCustomer && !requiresVendor && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-text-secondary">Invoice / Bill Reference</label>
+                  {invoiceAutoGenerated && watchedInvoiceNumber?.trim() && (
+                    <span className="text-[10px] text-cyan/70 flex items-center gap-1">
+                      <Sparkles className="h-2.5 w-2.5" />
+                      Auto-generated — type to override
+                    </span>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm placeholder:text-text-muted focus:border-cyan focus:outline-none transition-colors"
+                  placeholder="e.g., INV-202601-00042 or BILL-202601-00042"
+                  {...register('invoiceNumber')}
+                  onChange={(e) => {
+                    register('invoiceNumber').onChange(e)
+                    setInvoiceAutoGenerated(false)
+                  }}
+                />
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="Reference Number" placeholder="e.g., REF-2024-001" {...register('referenceNumber')} />
               <Input label="Payment Due Date" type="date" {...register('dueDate')} />
@@ -1458,17 +1566,24 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
-              <p className="text-sm font-semibold text-amber-300">Advisory warnings</p>
+              <p className="text-sm font-semibold text-amber-300">Advisory warnings — review before saving</p>
             </div>
-            <button type="button" onClick={() => setPreSaveWarnings([])} className="text-text-muted hover:text-text-primary flex-shrink-0">
+            <button type="button" onClick={() => { setPreSaveWarnings([]); setPreSaveAcknowledged(false) }} className="text-text-muted hover:text-text-primary flex-shrink-0">
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
           <ul className="text-xs text-amber-400/90 list-disc list-inside space-y-1">
-            {preSaveWarnings.map((w, i) => <li key={i}>{w}</li>)}
+            {preSaveWarnings.map((w, i) => <li key={i}>{applyGAAPGloss(w)}</li>)}
           </ul>
-          {!preSaveAcknowledged && (
-            <p className="text-xs text-amber-400/70">These are advisory only. Click <span className="font-semibold">Record Transaction</span> again to save anyway.</p>
+          {/* FIX: was !preSaveAcknowledged — inverted. Now shows the hint exactly when warnings are present */}
+          {preSaveAcknowledged && (
+            <p className="text-xs text-amber-400/70 font-medium">
+              ⚠ These are advisory only — your transaction is valid. Click{' '}
+              <span className="font-bold text-amber-300">
+                {watch('isInstallment') ? 'Create Instalment Plan' : 'Record Transaction'}
+              </span>{' '}
+              again to save anyway.
+            </p>
           )}
         </div>
       )}
