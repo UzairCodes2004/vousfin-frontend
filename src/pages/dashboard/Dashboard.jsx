@@ -385,10 +385,18 @@ export default function Dashboard() {
         {/* ── 5. AI ACCOUNTANT + FORECAST ─────────────────────────── */}
         <Section label="AI Accountant & Forecasting" collapsible defaultOpen>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Left: AI Insights panel */}
             <div className="lg:col-span-2 flex">
               <AIInsightsPanel kpis={kpis} currency={currency} kpiLoading={loadDash} />
             </div>
-            <div className="lg:col-span-3 flex">
+            {/* Right: Financial Position stacked above Forecast */}
+            <div className="lg:col-span-3 flex flex-col gap-4">
+              <FinancialSnapshot
+                ar={kpis.accountsReceivable ?? 0}
+                ap={kpis.accountsPayable    ?? 0}
+                currency={currency}
+                loading={loadDash}
+              />
               <ForecastWidget />
             </div>
           </div>
@@ -396,10 +404,10 @@ export default function Dashboard() {
 
         {/* ── 6. RECENT ACTIVITY ──────────────────────────────────── */}
         <Section label="Recent Activity" to="/transactions">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+          <div className="grid grid-cols-1 gap-4 items-start">
 
-            {/* Transactions card */}
-            <div className="lg:col-span-2 premium-card overflow-hidden">
+            {/* Transactions card — full width now that snapshot moved up */}
+            <div className="premium-card overflow-hidden">
               <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-glass">
                 <div>
                   <h3 className="text-sm font-bold text-text-primary">Recent Transactions</h3>
@@ -456,18 +464,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Right: Financial Snapshot only */}
-          <div className="lg:col-span-1">
-            <FinancialSnapshot
-              ar={kpis.accountsReceivable ?? 0}
-              ap={kpis.accountsPayable    ?? 0}
-              currency={currency}
-              loading={loadDash}
-            />
           </div>
-
-        </div>
-      </Section>
+        </Section>
 
       </div>{/* end space-y-7 */}
 
