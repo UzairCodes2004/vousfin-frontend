@@ -28,6 +28,7 @@ import { cn } from '@/utils/cn'
 
 import SmartKPIStrip           from '@/components/dashboard/SmartKPIStrip'
 import AIInsightsPanel         from '@/components/dashboard/AIInsightsPanel'
+import BusinessHealthWidget    from '@/components/dashboard/BusinessHealthWidget'
 import ForecastWidget          from '@/components/dashboard/ForecastWidget'
 import RevenueExpensesChart    from '@/components/dashboard/RevenueExpensesChart'
 import CashFlowTrendChart      from '@/components/dashboard/CashFlowTrendChart'
@@ -328,7 +329,12 @@ export default function Dashboard() {
         />
       </Section>
 
-      {/* ── 3. ANALYTICS ────────────────────────────────────────── */}
+      {/* ── 3. BUSINESS HEALTH ──────────────────────────────────── */}
+      <Section label="Business Intelligence">
+        <BusinessHealthWidget kpis={kpis} loading={loadDash} />
+      </Section>
+
+      {/* ── 4. ANALYTICS ────────────────────────────────────────── */}
       <Section label="Business Analytics">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="md:col-span-3">
@@ -348,12 +354,16 @@ export default function Dashboard() {
         </div>
       </Section>
 
-      {/* ── 4. AI INSIGHTS + FORECAST — side by side, equal height ── */}
-      <Section label="AI Intelligence & Forecasting">
+      {/* ── 5. AI ACCOUNTANT + FORECAST — side by side, equal height ── */}
+      <Section label="AI Accountant & Forecasting">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* AI Insights fills full height of the row */}
+          {/* AI Accountant panel — daily briefing, insights, actions */}
           <div className="lg:col-span-2 flex">
-            <AIInsightsPanel />
+            <AIInsightsPanel
+              kpis={kpis}
+              currency={currency}
+              kpiLoading={loadDash}
+            />
           </div>
           {/* Forecast — wider (chart needs horizontal space) */}
           <div className="lg:col-span-3 flex">
@@ -362,7 +372,7 @@ export default function Dashboard() {
         </div>
       </Section>
 
-      {/* ── 5. WORKSPACE ────────────────────────────────────────── */}
+      {/* ── 6. WORKSPACE ────────────────────────────────────────── */}
       <Section label="Recent Activity" to="/transactions">
         {/* items-start: right sidebar only as tall as its own content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">

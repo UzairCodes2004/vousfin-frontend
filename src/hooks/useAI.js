@@ -88,6 +88,24 @@ export function useForecastHealth() {
   })
 }
 
+// ── AI Cashflow Recommendations ──
+export function useAIRecommendations() {
+  const businessId = useAuthStore(s => s.user?.businessId)
+  return useQuery({
+    queryKey: ['aiRecommendations', businessId],
+    queryFn: async () => {
+      const res = await api.post('/ai/cashflow-recommendations')
+      const d = res.data?.data ?? res.data
+      return Array.isArray(d) ? d
+        : Array.isArray(d?.recommendations) ? d.recommendations
+        : []
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: !!businessId,
+    retry: false,
+  })
+}
+
 // ── AI Financial Insights (unusual spending, tax risk, cash flow warnings) ──
 export function useFinancialInsights() {
   const businessId = useAuthStore(s => s.user?.businessId)

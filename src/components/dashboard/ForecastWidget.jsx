@@ -13,6 +13,7 @@ import {
   useForecastHealth,
 } from '@/hooks/useAI'
 import ForecastChart from '@/components/charts/ForecastChart'
+import ForecastExplanationCard from '@/components/dashboard/ForecastExplanationCard'
 import { cn } from '@/utils/cn'
 
 const METRICS = [
@@ -182,6 +183,15 @@ export default function ForecastWidget() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* ── Forecast Explanation ── */}
+      {currentData && (
+        <ForecastExplanationCard
+          forecastData={currentData}
+          metric={activeMetric}
+          horizon={horizon}
+        />
       )}
 
       {/* ── Footer ── */}
