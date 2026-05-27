@@ -26,7 +26,7 @@ import { useLatestRates, useConversionPreview } from '@/hooks/useFxRates'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
 import { buildGroupedAccountOptions } from '@/utils/accountOptions'
-import { TRANSACTION_PRESETS, matchesFilter, getPresetById } from '@/utils/transactionPresets'
+import { matchesFilter } from '@/utils/transactionPresets'
 import { getTxTypeFilter } from '@/utils/accountFilterRules'
 import { resolveDebitCreditPair } from '@/utils/accountResolver'
 import { cn } from '@/utils/cn'
@@ -559,59 +559,6 @@ function NLTab({ onParsed }) {
   )
 }
 
-// ─── Preset Picker ────────────────────────────────────────────────────────────
-function PresetPicker({ activeId, onChange }) {
-  const groups = useMemo(() => {
-    const map = new Map()
-    TRANSACTION_PRESETS.forEach(p => {
-      const g = p.group || 'Other'
-      if (!map.has(g)) map.set(g, [])
-      map.get(g).push(p)
-    })
-    return map
-  }, [])
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-text-secondary">
-          Common transactions <span className="text-text-muted text-xs">(optional shortcut)</span>
-        </label>
-        {activeId && (
-          <button type="button" onClick={() => onChange(null)} className="text-xs text-cyan hover:underline">
-            Clear
-          </button>
-        )}
-      </div>
-      <div className="space-y-3 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
-        {Array.from(groups.entries()).map(([groupName, presets]) => (
-          <div key={groupName}>
-            <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">{groupName}</p>
-            <div className="flex flex-wrap gap-1.5">
-              {presets.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  title={p.description}
-                  onClick={() => onChange(activeId === p.id ? null : p.id)}
-                  className={cn(
-                    'rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors',
-                    activeId === p.id
-                      ? 'border-cyan bg-cyan text-navy'
-                      : 'border-glass bg-glass-panel text-text-secondary hover:border-cyan/40 hover:text-text-primary'
-                  )}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── Transaction Type options ─────────────────────────────────────────────────
 const TX_TYPE_OPTIONS = [
   { value: '', label: '— Auto-detect from accounts —' },
@@ -712,7 +659,6 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
   })
 
   const [nlAiBanner, setNlAiBanner]     = useState(false)
-  const [presetId,   setPresetId]       = useState(null)
   const [showOptional, setShowOptional] = useState(false)
 
   // Track auto-resolution outcome so UI can show "AI auto-selected" badges
@@ -872,12 +818,9 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
           initialValues.paymentMethod) {
         setShowOptional(true)
       }
-      const matchingPreset = TRANSACTION_PRESETS.find(p => p.transactionType === initialValues.transactionType)
-      setPresetId(matchingPreset?.id || null)
     } else {
       reset({ transactionDate: today })
       setNlAiBanner(false)
-      setPresetId(null)
       setAutoResolved({ debit: null, credit: null })
       setSelectedCustomerId(null)
       setSelectedVendorId(null)
@@ -890,7 +833,6 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues, accounts.length, customerParties.length, vendorParties.length])
 
-  const preset = useMemo(() => getPresetById(presetId), [presetId])
   const allAccountOptions = useMemo(() => buildGroupedAccountOptions(accounts), [accounts])
 
   function buildSuggestedOptions(allOptions, filter) {
@@ -904,10 +846,9 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
 
   const txTypeWatch = watch('transactionType')
   const effectiveFilters = useMemo(() => {
-    if (preset) return { debit: preset.debitFilter, credit: preset.creditFilter }
     const f = getTxTypeFilter(txTypeWatch)
     return { debit: f.debitFilter, credit: f.creditFilter }
-  }, [preset, txTypeWatch])
+  }, [txTypeWatch])
 
   const debitOptions  = useMemo(
     () => buildSuggestedOptions(allAccountOptions, effectiveFilters.debit),
@@ -1173,31 +1114,15 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       <Input label="Description" placeholder="e.g., Office Supplies Purchase — paid by bank"
         error={errors.description?.message} {...register('description')} />
 
-      {/* Preset chips */}
-      <PresetPicker
-        activeId={presetId}
-        onChange={(id) => {
-          const prev = getPresetById(presetId)
-          const next = getPresetById(id)
-          setPresetId(id)
-          if (next?.transactionType) setValue('transactionType', next.transactionType)
-          const currentDebit  = watch('debitAccountId')
-          const currentCredit = watch('creditAccountId')
-          if (id && prev && next && (currentDebit || currentCredit)) {
-            const debitOpt  = allAccountOptions.find(o => o.value === currentDebit)
-            const creditOpt = allAccountOptions.find(o => o.value === currentCredit)
-            const debitStillMatches  = !next.debitFilter  || (debitOpt  && matchesFilter(debitOpt,  next.debitFilter))
-            const creditStillMatches = !next.creditFilter || (creditOpt && matchesFilter(creditOpt, next.creditFilter))
-            if (!debitStillMatches)  setValue('debitAccountId',  '')
-            if (!creditStillMatches) setValue('creditAccountId', '')
-          }
-        }}
-      />
-
-      <Select label="Transaction Type (optional — auto-detected when blank)"
+      <Select label="Transaction Type (optional — auto-detected from accounts)"
         options={TX_TYPE_OPTIONS}
         value={watch('transactionType') || ''}
         onChange={(v) => setValue('transactionType', v)} />
+      {!txTypeWatch && (
+        <p className="text-[11px] text-text-muted px-1 -mt-3">
+          💡 Select a type to see smart account suggestions below, or leave blank for auto-detection.
+        </p>
+      )}
 
       {/* Double-Entry Accounts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-glass rounded-xl bg-glass-panel">
@@ -1208,12 +1133,6 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
           value={creditAccountId} onChange={(val) => setValue('creditAccountId', val)}
           error={errors.creditAccountId?.message} placeholder="Select Account" searchable />
       </div>
-      {preset && (
-        <p className="text-xs text-text-muted -mt-2 px-1">
-          <span className="font-semibold text-cyan">{preset.label}:</span> {preset.description}
-        </p>
-      )}
-
       {/* Compound (multi-line) journal preview — for GST sale, payroll w/ deductions, etc. */}
       {hasCompoundJournal && (
         <div className="rounded-lg border border-cyan/25 bg-cyan/5 p-3 space-y-1.5 animate-fade-in">
@@ -1242,9 +1161,12 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         </div>
       )}
 
-      {/* Customer / Vendor */}
+      {/* Customer / Vendor + Invoice — shown when transaction type/accounts indicate AR or AP */}
       {(requiresCustomer || requiresVendor) && (
-        <div className="animate-fade-in p-4 rounded-xl bg-cyan/5 border border-cyan/20 space-y-4">
+        <div className="animate-fade-in p-4 rounded-xl bg-cyan/5 border border-cyan/20 space-y-3">
+          <p className="text-[10px] font-semibold text-cyan uppercase tracking-wider">
+            {requiresCustomer ? 'Customer Details' : 'Vendor Details'}
+          </p>
           {requiresCustomer && (
             <PartyInput
               label="Customer (optional)"
@@ -1271,8 +1193,11 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
               placeholder="Type or select a vendor name…"
             />
           )}
-          <Input label="Invoice / Bill Number (optional)" placeholder="e.g., INV-2024-042 or BILL-007"
-            {...register('invoiceNumber')} />
+          <Input
+            label={requiresCustomer ? 'Invoice Number (optional)' : 'Bill / PO Number (optional)'}
+            placeholder={requiresCustomer ? 'e.g., INV-2024-042' : 'e.g., BILL-007 or PO-2024-012'}
+            {...register('invoiceNumber')}
+          />
         </div>
       )}
 
@@ -1458,17 +1383,24 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         )}
       </div>
 
-      {/* Pre-save warnings — shown after first submit attempt */}
-      {preSaveWarnings.length > 0 && preSaveAcknowledged && (
+      {/* Pre-save warnings — advisory only, shown after first submit attempt */}
+      {preSaveWarnings.length > 0 && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
-            <p className="text-sm font-semibold text-amber-300">Review before saving</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+              <p className="text-sm font-semibold text-amber-300">Advisory warnings</p>
+            </div>
+            <button type="button" onClick={() => setPreSaveWarnings([])} className="text-text-muted hover:text-text-primary flex-shrink-0">
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
           <ul className="text-xs text-amber-400/90 list-disc list-inside space-y-1">
             {preSaveWarnings.map((w, i) => <li key={i}>{w}</li>)}
           </ul>
-          <p className="text-xs text-amber-400/70">Click &quot;Record Transaction&quot; again to save anyway.</p>
+          {!preSaveAcknowledged && (
+            <p className="text-xs text-amber-400/70">These are advisory only. Click <span className="font-semibold">Record Transaction</span> again to save anyway.</p>
+          )}
         </div>
       )}
 
