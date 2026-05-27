@@ -65,6 +65,7 @@ const NAV = [
   },
   { kind: 'link',  name: 'Fiscal Years',    href: '/accounting/fiscal-years',    icon: CalendarDays },
   { kind: 'link',  name: 'Exchange Rates', href: '/settings/exchange-rates',    icon: DollarSign, activePrefix: '/settings/exchange-rates' },
+  { kind: 'link',  name: 'Tax Engine',    href: '/settings/tax',               icon: Receipt,   activePrefix: '/settings/tax' },
   { kind: 'link',  name: 'AI Assistant',   href: '/ai/assistant',               icon: Sparkles  },
   { kind: 'link',  name: 'Settings',       href: '/business/settings',          icon: Settings  },
 ]
