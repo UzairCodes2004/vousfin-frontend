@@ -112,6 +112,39 @@ function ConfBadge({ label, score }) {
   )
 }
 
+// ─── Live Journal Preview (Step 6 — real-time DR/CR feedback) ────────────────
+/**
+ * Shows a compact double-entry preview card whenever both accounts and an amount
+ * are selected. Zero-logic component — purely cosmetic, zero API calls.
+ * A balanced entry is always guaranteed here (same amount DR = CR).
+ */
+function LiveJournalPreview({ debitAccount, creditAccount, amount, currency }) {
+  if (!debitAccount || !creditAccount || !(amount > 0)) return null
+  return (
+    <div className="rounded-lg border border-glass bg-glass-panel/60 px-4 py-3 animate-fade-in">
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan inline-block" />
+          Journal Entry Preview
+        </span>
+        <span className="text-[10px] font-semibold text-emerald-400">✓ Balanced</span>
+      </div>
+      <div className="space-y-1.5 font-mono text-xs">
+        <div className="flex items-center gap-3">
+          <span className="text-cyan font-bold w-6 flex-shrink-0">DR</span>
+          <span className="flex-1 text-text-primary truncate font-sans">{debitAccount}</span>
+          <span className="text-cyan font-semibold flex-shrink-0">{formatCurrency(amount, currency)}</span>
+        </div>
+        <div className="flex items-center gap-3 border-t border-glass/50 pt-1.5">
+          <span className="text-text-muted font-bold w-6 flex-shrink-0">CR</span>
+          <span className="flex-1 text-text-secondary truncate font-sans">{creditAccount}</span>
+          <span className="text-text-secondary font-semibold flex-shrink-0">{formatCurrency(amount, currency)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Installment GAAP Journal Preview (shared) ────────────────────────────────
 function buildClientAmortization({ principal, count, frequency, annualRatePct, method = 'reducing_balance' }) {
   if (!principal || principal <= 0 || !count || count < 1) {
@@ -390,6 +423,19 @@ function PartyInput({ label, suggestions, value, onChange, placeholder, parties 
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Section label divider ────────────────────────────────────────────────────
+function SectionLabel({ label, note }) {
+  return (
+    <div className="flex items-center gap-3 pt-1">
+      <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest whitespace-nowrap">
+        {label}
+      </span>
+      {note && <span className="text-[10px] text-text-muted/60">{note}</span>}
+      <div className="flex-1 h-px bg-glass" />
     </div>
   )
 }
@@ -1104,6 +1150,9 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         </p>
       )}
 
+      {/* ── Section: Core Details ──────────────────────────────────────── */}
+      <SectionLabel label="Transaction Details" />
+
       {/* Date + Amount */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input label="Date" type="date" error={errors.transactionDate?.message} {...register('transactionDate')} />
@@ -1114,17 +1163,23 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       <Input label="Description" placeholder="e.g., Office Supplies Purchase — paid by bank"
         error={errors.description?.message} {...register('description')} />
 
-      <Select label="Transaction Type (optional — auto-detected from accounts)"
+      <Select
+        label="Transaction Type"
         options={TX_TYPE_OPTIONS}
         value={watch('transactionType') || ''}
         onChange={(v) => setValue('transactionType', v)} />
       {!txTypeWatch && (
         <p className="text-[11px] text-text-muted px-1 -mt-3">
-          💡 Select a type to see smart account suggestions below, or leave blank for auto-detection.
+          💡 Select a type for smart account suggestions, or leave blank for auto-detection.
         </p>
       )}
 
-      {/* Double-Entry Accounts */}
+      {/* ── Section: Double-Entry Accounts ─────────────────────────────── */}
+      <SectionLabel
+        label="Accounts"
+        note="Debit increases assets/expenses · Credit increases liabilities/revenue"
+      />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-glass rounded-xl bg-glass-panel">
         <Select label="Debit Account (DR)" options={debitOptions}
           value={debitAccountId} onChange={(val) => setValue('debitAccountId', val)}
@@ -1133,6 +1188,16 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
           value={creditAccountId} onChange={(val) => setValue('creditAccountId', val)}
           error={errors.creditAccountId?.message} placeholder="Select Account" searchable />
       </div>
+
+      {/* Live Journal Preview — zero API calls, pure client-side feedback */}
+      {debitAccountId && creditAccountId && amount > 0 && !hasCompoundJournal && (
+        <LiveJournalPreview
+          debitAccount={accounts.find(a => a._id === debitAccountId)?.accountName}
+          creditAccount={accounts.find(a => a._id === creditAccountId)?.accountName}
+          amount={amount}
+          currency={currency}
+        />
+      )}
       {/* Compound (multi-line) journal preview — for GST sale, payroll w/ deductions, etc. */}
       {hasCompoundJournal && (
         <div className="rounded-lg border border-cyan/25 bg-cyan/5 p-3 space-y-1.5 animate-fade-in">
@@ -1163,7 +1228,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
 
       {/* Customer / Vendor + Invoice — shown when transaction type/accounts indicate AR or AP */}
       {(requiresCustomer || requiresVendor) && (
-        <div className="animate-fade-in p-4 rounded-xl bg-cyan/5 border border-cyan/20 space-y-3">
+        <div className="animate-fade-in p-4 rounded-xl bg-cyan/5 border border-cyan/20 space-y-3 mt-1">
           <p className="text-[10px] font-semibold text-cyan uppercase tracking-wider">
             {requiresCustomer ? 'Customer Details' : 'Vendor Details'}
           </p>
@@ -1259,7 +1324,10 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
       <div className="border border-glass rounded-xl overflow-hidden">
         <button type="button" onClick={() => setShowOptional(v => !v)}
           className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-glass-hover transition-colors">
-          <span>Additional Details <span className="text-text-muted text-xs font-normal">(reference, due date, tax, notes)</span></span>
+          <span className="flex items-center gap-2">
+            <span>More Options</span>
+            <span className="text-text-muted text-xs font-normal">— due date · payment method · tax · currency · notes</span>
+          </span>
           {showOptional ? <ChevronUp className="h-4 w-4 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 flex-shrink-0" />}
         </button>
         {showOptional && (
@@ -1325,6 +1393,7 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues }) {
         )}
       </div>
 
+      {/* ── Section: Installment / EMI (optional) ──────────────────────── */}
       {/* Installment Toggle */}
       <div className="pt-3 border-t border-glass">
         <label className="flex items-center gap-3 cursor-pointer group">
