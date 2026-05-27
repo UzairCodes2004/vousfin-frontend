@@ -193,7 +193,7 @@ function FinancialSnapshot({ ar, ap, currency, loading }) {
   const arPct = total > 0 ? (ar / total) * 100 : 50
 
   return (
-    <div className="premium-card p-5 flex-1">
+    <div className="premium-card p-5">
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-text-muted mb-4">
         Financial Position
       </h3>
@@ -205,29 +205,31 @@ function FinancialSnapshot({ ar, ap, currency, loading }) {
         </div>
       ) : (
         <>
-          {/* Receivable */}
+          {/* Receivable — always show absolute value */}
           <Link to="/transactions" className="flex items-center justify-between mb-3 p-3 rounded-xl bg-violet-500/8 border border-violet-500/15 hover:border-violet-500/35 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-violet-500/20">
                 <ArrowDownRight className="h-4 w-4 text-violet-400" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-violet-400 uppercase tracking-wider">Receivable</p>
-                <p className="text-base font-black text-text-primary leading-tight">{fmtAmt(ar, currency)}</p>
+                <p className="text-[10px] font-semibold text-violet-400 uppercase tracking-wider">Accounts Receivable</p>
+                <p className="text-base font-black text-text-primary leading-tight">{fmtAmt(Math.abs(ar), currency)}</p>
+                <p className="text-[10px] text-text-muted mt-0.5">Due from customers</p>
               </div>
             </div>
             <span className="text-[10px] font-bold text-violet-300 bg-violet-400/15 px-2 py-1 rounded-full">Due</span>
           </Link>
 
-          {/* Payable */}
+          {/* Payable — always show absolute value */}
           <Link to="/transactions" className="flex items-center justify-between mb-4 p-3 rounded-xl bg-orange-500/8 border border-orange-500/15 hover:border-orange-500/35 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-orange-500/20">
                 <ArrowUpRight className="h-4 w-4 text-orange-400" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">Payable</p>
-                <p className="text-base font-black text-text-primary leading-tight">{fmtAmt(ap, currency)}</p>
+                <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">Accounts Payable</p>
+                <p className="text-base font-black text-text-primary leading-tight">{fmtAmt(Math.abs(ap), currency)}</p>
+                <p className="text-[10px] text-text-muted mt-0.5">Owed to vendors</p>
               </div>
             </div>
             <span className="text-[10px] font-bold text-orange-300 bg-orange-400/15 px-2 py-1 rounded-full">Owed</span>
@@ -364,7 +366,8 @@ export default function Dashboard() {
 
       {/* ── 5. WORKSPACE ────────────────────────────────────────── */}
       <Section label="Recent Activity" to="/transactions">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* items-start: right sidebar only as tall as its own content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
 
           {/* Left: Recent Transactions */}
           <div className="lg:col-span-2 premium-card overflow-hidden">

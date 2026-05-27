@@ -12,7 +12,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   TrendingUp, TrendingDown, DollarSign, Wallet,
-  ArrowDownRight, ArrowUpRight, Percent, Flame,
+  Percent, Flame, Activity, Target,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -111,7 +111,10 @@ function PrimaryCard({ title, value, format, currency, icon: Icon, color, trend,
 
 /* ── SECONDARY chip — compact ─────────────────────────────────────── */
 function SecondaryChip({ title, value, format, currency, icon: Icon, color, trend, trendLabel, to, loading }) {
-  const display = loading ? null : format === 'percent' ? fmtPct(value) : fmtVal(value, currency)
+  const display = loading ? null
+    : format === 'percent' ? fmtPct(value)
+    : format === 'text'    ? String(value)
+    : fmtVal(value, currency)
 
   const inner = (
     <div
@@ -140,7 +143,6 @@ function SecondaryChip({ title, value, format, currency, icon: Icon, color, tren
 export default function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loading, currency }) {
   const {
     revenue = 0, expenses = 0, netProfit = 0, cashBalance = 0,
-    accountsReceivable = 0, accountsPayable = 0,
   } = kpis
 
   const revSpark    = useMemo(() => revenueVsExpenses.map(d => d.revenue  ?? 0), [revenueVsExpenses])
@@ -149,11 +151,12 @@ export default function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loadi
 
   const monthsElapsed   = Math.max(1, new Date().getMonth() + 1)
   const burnRate        = expenses > 0 ? Math.round(expenses / monthsElapsed) : 0
+  const avgMonthlyRev   = revenue  > 0 ? Math.round(revenue  / monthsElapsed) : 0
   const profitMarginPct = revenue  > 0 ? (netProfit / revenue) * 100 : 0
 
   return (
     <div className="space-y-3">
-      {/* ── Primary row ── */}
+      {/* ── Primary row — 4 main metrics ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <PrimaryCard title="Total Revenue"  value={revenue}   icon={TrendingUp}  color="#34d399"
           trend={revenue > 0 ? 1 : 0}   trendLabel="YTD" sparkData={revSpark}
@@ -175,24 +178,27 @@ export default function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loadi
           currency={currency} loading={loading} to="/reports/balance-sheet" />
       </div>
 
-      {/* ── Secondary row ── */}
+      {/* ── Secondary row — derived / rate metrics (NO AR/AP — shown in Financial Position sidebar) ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SecondaryChip title="Receivables" value={accountsReceivable} icon={ArrowDownRight} color="#a78bfa"
-          trend={accountsReceivable > 0 ? 1 : 0} trendLabel="Due"
-          currency={currency} loading={loading} to="/transactions" />
-
-        <SecondaryChip title="Payables" value={accountsPayable} icon={ArrowUpRight} color="#fb923c"
-          trend={accountsPayable > 0 ? -1 : 0} trendLabel="Owed"
-          currency={currency} loading={loading} to="/transactions" />
-
         <SecondaryChip title="Profit Margin" value={profitMarginPct} format="percent" icon={Percent}
           color={profitMarginPct >= 0 ? '#34d399' : '#f87171'}
           trend={profitMarginPct > 0 ? 1 : profitMarginPct < 0 ? -1 : 0}
           trendLabel={`${profitMarginPct.toFixed(1)}%`}
           currency={currency} loading={loading} to="/reports/income-statement" />
 
-        <SecondaryChip title="Avg. Burn Rate" value={burnRate} icon={Flame} color="#facc15"
-          trend={burnRate > 0 ? -1 : 0} trendLabel="/mo"
+        <SecondaryChip title="Monthly Burn" value={burnRate} icon={Flame} color="#facc15"
+          trend={burnRate > 0 ? -1 : 0} trendLabel="/mo avg"
+          currency={currency} loading={loading} to="/reports/income-statement" />
+
+        <SecondaryChip title="Avg Monthly Rev" value={avgMonthlyRev} icon={Activity} color="#a78bfa"
+          trend={avgMonthlyRev > 0 ? 1 : 0} trendLabel="/mo avg"
+          currency={currency} loading={loading} to="/reports/income-statement" />
+
+        <SecondaryChip title="Revenue Target" value={profitMarginPct >= 20 ? 'On track' : 'Below 20%'}
+          format="text" icon={Target}
+          color={profitMarginPct >= 20 ? '#34d399' : '#f87171'}
+          trend={profitMarginPct >= 20 ? 1 : -1}
+          trendLabel={profitMarginPct >= 20 ? 'Healthy' : 'Review'}
           currency={currency} loading={loading} to="/reports/income-statement" />
       </div>
     </div>
