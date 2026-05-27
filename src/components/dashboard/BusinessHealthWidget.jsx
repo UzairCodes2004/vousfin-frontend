@@ -181,38 +181,42 @@ export default function BusinessHealthWidget({ kpis = {}, loading }) {
           <div className="h-20 animate-pulse rounded-xl bg-white/[0.04]" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_auto] items-center gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
 
-          {/* Left: Risk Meter */}
-          <RiskMeter
-            riskLevel={scores.riskLevel}
-            riskPct={scores.riskPct}
-            runway={scores.runway}
-          />
-
-          {/* Divider */}
-          <div className="hidden md:block h-16 w-px bg-glass" />
-
-          {/* Middle: 4 score rings */}
-          <div className="flex items-center justify-center gap-4 md:gap-6">
-            <ScoreRing score={scores.liquidity}     label="Liquidity"    icon={DollarSign}  ringColor="#06b6d4" />
-            <ScoreRing score={Math.round(scores.profitability)} label="Profit"       icon={TrendingUp}  ringColor="#34d399" />
-            <ScoreRing score={scores.operational}   label="Operations"   icon={Activity}    ringColor="#a78bfa" />
-            <ScoreRing score={scores.tax}           label="Tax"          icon={Shield}      ringColor="#fbbf24" />
+          {/* Risk Meter — full width on mobile */}
+          <div className="flex-1 min-w-0">
+            <RiskMeter
+              riskLevel={scores.riskLevel}
+              riskPct={scores.riskPct}
+              runway={scores.runway}
+            />
           </div>
 
           {/* Divider */}
-          <div className="hidden md:block h-16 w-px bg-glass" />
+          <div className="hidden md:block h-16 w-px bg-glass flex-shrink-0" />
 
-          {/* Right: Overall score */}
-          <div className="flex flex-col items-center justify-center gap-0.5 min-w-[52px]">
+          {/* 4 score rings — 4-col on mobile too */}
+          <div className="flex items-center justify-around md:justify-center gap-4 md:gap-6 flex-shrink-0">
+            <ScoreRing score={scores.liquidity}                    label="Liquidity"   icon={DollarSign}  ringColor="#06b6d4" />
+            <ScoreRing score={Math.round(scores.profitability)}    label="Profit"      icon={TrendingUp}  ringColor="#34d399" />
+            <ScoreRing score={scores.operational}                  label="Operations"  icon={Activity}    ringColor="#a78bfa" />
+            <ScoreRing score={scores.tax}                          label="Tax"         icon={Shield}      ringColor="#fbbf24" />
+          </div>
+
+          {/* Divider */}
+          <div className="hidden md:block h-16 w-px bg-glass flex-shrink-0" />
+
+          {/* Overall score */}
+          <div className="flex md:flex-col items-center md:justify-center gap-2 md:gap-0.5 flex-shrink-0">
             <p className="text-3xl font-black leading-none" style={{ color: overallColor }}>
               {scores.overall}
             </p>
-            <p className="text-[10px] text-text-muted font-semibold">/100</p>
-            <p className="text-[10px] font-bold mt-1 uppercase tracking-wide" style={{ color: overallColor }}>
-              {scores.overall >= 80 ? 'Excellent' : scores.overall >= 65 ? 'Good' : scores.overall >= 50 ? 'Fair' : 'Poor'}
-            </p>
+            <div className="flex md:flex-col items-center gap-1 md:gap-0.5">
+              <p className="text-[10px] text-text-muted font-semibold">/100</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: overallColor }}>
+                {scores.overall >= 80 ? 'Excellent' : scores.overall >= 65 ? 'Good' : scores.overall >= 50 ? 'Fair' : 'Poor'}
+              </p>
+            </div>
           </div>
 
         </div>

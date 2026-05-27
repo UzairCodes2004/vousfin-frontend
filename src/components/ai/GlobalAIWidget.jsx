@@ -170,7 +170,7 @@ export default function GlobalAIWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-6 lg:bottom-6 z-[60] flex items-center gap-2 rounded-full bg-cyan text-navy px-4 py-3 shadow-lg shadow-cyan/25 hover:bg-cyan/90 active:scale-95 transition-all duration-150 font-semibold text-sm select-none"
+        className="fixed bottom-[4.5rem] sm:bottom-6 right-4 sm:right-6 z-[60] flex items-center gap-2 rounded-full bg-cyan text-navy px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-lg shadow-cyan/25 hover:bg-cyan/90 active:scale-95 transition-all duration-150 font-semibold text-sm select-none"
         aria-label="Open AI Assistant"
       >
         <BrainCircuit className="h-5 w-5 flex-shrink-0" />
@@ -180,9 +180,17 @@ export default function GlobalAIWidget() {
   }
 
   /* ── Panel dimensions ──────────────────────────────────────────────── */
+  // Mobile  : full-width bottom sheet sitting above the nav (bottom-16 = 64px = nav height)
+  // Desktop : floating card at bottom-right corner
   const panelCls = isFullscreen
     ? 'fixed inset-0 z-[60] flex flex-col bg-navy'
-    : 'fixed bottom-6 right-6 z-[60] w-[380px] max-w-[calc(100vw-1.5rem)] h-[520px] flex flex-col rounded-2xl shadow-2xl shadow-black/40 border border-glass bg-charcoal overflow-hidden'
+    : [
+        'fixed z-[60] flex flex-col shadow-2xl shadow-black/40 border border-glass bg-charcoal overflow-hidden',
+        // Mobile: full-width sheet above bottom nav
+        'inset-x-0 bottom-16 rounded-t-2xl max-h-[75vh]',
+        // sm+: classic floating card
+        'sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:max-w-[calc(100vw-1.5rem)] sm:h-[520px] sm:max-h-none sm:rounded-2xl',
+      ].join(' ')
 
   return (
     <div className={panelCls}>

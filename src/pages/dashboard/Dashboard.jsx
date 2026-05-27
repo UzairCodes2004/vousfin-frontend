@@ -1,12 +1,12 @@
 /**
- * Dashboard — Phase 5.6 refined layout v3
+ * Dashboard — Phase 5.6 Step 3 (mobile-first)
  *
- * Changes vs v2:
- *  - AI Insights + Forecast are SIDE BY SIDE on xl screens (2/5 + 3/5)
- *  - Quick Actions moved to the TOP of the workspace right sidebar
- *  - Quick Actions use explicit Tailwind colour classes (CSS-var hover was broken)
- *  - "New Transaction" Quick Action opens TransactionFormModal inline
- *  - active:scale-95 + transition for click feedback on every action button
+ * Mobile improvements:
+ *  - Sticky quick actions bar (below header)
+ *  - Collapsible sections (chevron toggle on every section)
+ *  - Swipeable analytics cards (scroll-snap carousel on < md)
+ *  - Mobile transaction bottom drawer
+ *  - Touch-friendly spacing throughout
  */
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -15,7 +15,7 @@ import {
   TrendingUp, TrendingDown,
   ArrowDownRight, ArrowUpRight,
   BarChart2, BookOpen, Cpu,
-  ExternalLink,
+  ExternalLink, ChevronDown, X,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -51,8 +51,10 @@ function fmtAmt(val, currency = 'PKR') {
   return formatCurrency(val, currency)
 }
 
-/* ── Section divider ──────────────────────────────────────────────── */
-function Section({ label, to, children }) {
+/* ── Collapsible Section divider ──────────────────────────────────── */
+function Section({ label, to, children, collapsible = false, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen)
+
   return (
     <section>
       <div className="flex items-center gap-3 mb-3">
@@ -63,8 +65,25 @@ function Section({ label, to, children }) {
             View all <ExternalLink className="h-3 w-3" />
           </Link>
         )}
+        {collapsible && (
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            className="flex-shrink-0 p-1 rounded-md hover:bg-white/[0.06] transition-colors"
+            aria-label={open ? 'Collapse section' : 'Expand section'}
+          >
+            <ChevronDown className={cn(
+              'h-3.5 w-3.5 text-text-muted transition-transform duration-200',
+              !open && '-rotate-90',
+            )} />
+          </button>
+        )}
       </div>
-      {children}
+      {(!collapsible || open) && (
+        <div className="animate-collapse-down">
+          {children}
+        </div>
+      )}
     </section>
   )
 }
@@ -263,6 +282,8 @@ export default function Dashboard() {
 
   /* New-transaction modal */
   const [showNewTx, setShowNewTx] = useState(false)
+  /* Mobile transaction bottom drawer */
+  const [showTxDrawer, setShowTxDrawer] = useState(false)
 
   const dateRange = useMemo(() => ({
     startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
@@ -292,130 +313,151 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-7 animate-fade-in pb-10">
+    <div className="animate-fade-in pb-10">
 
-      {/* ── 1. HEADER + QUICK ACTIONS ───────────────────────────── */}
-      <div className="space-y-4">
-        {/* Title row */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-black text-text-primary tracking-tight">
-              {greeting}, <span className="text-cyan">{firstName}</span> 👋
-            </h1>
-            <p className="text-sm text-text-secondary mt-1 flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-text-primary">
-                {activeBusiness?.businessName || 'Your Business'}
-              </span>
-              <span className="text-text-muted">·</span>
-              <span className="flex items-center gap-1.5 text-text-muted">
-                <Clock className="h-3.5 w-3.5" />
-                YTD {new Date().getFullYear()} snapshot
-              </span>
-            </p>
-          </div>
-        </div>
+      {/* ── 1. HEADER ───────────────────────────────────────────── */}
+      <div className="mb-4">
+        <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">
+          {greeting}, <span className="text-cyan">{firstName}</span> 👋
+        </h1>
+        <p className="text-sm text-text-secondary mt-1 flex items-center gap-2 flex-wrap">
+          <span className="font-semibold text-text-primary">
+            {activeBusiness?.businessName || 'Your Business'}
+          </span>
+          <span className="text-text-muted">·</span>
+          <span className="flex items-center gap-1.5 text-text-muted">
+            <Clock className="h-3 w-3" />
+            YTD {new Date().getFullYear()}
+          </span>
+        </p>
+      </div>
 
-        {/* Quick Actions — horizontal pill bar right below the greeting */}
+      {/* ── STICKY QUICK ACTIONS — stays below header on all screens ── */}
+      <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5
+                      bg-navy/96 backdrop-blur-md border-b border-glass/40 mb-6">
         <QuickActionsBar onNewTransaction={() => setShowNewTx(true)} />
       </div>
 
-      {/* ── 2. KPI STRIP ────────────────────────────────────────── */}
-      <Section label="Key Metrics">
-        <SmartKPIStrip
-          kpis={kpis}
-          revenueVsExpenses={revenueVsExpenses}
-          loading={loadDash}
-          currency={currency}
-        />
-      </Section>
+      <div className="space-y-7">
 
-      {/* ── 3. BUSINESS HEALTH ──────────────────────────────────── */}
-      <Section label="Business Intelligence">
-        <BusinessHealthWidget kpis={kpis} loading={loadDash} />
-      </Section>
+        {/* ── 2. KPI STRIP ────────────────────────────────────────── */}
+        <Section label="Key Metrics">
+          <SmartKPIStrip
+            kpis={kpis}
+            revenueVsExpenses={revenueVsExpenses}
+            loading={loadDash}
+            currency={currency}
+          />
+        </Section>
 
-      {/* ── 4. ANALYTICS ────────────────────────────────────────── */}
-      <Section label="Business Analytics">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-3">
-            <RevenueExpensesChart
-              data={revenueVsExpenses}
-              loading={loadDash}
-              currency={currency}
-            />
-          </div>
-          <div className="md:col-span-2">
-            <CashFlowTrendChart
-              data={cashFlowTrend}
-              loading={loadDash}
-              currency={currency}
-            />
-          </div>
-        </div>
-      </Section>
+        {/* ── 3. BUSINESS HEALTH ──────────────────────────────────── */}
+        <Section label="Business Intelligence" collapsible defaultOpen>
+          <BusinessHealthWidget kpis={kpis} loading={loadDash} />
+        </Section>
 
-      {/* ── 5. AI ACCOUNTANT + FORECAST — side by side, equal height ── */}
-      <Section label="AI Accountant & Forecasting">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* AI Accountant panel — daily briefing, insights, actions */}
-          <div className="lg:col-span-2 flex">
-            <AIInsightsPanel
-              kpis={kpis}
-              currency={currency}
-              kpiLoading={loadDash}
-            />
-          </div>
-          {/* Forecast — wider (chart needs horizontal space) */}
-          <div className="lg:col-span-3 flex">
-            <ForecastWidget />
-          </div>
-        </div>
-      </Section>
-
-      {/* ── 6. WORKSPACE ────────────────────────────────────────── */}
-      <Section label="Recent Activity" to="/transactions">
-        {/* items-start: right sidebar only as tall as its own content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-
-          {/* Left: Recent Transactions */}
-          <div className="lg:col-span-2 premium-card overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-glass">
-              <div>
-                <h3 className="text-sm font-bold text-text-primary">Recent Transactions</h3>
-                <p className="text-[11px] text-text-muted mt-0.5">Last 6 entries</p>
+        {/* ── 4. ANALYTICS ────────────────────────────────────────── */}
+        <Section label="Business Analytics" collapsible defaultOpen>
+          {/* Mobile: horizontal swipe carousel — one chart at a time */}
+          <div className="md:hidden -mx-4 px-4">
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-4 pb-2">
+              <div className="snap-start flex-shrink-0 w-[calc(100vw-2.5rem)]">
+                <RevenueExpensesChart data={revenueVsExpenses} loading={loadDash} currency={currency} />
               </div>
-              <Link to="/transactions"
-                className="flex items-center gap-1 text-[11px] text-cyan hover:underline font-medium">
-                View all <ExternalLink className="h-3 w-3" />
-              </Link>
+              <div className="snap-start flex-shrink-0 w-[calc(100vw-2.5rem)]">
+                <CashFlowTrendChart   data={cashFlowTrend}     loading={loadDash} currency={currency} />
+              </div>
             </div>
-
-            <div className="p-3">
-              {loadTx ? (
-                <SkeletonLoader count={4} />
-              ) : recentTxs.length === 0 ? (
-                <div className="py-10 text-center">
-                  <LayoutDashboard className="h-8 w-8 text-text-muted mx-auto mb-3 opacity-40" />
-                  <p className="text-sm text-text-muted mb-2">No transactions yet</p>
-                  <button
-                    onClick={() => setShowNewTx(true)}
-                    className="inline-flex items-center gap-1.5 text-sm text-cyan font-semibold hover:underline"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Record your first transaction
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-0.5">
-                  {recentTxs.map(tx => (
-                    <TxRow key={tx._id} tx={tx} currency={currency} />
-                  ))}
-                </div>
-              )}
+            <div className="flex justify-center gap-1.5 mt-1.5">
+              <div className="h-1 w-5 bg-cyan rounded-full" />
+              <div className="h-1 w-2 bg-white/[0.15] rounded-full" />
             </div>
           </div>
+          {/* Desktop: side-by-side grid */}
+          <div className="hidden md:grid md:grid-cols-5 gap-4">
+            <div className="md:col-span-3">
+              <RevenueExpensesChart data={revenueVsExpenses} loading={loadDash} currency={currency} />
+            </div>
+            <div className="md:col-span-2">
+              <CashFlowTrendChart   data={cashFlowTrend}     loading={loadDash} currency={currency} />
+            </div>
+          </div>
+        </Section>
 
-          {/* Right: Financial Snapshot only */}
+        {/* ── 5. AI ACCOUNTANT + FORECAST ─────────────────────────── */}
+        <Section label="AI Accountant & Forecasting" collapsible defaultOpen>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div className="lg:col-span-2 flex">
+              <AIInsightsPanel kpis={kpis} currency={currency} kpiLoading={loadDash} />
+            </div>
+            <div className="lg:col-span-3 flex">
+              <ForecastWidget />
+            </div>
+          </div>
+        </Section>
+
+        {/* ── 6. RECENT ACTIVITY ──────────────────────────────────── */}
+        <Section label="Recent Activity" to="/transactions">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+
+            {/* Transactions card */}
+            <div className="lg:col-span-2 premium-card overflow-hidden">
+              <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-glass">
+                <div>
+                  <h3 className="text-sm font-bold text-text-primary">Recent Transactions</h3>
+                  <p className="text-[11px] text-text-muted mt-0.5">Last entries</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Mobile: drawer button */}
+                  {recentTxs.length > 0 && (
+                    <button
+                      onClick={() => setShowTxDrawer(true)}
+                      className="lg:hidden text-[11px] text-cyan font-semibold hover:underline"
+                    >
+                      See all
+                    </button>
+                  )}
+                  <Link to="/transactions"
+                    className="hidden lg:flex items-center gap-1 text-[11px] text-cyan hover:underline font-medium">
+                    View all <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="p-3">
+                {loadTx ? (
+                  <SkeletonLoader count={3} />
+                ) : recentTxs.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <LayoutDashboard className="h-7 w-7 text-text-muted mx-auto mb-2.5 opacity-40" />
+                    <p className="text-sm text-text-muted mb-2">No transactions yet</p>
+                    <button
+                      onClick={() => setShowNewTx(true)}
+                      className="inline-flex items-center gap-1.5 text-sm text-cyan font-semibold hover:underline"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Record your first transaction
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-0.5">
+                    {/* Mobile: 3 entries + prompt; Desktop: all 6 */}
+                    {recentTxs.slice(0, window.innerWidth < 1024 ? 3 : 6).map(tx => (
+                      <TxRow key={tx._id} tx={tx} currency={currency} />
+                    ))}
+                    {recentTxs.length > 3 && (
+                      <button
+                        onClick={() => setShowTxDrawer(true)}
+                        className="lg:hidden w-full mt-1.5 text-xs text-text-muted hover:text-cyan font-medium py-2 hover:bg-white/[0.04] rounded-lg transition-colors"
+                      >
+                        + {recentTxs.length - 3} more transactions
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Financial Snapshot only */}
           <div className="lg:col-span-1">
             <FinancialSnapshot
               ar={kpis.accountsReceivable ?? 0}
@@ -428,12 +470,68 @@ export default function Dashboard() {
         </div>
       </Section>
 
+      </div>{/* end space-y-7 */}
+
       {/* ── New Transaction Modal ────────────────────────────────── */}
       <TransactionFormModal
         isOpen={showNewTx}
         onClose={() => setShowNewTx(false)}
         transaction={null}
       />
+
+      {/* ── Mobile Transaction Bottom Drawer ─────────────────────── */}
+      {showTxDrawer && (
+        <div
+          className="fixed inset-0 z-[55] lg:hidden"
+          onClick={() => setShowTxDrawer(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-navy/75 backdrop-blur-sm" />
+
+          {/* Sheet */}
+          <div
+            className="absolute inset-x-0 bottom-0 bg-charcoal rounded-t-2xl border border-glass border-b-0 shadow-2xl animate-slide-up-sheet max-h-[80vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle + header */}
+            <div className="flex-shrink-0 pt-3 pb-0">
+              <div className="mx-auto h-1 w-10 rounded-full bg-white/[0.15] mb-3" />
+              <div className="flex items-center justify-between px-4 pb-3 border-b border-glass">
+                <div>
+                  <h3 className="text-sm font-bold text-text-primary">All Transactions</h3>
+                  <p className="text-[11px] text-text-muted">{recentTxs.length} recent entries</p>
+                </div>
+                <button
+                  onClick={() => setShowTxDrawer(false)}
+                  className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                >
+                  <X className="h-4 w-4 text-text-muted" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable transaction list */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin p-3 pb-4">
+              <div className="space-y-0.5">
+                {recentTxs.map(tx => (
+                  <TxRow key={tx._id} tx={tx} currency={currency} />
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex-shrink-0 p-4 pb-6 border-t border-glass">
+              <Link
+                to="/transactions"
+                onClick={() => setShowTxDrawer(false)}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-cyan/10 border border-cyan/25 text-cyan text-sm font-semibold hover:bg-cyan/15 transition-colors active:scale-95"
+              >
+                View all in Transactions <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

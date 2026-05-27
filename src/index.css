@@ -39,6 +39,13 @@
 
 @layer utilities {
   /* ═══ SCROLLBAR ═══ */
+  /* Hide scrollbar entirely (used for swipe carousels) */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--text3) transparent;
@@ -170,4 +177,24 @@
 
 .animate-fade-in {
   animation: fade-in 0.35s ease-out both;
+}
+
+/* Bottom sheet slide-up (mobile drawers) */
+@keyframes slide-up-sheet {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.animate-slide-up-sheet {
+  animation: slide-up-sheet 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Section collapse animation */
+@keyframes collapse-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-collapse-down {
+  animation: collapse-down 0.2s ease-out both;
 }
