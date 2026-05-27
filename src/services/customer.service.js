@@ -9,6 +9,7 @@ const customerService = {
   getCustomerBalance: (id) => api.get(`/customers/${id}/balance`),
   getCustomerTransactions: (id, params) => api.get(`/customers/${id}/transactions`, { params }),
   getCustomerStats: (id) => api.get(`/customers/${id}/stats`),
+  getCustomerStatement: (id, params) => api.get(`/customers/${id}/statement`, { params }),
   toggleActive: (id) => api.patch(`/customers/${id}/toggle-active`),
 };
 

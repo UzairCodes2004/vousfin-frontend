@@ -305,3 +305,40 @@ export function useRepairARAPTransactions() {
     onError: (error) => toast.error(getErrorMessage(error)),
   })
 }
+
+/**
+ * Mark AR entries as OVERDUE where dueDate < today.
+ * Idempotent — safe to run multiple times.
+ */
+export function useRefreshOverdueAR() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await transactionService.refreshOverdueAR()
+      return data.data
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['outstanding'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      const updated = result?.updated || 0
+      if (updated === 0) toast.success('No new overdue receivables found.')
+      else toast.success(`${updated} receivable${updated !== 1 ? 's' : ''} marked as overdue.`)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+/**
+ * Fetch a customer's chronological statement (ledger with running balance).
+ */
+export function useCustomerStatement(id, params = {}) {
+  return useQuery({
+    queryKey: ['customer-statement', id, params],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await customerService.getCustomerStatement(id, params)
+      return data.data
+    },
+    staleTime: 60 * 1000,
+  })
+}

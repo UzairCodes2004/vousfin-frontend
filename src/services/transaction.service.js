@@ -17,6 +17,8 @@ const transactionService = {
 
   // AR/AP Data Integrity Repair — idempotent, GAAP-compliant fix for mis-typed entries
   repairARAPTransactions: () => api.post('/transactions/repair-ar-ap'),
+  // AR Overdue Refresh — marks overdue AR entries where dueDate < today
+  refreshOverdueAR: () => api.post('/transactions/refresh-overdue-ar'),
 
   // Installments
   createInstallment: (data) => api.post('/transactions/installment', data),
