@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/utils/cn'
+import vousFinLogo from '@/assets/vousfin-logo.png'
 import {
   LayoutDashboard,
   Receipt,
@@ -202,12 +203,15 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
           compact ? 'justify-center' : 'justify-between'
         )}>
           {!compact && (
-            <span className="text-2xl font-black tracking-tight text-text-primary">
-              vous<span className="text-gradient">Fin</span>
-            </span>
+            <div className="flex items-center gap-2.5">
+              <img src={vousFinLogo} alt="VousFin" className="h-8 w-8 object-contain drop-shadow-[0_0_6px_rgba(6,182,212,0.35)]" />
+              <span className="text-2xl font-black tracking-tight text-text-primary">
+                vous<span className="text-gradient">Fin</span>
+              </span>
+            </div>
           )}
           {compact && (
-            <span className="text-2xl font-black text-cyan">vF</span>
+            <img src={vousFinLogo} alt="VousFin" className="h-8 w-8 object-contain drop-shadow-[0_0_6px_rgba(6,182,212,0.35)]" />
           )}
         </div>
 

@@ -11,7 +11,7 @@
 import { useState, useMemo, memo, Fragment, useCallback, useRef, useEffect } from 'react'
 import {
   Plus, ArrowUpRight, ArrowDownRight, Receipt,
-  RotateCcw, History, ChevronUp, Calendar, Loader2,
+  RotateCcw, History, ChevronUp, Calendar, Loader2, Lock,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -137,11 +137,12 @@ const HistoryPanel = memo(function HistoryPanel({ history }) {
 // ─── mobile card (no table, no overflow) ─────────────────────────────────────
 
 const MobileCard = memo(function MobileCard({
-  row, currency, onEditDate, onReverse, canReverse, onToggleHistory, isExpanded, historyState,
+  row, currency, onEditDate, onReverse, canReverse, isEditLocked, onToggleHistory, isExpanded, historyState,
 }) {
   const type = (row.transactionType || '').toLowerCase()
   const isInflow  = INFLOW_TYPES.has(type)
   const isReversed = row.status === 'reversed'
+  const locked = isEditLocked(row)
 
   return (
     <div className={`px-3 py-2.5 border-b border-glass last:border-0 ${isReversed ? 'opacity-55' : ''}`}>
@@ -180,10 +181,18 @@ const MobileCard = memo(function MobileCard({
           <StatusBadge row={row} />
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
-          <button onClick={() => onEditDate(row)} title="Edit date"
-            className="rounded p-1 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
-            <Calendar className="h-3.5 w-3.5" />
-          </button>
+          {locked ? (
+            <span
+              title="Transactions older than 30 days cannot be edited — use Reverse to correct"
+              className="rounded p-1 text-text-muted/40 cursor-not-allowed">
+              <Lock className="h-3.5 w-3.5" />
+            </span>
+          ) : (
+            <button onClick={() => onEditDate(row)} title="Edit date"
+              className="rounded p-1 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
+              <Calendar className="h-3.5 w-3.5" />
+            </button>
+          )}
           <button onClick={() => onToggleHistory(row)} title="History"
             className="rounded p-1 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
             {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <History className="h-3.5 w-3.5" />}
@@ -271,6 +280,17 @@ export default function TransactionsList() {
       setExpandedRows(prev => ({ ...prev, [id]: { loading: false, data: null } }))
     }
   }, [expandedRows])
+
+  /**
+   * GAAP edit time-lock — transactions older than 30 days are read-only.
+   * Standard double-entry accounting principle: once a period has passed,
+   * corrections must go through reversals, not edits.
+   */
+  const EDIT_LOCK_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+  const isEditLocked = useCallback((row) => {
+    if (!row.createdAt) return false
+    return Date.now() - new Date(row.createdAt).getTime() > EDIT_LOCK_MS
+  }, [])
 
   const canReverse = useCallback(
     (row) => row.status !== 'reversed' && !row.installmentPlanId && !(row.partiallyPaidAmount > 0),
@@ -421,10 +441,18 @@ export default function TransactionsList() {
                           {/* Actions */}
                           <td className="px-4 py-2.5">
                             <div className="flex items-center justify-end gap-0.5">
-                              <button onClick={() => setEditDateTarget(row)} title="Edit date"
-                                className="rounded p-1.5 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
-                                <Calendar className="h-3.5 w-3.5" />
-                              </button>
+                              {isEditLocked(row) ? (
+                                <span
+                                  title="Transactions older than 30 days cannot be edited — use Reverse to correct"
+                                  className="rounded p-1.5 text-text-muted/40 cursor-not-allowed">
+                                  <Lock className="h-3.5 w-3.5" />
+                                </span>
+                              ) : (
+                                <button onClick={() => setEditDateTarget(row)} title="Edit date"
+                                  className="rounded p-1.5 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                               <button onClick={() => toggleHistory(row)} title="History"
                                 className="rounded p-1.5 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
                                 {expandedRows[row._id] ? <ChevronUp className="h-3.5 w-3.5" /> : <History className="h-3.5 w-3.5" />}
@@ -467,6 +495,7 @@ export default function TransactionsList() {
                   onEditDate={setEditDateTarget}
                   onReverse={setReversalTarget}
                   canReverse={canReverse}
+                  isEditLocked={isEditLocked}
                   onToggleHistory={toggleHistory}
                   isExpanded={!!expandedRows[row._id]}
                   historyState={expandedRows[row._id]}
