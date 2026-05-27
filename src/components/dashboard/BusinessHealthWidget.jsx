@@ -8,7 +8,7 @@
  *
  * All scores are derived from the KPI props — no additional API calls.
  */
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import {
   Activity, TrendingUp, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Zap,
@@ -157,7 +157,7 @@ function RiskMeter({ riskLevel, riskPct, runway }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
-export default function BusinessHealthWidget({ kpis = {}, loading }) {
+const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loading }) {
   const scores = useMemo(() => computeScores(kpis), [kpis])
   const overallColor = scoreColor(scores.overall)
 
@@ -223,4 +223,6 @@ export default function BusinessHealthWidget({ kpis = {}, loading }) {
       )}
     </div>
   )
-}
+})
+
+export default BusinessHealthWidget

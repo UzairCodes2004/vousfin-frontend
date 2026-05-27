@@ -85,11 +85,27 @@
     border-radius: 14px;
     @apply transition-all duration-300 relative overflow-hidden;
   }
-  
+
+  /* Subtle inner-top shine line */
+  .premium-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(6,182,212,0.20), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .premium-card:hover::before {
+    opacity: 1;
+  }
+
   .premium-card:hover {
     border-color: rgba(6, 182, 212, 0.35);
-    box-shadow: 0 0 40px rgba(6, 182, 212, 0.12), 0 12px 40px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
+    box-shadow: 0 0 0 1px rgba(6,182,212,0.08), 0 0 32px rgba(6, 182, 212, 0.10), 0 8px 32px rgba(0, 0, 0, 0.28);
+    transform: translateY(-1px);
   }
 
   .btn-gradient {
@@ -197,4 +213,56 @@
 
 .animate-collapse-down {
   animation: collapse-down 0.2s ease-out both;
+}
+
+/* Chart container — pop in when data arrives */
+@keyframes chart-enter {
+  from { opacity: 0; transform: scaleY(0.92); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+.animate-chart-enter {
+  animation: chart-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: bottom;
+}
+
+/* Number counter glow pulse (for KPI values) */
+@keyframes value-glow {
+  0%, 100% { text-shadow: none; }
+  50%       { text-shadow: 0 0 16px rgba(6,182,212,0.45); }
+}
+
+.animate-value-glow {
+  animation: value-glow 2s ease-in-out 1;
+}
+
+/* Focus ring — consistent across inputs/buttons */
+.focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan/50 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent;
+}
+
+/* Gradient dividers */
+.divider-x {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  height: 1px;
+  width: 100%;
+}
+
+.divider-y {
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.08), transparent);
+  width: 1px;
+  height: 100%;
+}
+
+/* Glass panel (used in tooltips, drawers, AI widget) */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(6,182,212,0.14);
+  border-radius: 14px;
+}
+
+/* Subtle grain texture on hero sections */
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }

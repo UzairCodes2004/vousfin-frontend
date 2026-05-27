@@ -8,7 +8,7 @@
  * Primary cards : Revenue, Expenses, Net Profit, Cash Balance
  * Secondary chips: Profit Margin, Monthly Burn, Avg Monthly Rev, Revenue Target
  */
-import { useMemo, useRef, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   TrendingUp, TrendingDown, DollarSign, Wallet,
@@ -128,7 +128,7 @@ function SecondaryChip({ title, value, format, currency, icon: Icon, color, tren
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
-export default function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loading, currency }) {
+const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loading, currency }) {
   const {
     revenue = 0, expenses = 0, netProfit = 0, cashBalance = 0,
   } = kpis
@@ -227,4 +227,6 @@ export default function SmartKPIStrip({ kpis = {}, revenueVsExpenses = [], loadi
       </div>
     </div>
   )
-}
+})
+
+export default SmartKPIStrip

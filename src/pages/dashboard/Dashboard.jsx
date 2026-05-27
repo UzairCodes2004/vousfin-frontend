@@ -332,9 +332,8 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* ── STICKY QUICK ACTIONS — stays below header on all screens ── */}
-      <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5
-                      bg-navy/96 backdrop-blur-md border-b border-glass/40 mb-6">
+      {/* ── QUICK ACTIONS — fixed position in page, no sticky drift ── */}
+      <div className="mb-6">
         <QuickActionsBar onNewTransaction={() => setShowNewTx(true)} />
       </div>
 

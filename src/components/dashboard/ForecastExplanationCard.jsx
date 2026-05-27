@@ -9,7 +9,7 @@
  *   metric        — 'revenue' | 'cashflow' | 'expenses'
  *   horizon       — number (months)
  */
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import {
   Lightbulb, TrendingUp, TrendingDown, AlertCircle, Info,
 } from 'lucide-react'
@@ -111,7 +111,7 @@ function deriveDrivers(forecastData, metric, horizon) {
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
-export default function ForecastExplanationCard({ forecastData, metric = 'revenue', horizon = 6 }) {
+const ForecastExplanationCard = memo(function ForecastExplanationCard({ forecastData, metric = 'revenue', horizon = 6 }) {
   const drivers = useMemo(
     () => deriveDrivers(forecastData, metric, horizon),
     [forecastData, metric, horizon],
@@ -144,4 +144,6 @@ export default function ForecastExplanationCard({ forecastData, metric = 'revenu
       </div>
     </div>
   )
-}
+})
+
+export default ForecastExplanationCard
