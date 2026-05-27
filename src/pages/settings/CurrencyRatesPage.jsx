@@ -50,7 +50,7 @@ function RateForm({ defaultValues, baseCurrency, onSave, onCancel, isPending }) 
   })
   return (
     <form onSubmit={handleSubmit(onSave)}
-      className="grid grid-cols-2 sm:grid-cols-6 gap-3 p-4 bg-glass-panel/60 rounded-xl border border-cyan/20">
+      className="grid grid-cols-2 sm:grid-cols-6 gap-3 p-4 bg-white/[0.05] rounded-xl border border-cyan/20">
       <Input label="From" placeholder="USD" {...register('fromCurrency')}
         error={errors.fromCurrency?.message} className="uppercase" />
       <Input label="To" placeholder="PKR" {...register('toCurrency')}
@@ -206,7 +206,7 @@ export default function CurrencyRatesPage() {
           ? 'border-cyan/30 bg-cyan/5'
           : lastSynced
             ? 'border-emerald-500/20 bg-emerald-500/5'
-            : 'border-glass bg-glass-panel/40'
+            : 'border-glass bg-white/[0.04]'
       }`}>
         {isSyncing ? (
           <>
@@ -395,7 +395,7 @@ export default function CurrencyRatesPage() {
       </div>
 
       {/* ── Info footer ──────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-glass bg-glass-panel/40 px-4 py-3 space-y-1">
+      <div className="rounded-xl border border-glass bg-white/[0.04] px-4 py-3 space-y-1">
         <p className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
           <Wifi className="h-3.5 w-3.5 text-cyan" /> How automatic sync works
         </p>

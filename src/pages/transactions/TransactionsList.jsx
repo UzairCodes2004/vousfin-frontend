@@ -440,7 +440,7 @@ export default function TransactionsList() {
 
                         {/* Expanded history */}
                         {expandedRows[row._id] && (
-                          <tr className="bg-glass-panel/40">
+                          <tr className="bg-white/[0.04]">
                             <td colSpan={6} className="px-4 py-3">
                               {expandedRows[row._id].loading
                                 ? <p className="text-xs text-text-muted">Loading history…</p>

@@ -129,7 +129,7 @@ function ConfBadge({ label, score }) {
 function LiveJournalPreview({ debitAccount, creditAccount, amount, currency }) {
   if (!debitAccount || !creditAccount || !(amount > 0)) return null
   return (
-    <div className="rounded-lg border border-glass bg-glass-panel/60 px-4 py-3 animate-fade-in">
+    <div className="rounded-lg border border-glass bg-white/[0.05] px-4 py-3 animate-fade-in">
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-cyan inline-block" />
@@ -310,12 +310,12 @@ function InstallmentJournalPreview({
 
       {schedule.length > 0 && financed > 0 && (
         <div className="border-t border-cyan/15">
-          <div className="px-3 py-1.5 bg-glass-panel/60 text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+          <div className="px-3 py-1.5 bg-white/[0.05] text-[10px] font-bold text-text-secondary uppercase tracking-wider">
             Amortization {schedule.length > 4 ? `(first 3 + last of ${schedule.length})` : `(${schedule.length} payments)`}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
-              <thead className="bg-glass-panel/40 text-text-muted">
+              <thead className="bg-white/[0.04] text-text-muted">
                 <tr>
                   <th className="px-2 py-1 text-left font-medium">#</th>
                   <th className="px-2 py-1 text-right font-medium">Principal</th>

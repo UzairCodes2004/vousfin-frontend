@@ -85,7 +85,7 @@ export default function ForecastWidget() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Metric tabs */}
-          <div className="flex gap-0.5 bg-glass-panel/60 rounded-lg p-0.5">
+          <div className="flex gap-0.5 bg-white/[0.05] rounded-lg p-0.5">
             {METRICS.map(m => (
               <button
                 key={m.key}
@@ -108,7 +108,7 @@ export default function ForecastWidget() {
           </div>
 
           {/* Horizon pills */}
-          <div className="flex gap-0.5 bg-glass-panel/60 rounded-lg p-0.5">
+          <div className="flex gap-0.5 bg-white/[0.05] rounded-lg p-0.5">
             {HORIZONS.map(h => (
               <button
                 key={h}

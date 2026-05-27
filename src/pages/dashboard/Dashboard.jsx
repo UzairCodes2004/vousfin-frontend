@@ -348,17 +348,15 @@ export default function Dashboard() {
         </div>
       </Section>
 
-      {/* ── 4. AI INSIGHTS + FORECAST — side by side on xl ─────── */}
-      {/* items-start: each panel is only as tall as its content,    */}
-      {/* so AI Insights doesn't stretch to match the chart height.  */}
+      {/* ── 4. AI INSIGHTS + FORECAST — side by side, equal height ── */}
       <Section label="AI Intelligence & Forecasting">
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 items-start">
-          {/* AI Insights — narrower (text cards, compact) */}
-          <div className="xl:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+          {/* AI Insights fills full height of the row */}
+          <div className="xl:col-span-2 flex">
             <AIInsightsPanel />
           </div>
           {/* Forecast — wider (chart needs horizontal space) */}
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-3 flex">
             <ForecastWidget />
           </div>
         </div>

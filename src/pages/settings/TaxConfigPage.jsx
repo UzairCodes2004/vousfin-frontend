@@ -374,7 +374,7 @@ export default function TaxConfigPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {taxAccounts.map(a => (
               <div key={a._id}
-                className="flex items-center justify-between rounded-lg border border-glass bg-glass-panel/60 px-3 py-2">
+                className="flex items-center justify-between rounded-lg border border-glass bg-white/[0.05] px-3 py-2">
                 <span className="text-xs font-mono text-text-muted w-12 shrink-0">{a.accountCode}</span>
                 <span className="text-xs text-text-secondary flex-1 mx-2">{a.accountName}</span>
                 <span className={`text-[9px] rounded px-1.5 py-px font-semibold border ${
