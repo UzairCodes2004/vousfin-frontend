@@ -206,7 +206,7 @@ function FinancialSnapshot({ ar, ap, currency, loading }) {
       ) : (
         <>
           {/* Receivable — always show absolute value */}
-          <Link to="/transactions" className="flex items-center justify-between mb-3 p-3 rounded-xl bg-violet-500/8 border border-violet-500/15 hover:border-violet-500/35 transition-colors">
+          <Link to="/sales/receivables" className="flex items-center justify-between mb-3 p-3 rounded-xl bg-violet-500/8 border border-violet-500/15 hover:border-violet-500/35 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-violet-500/20">
                 <ArrowDownRight className="h-4 w-4 text-violet-400" />
@@ -221,7 +221,7 @@ function FinancialSnapshot({ ar, ap, currency, loading }) {
           </Link>
 
           {/* Payable — always show absolute value */}
-          <Link to="/transactions" className="flex items-center justify-between mb-4 p-3 rounded-xl bg-orange-500/8 border border-orange-500/15 hover:border-orange-500/35 transition-colors">
+          <Link to="/purchases/payables" className="flex items-center justify-between mb-4 p-3 rounded-xl bg-orange-500/8 border border-orange-500/15 hover:border-orange-500/35 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-orange-500/20">
                 <ArrowUpRight className="h-4 w-4 text-orange-400" />
@@ -330,15 +330,15 @@ export default function Dashboard() {
 
       {/* ── 3. ANALYTICS ────────────────────────────────────────── */}
       <Section label="Business Analytics">
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-          <div className="xl:col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-3">
             <RevenueExpensesChart
               data={revenueVsExpenses}
               loading={loadDash}
               currency={currency}
             />
           </div>
-          <div className="xl:col-span-2">
+          <div className="md:col-span-2">
             <CashFlowTrendChart
               data={cashFlowTrend}
               loading={loadDash}
@@ -350,13 +350,13 @@ export default function Dashboard() {
 
       {/* ── 4. AI INSIGHTS + FORECAST — side by side, equal height ── */}
       <Section label="AI Intelligence & Forecasting">
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* AI Insights fills full height of the row */}
-          <div className="xl:col-span-2 flex">
+          <div className="lg:col-span-2 flex">
             <AIInsightsPanel />
           </div>
           {/* Forecast — wider (chart needs horizontal space) */}
-          <div className="xl:col-span-3 flex">
+          <div className="lg:col-span-3 flex">
             <ForecastWidget />
           </div>
         </div>

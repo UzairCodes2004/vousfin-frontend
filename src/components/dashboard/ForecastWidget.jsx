@@ -60,7 +60,7 @@ export default function ForecastWidget() {
   const metricCfg   = METRICS.find(m => m.key === activeMetric) || METRICS[0]
 
   return (
-    <div className="premium-card p-5 bg-gradient-to-br from-glass-panel to-violet-500/5 border-violet-500/15">
+    <div className="premium-card p-5 w-full bg-gradient-to-br from-glass-panel to-violet-500/5 border-violet-500/15">
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2.5">
