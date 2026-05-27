@@ -73,7 +73,10 @@ export function useCreateTransaction() {
       toast.success('Transaction recorded successfully')
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to record transaction')
+      const resp = error.response?.data
+      // Show detailed validation errors when available (helps debug Joi failures)
+      const msg = resp?.errors || resp?.message || 'Failed to record transaction'
+      toast.error(msg)
     },
   })
 }
@@ -96,7 +99,10 @@ export function useCreateInstallmentTransaction() {
       toast.success('Installment plan created successfully')
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to create installment plan')
+      const resp = error.response?.data
+      // Show the specific field that failed (e.g. '"downPayment" must be a number')
+      const msg = resp?.errors || resp?.message || 'Failed to create installment plan'
+      toast.error(msg)
     },
   })
 }

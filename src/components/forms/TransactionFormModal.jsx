@@ -69,11 +69,18 @@ const formSchema = z.object({
   customerName:        z.string().optional(),
   vendorName:          z.string().optional(),
   isInstallment:       z.boolean().optional(),
-  downPayment:         z.number().min(0).optional(),
-  installmentCount:    z.number().min(1).optional(),
+  // valueAsNumber returns NaN for empty inputs → preprocess to safe defaults
+  downPayment:         z.preprocess(
+    (v) => (typeof v === 'number' && isNaN(v)) ? 0 : v,
+    z.number().min(0).optional()
+  ),
+  installmentCount:    z.preprocess(
+    (v) => (typeof v === 'number' && isNaN(v)) ? undefined : v,
+    z.number().min(1).optional()
+  ),
   installmentFrequency:z.string().optional(),
   interestRate:        z.preprocess(
-    (v) => (typeof v === 'number' && isNaN(v)) ? undefined : v,
+    (v) => (typeof v === 'number' && isNaN(v)) ? 0 : v,
     z.number().min(0).max(100).optional()
   ),
   firstPaymentDate:    z.string().optional(),
