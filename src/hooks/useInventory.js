@@ -96,3 +96,29 @@ export function useAddStock() {
     onError: (error) => toast.error(getErrorMessage(error)),
   })
 }
+
+export function useToggleInventoryActive() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await inventoryService.toggleActive(id)
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory-items'] })
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export function useStockLedger(id) {
+  return useQuery({
+    queryKey: ['inventory-ledger', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await inventoryService.getStockLedger(id)
+      return data.data
+    },
+    staleTime: 60 * 1000,
+  })
+}

@@ -16,6 +16,7 @@ import {
   FileBarChart2,
   ShoppingCart,
   PackageOpen,
+  Boxes,
   Wallet,
   CreditCard,
   TrendingUp,
@@ -54,6 +55,7 @@ const NAV = [
       { name: 'Payables', href: '/purchases/payables', icon: CreditCard },
     ],
   },
+  { kind: 'link', name: 'Inventory',         href: '/inventory',                          icon: Boxes },
   { kind: 'link', name: 'Financial Reports', href: '/financial-reports/income-statement', activePrefix: '/financial-reports', icon: FileBarChart2 },
   {
     kind: 'group', name: 'AI Analyst', icon: BrainCircuit, key: 'ai-analyst',
