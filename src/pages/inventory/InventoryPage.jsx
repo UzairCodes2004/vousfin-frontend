@@ -9,7 +9,6 @@
  *   - Inventory valuation summary
  */
 import { useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
 import {
   PackageOpen, Plus, AlertTriangle, Search, RefreshCw,
   TrendingUp, X, ChevronDown, ChevronUp, Package,
@@ -27,7 +26,21 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import DataTable from '@/components/tables/DataTable'
+import Modal from '@/components/modals/Modal'
 import { cn } from '@/utils/cn'
+
+/* ── Section label — matches TransactionFormModal style ─────────────── */
+function SectionLabel({ label, note }) {
+  return (
+    <div className="flex items-center gap-3 pt-1">
+      <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest whitespace-nowrap">
+        {label}
+      </span>
+      {note && <span className="text-[10px] text-text-muted/60">{note}</span>}
+      <div className="flex-1 h-px bg-glass" />
+    </div>
+  )
+}
 
 /* ── Item Form (create / edit) ──────────────────────────────────────── */
 const EMPTY = {
@@ -76,104 +89,148 @@ function ItemForm({ initial, onClose, currency }) {
     onClose()
   }
 
-  // Portal to document.body — escapes any parent overflow/transform context
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+  return (
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={isEdit ? `Edit — ${initial.name}` : 'Add Inventory Item'}
+      className="sm:max-w-lg"
     >
-      <div
-        className="bg-bg2 border border-glass rounded-2xl w-full max-w-lg shadow-2xl flex flex-col"
-        style={{ maxHeight: 'min(90vh, 700px)' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-glass flex-shrink-0">
-          <div>
-            <h2 className="text-base font-bold text-text-primary">
-              {isEdit ? `Edit — ${initial.name}` : 'Add Inventory Item'}
-            </h2>
-            <p className="text-[11px] text-text-muted mt-0.5">
-              {isEdit ? 'Update item details, pricing or valuation method' : 'Define SKU, pricing, reorder levels and valuation'}
-            </p>
-          </div>
-          <button type="button" onClick={onClose} className="text-text-muted hover:text-text-primary rounded-lg p-1 hover:bg-glass-hover transition-colors">
-            <X className="h-5 w-5" />
-          </button>
+      <div className="space-y-5 pb-1">
+        {/* Subtitle */}
+        <p className="text-[11px] text-text-muted -mt-4">
+          {isEdit
+            ? 'Update item details, pricing or valuation method'
+            : 'Define SKU, pricing, reorder levels and valuation'}
+        </p>
+
+        {/* ── Item Details ──────────────────────────────────────────── */}
+        <SectionLabel label="Item Details" />
+
+        <Input
+          label="Item Name *"
+          value={form.name}
+          onChange={e => set('name', e.target.value)}
+          placeholder="e.g., A4 Paper Ream"
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="SKU (Stock Code)"
+            value={form.sku}
+            onChange={e => set('sku', e.target.value)}
+            placeholder="e.g., PAPER-A4"
+          />
+          <Input
+            label="Barcode"
+            value={form.barcode}
+            onChange={e => set('barcode', e.target.value)}
+            placeholder="e.g., 6009876543210"
+          />
         </div>
 
-        {/* Scrollable body */}
-        <div className="p-5 space-y-4 overflow-y-auto flex-1">
-          {/* Basic info */}
-          <Input label="Item Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g., A4 Paper Ream" />
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="SKU (Stock Code)" value={form.sku} onChange={e => set('sku', e.target.value)} placeholder="e.g., PAPER-A4" />
-            <Input label="Barcode" value={form.barcode} onChange={e => set('barcode', e.target.value)} placeholder="e.g., 6009876543210" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g., Stationery" />
-            <Input label="Unit of Measure" value={form.unit} onChange={e => set('unit', e.target.value)} placeholder="pcs / kg / box" />
-          </div>
-
-          {/* Pricing */}
-          <div className="rounded-lg border border-glass bg-glass-panel/40 p-3 space-y-3">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Pricing</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Input label={`Cost Price (${currency}) *`} type="number" step="0.01" min="0" value={form.unitCostPrice}
-                onChange={e => set('unitCostPrice', e.target.value)} placeholder="0.00" />
-              <Input label={`Sale Price (${currency})`} type="number" step="0.01" min="0" value={form.unitSalePrice}
-                onChange={e => set('unitSalePrice', e.target.value)} placeholder="Optional" />
-            </div>
-            <Input label="Tax Rate (%) — e.g. 17 for 17% GST" type="number" step="0.1" min="0" max="100" value={form.taxRate}
-              onChange={e => set('taxRate', e.target.value)} placeholder="Leave blank if tax-exempt" />
-          </div>
-
-          {/* Stock control */}
-          <div className="rounded-lg border border-glass bg-glass-panel/40 p-3 space-y-3">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Stock Control</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Reorder Level (alert threshold)" type="number" min="0" value={form.reorderLevel}
-                onChange={e => set('reorderLevel', e.target.value)} />
-              <Input label="Reorder Quantity (how much to order)" type="number" min="0" value={form.reorderQty}
-                onChange={e => set('reorderQty', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">
-                Valuation Method
-                <span className="ml-1 text-text-muted font-normal">(how stock cost is calculated)</span>
-              </label>
-              <select
-                className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-cyan focus:outline-none"
-                value={form.valuationMethod}
-                onChange={e => set('valuationMethod', e.target.value)}
-              >
-                <option value="weighted_average">Weighted Average Cost (average price of all stock)</option>
-                <option value="fifo">FIFO — First In First Out (oldest stock sold first)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1">Internal Notes (optional)</label>
-            <textarea rows={2} className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm placeholder:text-text-muted focus:border-cyan focus:outline-none resize-none"
-              value={form.description} onChange={e => set('description', e.target.value)}
-              placeholder="Supplier details, storage notes, variant info…" />
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Category"
+            value={form.category}
+            onChange={e => set('category', e.target.value)}
+            placeholder="e.g., Stationery"
+          />
+          <Input
+            label="Unit of Measure"
+            value={form.unit}
+            onChange={e => set('unit', e.target.value)}
+            placeholder="pcs / kg / box"
+          />
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 px-5 py-4 border-t border-glass flex-shrink-0">
-          <Button variant="ghost" onClick={onClose} disabled={isPending}>Cancel</Button>
-          <Button onClick={handleSave} loading={isPending} disabled={!form.name || !form.unitCostPrice}>
+        {/* ── Pricing ───────────────────────────────────────────────── */}
+        <SectionLabel label="Pricing" note={`amounts in ${currency}`} />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label={`Cost Price (${currency}) *`}
+            type="number" step="0.01" min="0"
+            value={form.unitCostPrice}
+            onChange={e => set('unitCostPrice', e.target.value)}
+            placeholder="0.00"
+          />
+          <Input
+            label={`Sale Price (${currency})`}
+            type="number" step="0.01" min="0"
+            value={form.unitSalePrice}
+            onChange={e => set('unitSalePrice', e.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+
+        <Input
+          label="Tax Rate (%) — e.g. 17 for GST / sales tax"
+          type="number" step="0.1" min="0" max="100"
+          value={form.taxRate}
+          onChange={e => set('taxRate', e.target.value)}
+          placeholder="Leave blank if tax-exempt"
+        />
+
+        {/* ── Stock Control ─────────────────────────────────────────── */}
+        <SectionLabel label="Stock Control" note="reorder alerts" />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Reorder Level (alert threshold)"
+            type="number" min="0"
+            value={form.reorderLevel}
+            onChange={e => set('reorderLevel', e.target.value)}
+          />
+          <Input
+            label="Reorder Qty (how much to order)"
+            type="number" min="0"
+            value={form.reorderQty}
+            onChange={e => set('reorderQty', e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
+            Valuation Method
+            <span className="ml-1 text-text-muted font-normal">(how stock cost is calculated)</span>
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-cyan focus:outline-none transition-colors"
+            value={form.valuationMethod}
+            onChange={e => set('valuationMethod', e.target.value)}
+          >
+            <option value="weighted_average">Weighted Average — average price of all stock batches</option>
+            <option value="fifo">FIFO — First In First Out (oldest stock sold first)</option>
+          </select>
+        </div>
+
+        {/* ── Notes ─────────────────────────────────────────────────── */}
+        <SectionLabel label="Notes" note="optional" />
+
+        <textarea
+          rows={2}
+          className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm placeholder:text-text-muted focus:border-cyan focus:outline-none resize-none transition-colors"
+          value={form.description}
+          onChange={e => set('description', e.target.value)}
+          placeholder="Supplier details, storage notes, variant info…"
+        />
+
+        {/* ── Footer ────────────────────────────────────────────────── */}
+        <div className="flex justify-end gap-3 pt-3 border-t border-glass">
+          <Button variant="ghost" onClick={onClose} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            loading={isPending}
+            disabled={!form.name || !form.unitCostPrice}
+          >
             {isEdit ? 'Save Changes' : 'Add Item'}
           </Button>
         </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }
 
