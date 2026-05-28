@@ -1,19 +1,22 @@
 /**
- * InvoiceEditorPage — Phase 2 — wraps the InvoiceEditor component with
- * data loading + mutation wiring for both create + edit flows.
+ * InvoiceEditorPage — Phase 2 — wraps the InvoiceEditor with
+ * data loading + mutation wiring for create / edit / view flows.
  *
  * Routes:
  *   /sales/invoices/new         → create mode
- *   /sales/invoices/:id/edit    → edit mode (loads existing invoice)
+ *   /sales/invoices/:id/edit    → edit mode (draft) OR view mode (non-draft)
  */
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import {
   useInvoice, useCreateInvoiceDraft, useUpdateInvoiceDraft,
-  useSubmitInvoice, useDownloadInvoicePdf,
+  useSubmitInvoice, useDownloadInvoicePdf, useApproveInvoice,
+  useSendInvoice, useCancelInvoice,
 } from '@/hooks/useInvoices'
 import { useCustomers } from '@/hooks/useParties'
 import InvoiceEditor from '@/components/invoice/InvoiceEditor'
+import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
 export default function InvoiceEditorPage() {
@@ -29,17 +32,23 @@ export default function InvoiceEditorPage() {
 
   const createDraft = useCreateInvoiceDraft()
   const updateDraft = useUpdateInvoiceDraft()
-  const submit     = useSubmitInvoice()
+  const submit      = useSubmitInvoice()
+  const approve     = useApproveInvoice()
+  const send        = useSendInvoice()
+  const cancel      = useCancelInvoice()
   const downloadPdf = useDownloadInvoicePdf()
 
-  const saving = createDraft.isPending || updateDraft.isPending || submit.isPending
+  const [showCustomerModal, setShowCustomerModal] = useState(false)
+
+  const saving =
+    createDraft.isPending || updateDraft.isPending || submit.isPending ||
+    approve.isPending || send.isPending || cancel.isPending
 
   const handleSaveDraft = async (formData) => {
     if (isEdit) {
       await updateDraft.mutateAsync({ id, ...formData })
     } else {
       const resp = await createDraft.mutateAsync(formData)
-      // Navigate to edit mode of newly-created draft
       const newId = resp?.data?.data?._id || resp?.data?._id
       if (newId) navigate(`/sales/invoices/${newId}/edit`, { replace: true })
     }
@@ -48,7 +57,6 @@ export default function InvoiceEditorPage() {
   const handleSubmitForApproval = async (formData) => {
     let invoiceId = id
     if (!isEdit) {
-      // Save first, then submit
       const resp = await createDraft.mutateAsync(formData)
       invoiceId = resp?.data?.data?._id || resp?.data?._id
     } else {
@@ -61,16 +69,11 @@ export default function InvoiceEditorPage() {
   }
 
   if (isEdit && isLoading) {
-    return (
-      <div className="space-y-5">
-        <SkeletonLoader count={3} />
-      </div>
-    )
+    return <div className="space-y-5"><SkeletonLoader count={3} /></div>
   }
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Back button */}
       <button
         type="button"
         onClick={() => navigate('/sales/invoices')}
@@ -87,6 +90,16 @@ export default function InvoiceEditorPage() {
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmitForApproval}
         onDownloadPdf={(invId) => downloadPdf.mutate(invId)}
+        onApprove={(invId) => approve.mutate({ id: invId })}
+        onSend={(invId) => send.mutate({ id: invId })}
+        onCancel={(invId, reason) => cancel.mutate({ id: invId, reason })}
+        onAddCustomer={() => setShowCustomerModal(true)}
+      />
+
+      <PartyFormModal
+        isOpen={showCustomerModal}
+        onClose={() => setShowCustomerModal(false)}
+        type="customer"
       />
     </div>
   )

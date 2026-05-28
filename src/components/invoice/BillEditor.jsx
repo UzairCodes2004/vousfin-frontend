@@ -10,7 +10,7 @@
  */
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import {
-  Plus, Send, Save, ChevronDown, ChevronUp,
+  Plus, Send, Save, ChevronDown, ChevronUp, Lock, CalendarCheck,
   FileText, CreditCard, StickyNote, Truck,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -85,9 +85,14 @@ export default function BillEditor({
   saving = false,
   onSaveDraft,
   onSubmit,
+  onApprove,            // (id) => void  — pending approval
+  onSchedule,           // (id, payDate) => void — approved bills
+  onCancel,             // (id, reason) => void
+  onAddVendor,          // () => void — opens PartyFormModal
   className,
 }) {
   const isEdit = !!bill
+  const isReadOnly = isEdit && bill?.state !== 'draft'
 
   const [billNumber, setBillNumber] = useState(bill?.billNumber || '')
   const [vendorReferenceNumber, setVendorReferenceNumber] = useState(bill?.vendorReferenceNumber || '')
@@ -148,14 +153,25 @@ export default function BillEditor({
   })
 
   return (
-    <div className={cn('grid grid-cols-1 lg:grid-cols-3 gap-6', className)}>
+    <div className={cn('space-y-4', className)}>
+      {isReadOnly && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-200">
+          <Lock className="h-4 w-4 flex-shrink-0" />
+          <span>
+            This bill is <strong className="font-semibold">{bill?.state?.replace('_', ' ')}</strong> and cannot be edited.
+            Use the action buttons on the right to change its status.
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <FileText className="h-5 w-5 text-cyan" />
               <h2 className="text-lg font-bold text-text-primary">
-                {isEdit ? 'Edit Bill' : 'New Bill'}
+                {isReadOnly ? 'View Bill' : isEdit ? 'Edit Bill' : 'New Bill'}
               </h2>
               {bill?.state && <InvoiceStatusBadge state={bill.state} kind="bill" />}
             </div>
@@ -192,13 +208,27 @@ export default function BillEditor({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 mt-4 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-text-secondary">Vendor</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-sm font-medium text-text-secondary">Vendor</label>
+                {onAddVendor && !isReadOnly && (
+                  <button
+                    type="button"
+                    onClick={onAddVendor}
+                    className="text-xs text-cyan font-semibold hover:underline"
+                  >
+                    + New Vendor
+                  </button>
+                )}
+              </div>
               <select
-                className="w-full rounded-lg border border-glass bg-glass-panel px-4 py-3 text-sm text-text-primary focus:border-cyan focus:outline-none"
+                disabled={isReadOnly}
+                className="w-full rounded-lg border border-glass bg-glass-panel px-4 py-3 text-sm text-text-primary focus:border-cyan focus:outline-none disabled:opacity-60"
                 value={vendorId}
                 onChange={e => setVendorId(e.target.value)}
               >
-                <option value="">Select vendor...</option>
+                <option value="">
+                  {vendors.length === 0 ? 'No vendors yet — click + New Vendor above' : 'Select vendor...'}
+                </option>
                 {vendors.map(v => (
                   <option key={v._id} value={v._id}>
                     {v.businessName || v.fullName} {v.email ? `(${v.email})` : ''}
@@ -368,27 +398,73 @@ export default function BillEditor({
 
           <Card>
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => onSaveDraft?.(buildFormData())}
-                disabled={saving || !billNumber}
-                className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
-              </button>
-              <button
-                type="button"
-                onClick={() => onSubmit?.(buildFormData())}
-                disabled={saving || !billNumber || totals.totalAmount <= 0}
-                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-              >
-                <Send className="h-4 w-4" />
-                Submit for Approval
-              </button>
+              {isReadOnly ? (
+                <>
+                  {bill?.state === 'awaiting_approval' && onApprove && (
+                    <button
+                      type="button"
+                      onClick={() => onApprove(bill._id)}
+                      disabled={saving}
+                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                    >
+                      Approve Bill
+                    </button>
+                  )}
+                  {bill?.state === 'approved' && onSchedule && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0]
+                        const payDate = window.prompt('Schedule payment for date (YYYY-MM-DD):', today)
+                        if (payDate) onSchedule(bill._id, payDate)
+                      }}
+                      disabled={saving}
+                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                    >
+                      <CalendarCheck className="h-4 w-4" />
+                      Schedule Payment
+                    </button>
+                  )}
+                  {onCancel && ['awaiting_approval', 'approved', 'scheduled'].includes(bill?.state) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const reason = window.prompt('Cancellation reason (optional):')
+                        if (reason !== null) onCancel(bill._id, reason)
+                      }}
+                      disabled={saving}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                    >
+                      Cancel Bill
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onSaveDraft?.(buildFormData())}
+                    disabled={saving || !billNumber}
+                    className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                  >
+                    <Save className="h-4 w-4" />
+                    {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSubmit?.(buildFormData())}
+                    disabled={saving || !billNumber || totals.totalAmount <= 0}
+                    className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                  >
+                    <Send className="h-4 w-4" />
+                    Submit for Approval
+                  </button>
+                </>
+              )}
             </div>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   )

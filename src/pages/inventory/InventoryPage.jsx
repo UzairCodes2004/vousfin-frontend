@@ -49,26 +49,35 @@ const EMPTY = {
   name: '', sku: '', barcode: '', category: '', description: '',
   unitCostPrice: '', unitSalePrice: '', unit: 'units',
   reorderLevel: 0, reorderQty: 0, taxRate: '', valuationMethod: 'weighted_average',
+  preferredVendorId: '',
 }
 
 function ItemForm({ initial, onClose, currency }) {
   const createItem = useCreateInventoryItem()
   const updateItem = useUpdateInventoryItem()
+  const { data: vendorsData } = useVendors({ limit: 200 })
+  const vendors = useMemo(() => {
+    const arr = Array.isArray(vendorsData?.docs) ? vendorsData.docs
+              : Array.isArray(vendorsData?.data) ? vendorsData.data
+              : Array.isArray(vendorsData)       ? vendorsData : []
+    return arr
+  }, [vendorsData])
   const isEdit = !!initial?._id
 
   const [form, setForm] = useState(initial ? {
-    name:            initial.name            || '',
-    sku:             initial.sku             || '',
-    barcode:         initial.barcode         || '',
-    category:        initial.category        || '',
-    description:     initial.description     || '',
-    unitCostPrice:   initial.unitCostPrice   ?? '',
-    unitSalePrice:   initial.unitSalePrice   ?? '',
-    unit:            initial.unit            || 'units',
-    reorderLevel:    initial.reorderLevel    ?? 0,
-    reorderQty:      initial.reorderQty      ?? 0,
-    taxRate:         initial.taxRate         ?? '',
-    valuationMethod: initial.valuationMethod || 'weighted_average',
+    name:              initial.name              || '',
+    sku:               initial.sku               || '',
+    barcode:           initial.barcode           || '',
+    category:          initial.category          || '',
+    description:       initial.description       || '',
+    unitCostPrice:     initial.unitCostPrice     ?? '',
+    unitSalePrice:     initial.unitSalePrice     ?? '',
+    unit:              initial.unit              || 'units',
+    reorderLevel:      initial.reorderLevel      ?? 0,
+    reorderQty:        initial.reorderQty        ?? 0,
+    taxRate:           initial.taxRate           ?? '',
+    valuationMethod:   initial.valuationMethod   || 'weighted_average',
+    preferredVendorId: initial.preferredVendorId || '',
   } : { ...EMPTY })
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
@@ -82,6 +91,7 @@ function ItemForm({ initial, onClose, currency }) {
       taxRate:       form.taxRate !== '' ? parseFloat(form.taxRate) : null,
       reorderLevel:  parseInt(form.reorderLevel, 10) || 0,
       reorderQty:    parseInt(form.reorderQty, 10)   || 0,
+      preferredVendorId: form.preferredVendorId || null,
     }
     if (isEdit) {
       await updateItem.mutateAsync({ id: initial._id, ...payload })
@@ -204,6 +214,28 @@ function ItemForm({ initial, onClose, currency }) {
           >
             <option value="weighted_average">Weighted Average — average price of all stock batches</option>
             <option value="fifo">FIFO — First In First Out (oldest stock sold first)</option>
+          </select>
+        </div>
+
+        {/* ── Preferred Vendor (drives reorder emails) ─────────────── */}
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
+            Preferred Vendor
+            <span className="ml-1 text-text-muted font-normal">— auto-emailed when stock hits reorder level</span>
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-cyan focus:outline-none transition-colors"
+            value={form.preferredVendorId}
+            onChange={e => set('preferredVendorId', e.target.value)}
+          >
+            <option value="">
+              {vendors.length === 0 ? 'No vendors yet — create one from the Vendors page' : 'None — manual reorder'}
+            </option>
+            {vendors.map(v => (
+              <option key={v._id} value={v._id}>
+                {v.businessName || v.fullName} {v.email ? `· ${v.email}` : ''}
+              </option>
+            ))}
           </select>
         </div>
 

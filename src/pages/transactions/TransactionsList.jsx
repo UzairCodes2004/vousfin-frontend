@@ -11,7 +11,7 @@
 import { useState, useMemo, memo, Fragment, useCallback, useRef, useEffect } from 'react'
 import {
   Plus, ArrowUpRight, ArrowDownRight, Receipt,
-  RotateCcw, History, ChevronUp, Loader2, Lock, Pencil,
+  RotateCcw, History, ChevronUp, Loader2, Lock, Pencil, Eye,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -25,6 +25,7 @@ import Badge from '@/components/ui/Badge'
 import CurrencyBadge from '@/components/ui/CurrencyBadge'
 import TransactionFormModal from '@/components/forms/TransactionFormModal'
 import TransactionReversalModal from '@/components/forms/TransactionReversalModal'
+import TransactionDetailModal from '@/components/modals/TransactionDetailModal'
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ const HistoryPanel = memo(function HistoryPanel({ history }) {
 // ─── mobile card (no table, no overflow) ─────────────────────────────────────
 
 const MobileCard = memo(function MobileCard({
-  row, currency, onEdit, onReverse, canReverse, isEditLocked, onToggleHistory, isExpanded, historyState,
+  row, currency, onEdit, onReverse, canReverse, isEditLocked, onToggleHistory, isExpanded, historyState, onViewDetails,
 }) {
   const type = (row.transactionType || '').toLowerCase()
   const isInflow  = INFLOW_TYPES.has(type)
@@ -159,6 +160,10 @@ const MobileCard = memo(function MobileCard({
               <Pencil className="h-3.5 w-3.5" />
             </button>
           )}
+          <button onClick={() => onViewDetails?.(row)} title="View full details"
+            className="rounded p-1 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
+            <Eye className="h-3.5 w-3.5" />
+          </button>
           <button onClick={() => onToggleHistory(row)} title="History"
             className="rounded p-1 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
             {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <History className="h-3.5 w-3.5" />}
@@ -192,6 +197,7 @@ export default function TransactionsList() {
   const [isFormOpen,     setIsFormOpen]     = useState(false)
   const [reversalTarget, setReversalTarget] = useState(null)
   const [editTarget,     setEditTarget]     = useState(null)   // full-edit modal
+  const [detailTarget,   setDetailTarget]   = useState(null)   // view-details modal (transaction id)
   const [expandedRows,   setExpandedRows]   = useState({})
 
   const currency = useBusinessStore(s => s.currency)
@@ -424,6 +430,10 @@ export default function TransactionsList() {
                                   <Pencil className="h-3.5 w-3.5" />
                                 </button>
                               )}
+                              <button onClick={() => setDetailTarget(row._id)} title="View full details"
+                                className="rounded p-1.5 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
+                                <Eye className="h-3.5 w-3.5" />
+                              </button>
                               <button onClick={() => toggleHistory(row)} title="History"
                                 className="rounded p-1.5 text-text-muted hover:text-cyan hover:bg-glass-hover transition-colors">
                                 {expandedRows[row._id] ? <ChevronUp className="h-3.5 w-3.5" /> : <History className="h-3.5 w-3.5" />}
@@ -465,6 +475,7 @@ export default function TransactionsList() {
                   currency={currency}
                   onEdit={setEditTarget}
                   onReverse={setReversalTarget}
+                  onViewDetails={(r) => setDetailTarget(r._id)}
                   canReverse={canReverse}
                   isEditLocked={isEditLocked}
                   onToggleHistory={toggleHistory}
@@ -512,6 +523,12 @@ export default function TransactionsList() {
         onClose={() => setReversalTarget(null)}
         transaction={reversalTarget}
         onSuccess={() => setReversalTarget(null)}
+      />
+
+      <TransactionDetailModal
+        isOpen={Boolean(detailTarget)}
+        onClose={() => setDetailTarget(null)}
+        transactionId={detailTarget}
       />
     </div>
   )

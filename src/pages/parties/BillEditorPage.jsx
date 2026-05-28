@@ -1,13 +1,17 @@
 /**
  * BillEditorPage — Phase 2 — wraps BillEditor with data + mutation wiring.
+ * Renders view mode for non-draft bills.
  */
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import {
   useBill, useCreateBillDraft, useUpdateBillDraft, useSubmitBill,
+  useApproveBill, useScheduleBill, useCancelBill,
 } from '@/hooks/useInvoices'
 import { useVendors } from '@/hooks/useParties'
 import BillEditor from '@/components/invoice/BillEditor'
+import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
 export default function BillEditorPage() {
@@ -23,9 +27,16 @@ export default function BillEditorPage() {
 
   const createDraft = useCreateBillDraft()
   const updateDraft = useUpdateBillDraft()
-  const submit     = useSubmitBill()
+  const submit      = useSubmitBill()
+  const approve     = useApproveBill()
+  const schedule    = useScheduleBill()
+  const cancel      = useCancelBill()
 
-  const saving = createDraft.isPending || updateDraft.isPending || submit.isPending
+  const [showVendorModal, setShowVendorModal] = useState(false)
+
+  const saving =
+    createDraft.isPending || updateDraft.isPending || submit.isPending ||
+    approve.isPending || schedule.isPending || cancel.isPending
 
   const handleSaveDraft = async (formData) => {
     if (isEdit) {
@@ -72,6 +83,16 @@ export default function BillEditorPage() {
         saving={saving}
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmitForApproval}
+        onApprove={(billId) => approve.mutate({ id: billId })}
+        onSchedule={(billId, payDate) => schedule.mutate({ id: billId, payDate })}
+        onCancel={(billId, reason) => cancel.mutate({ id: billId, reason })}
+        onAddVendor={() => setShowVendorModal(true)}
+      />
+
+      <PartyFormModal
+        isOpen={showVendorModal}
+        onClose={() => setShowVendorModal(false)}
+        type="vendor"
       />
     </div>
   )

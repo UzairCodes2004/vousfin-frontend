@@ -15,7 +15,7 @@
  */
 import { useState, useMemo, useCallback } from 'react'
 import {
-  Plus, FileDown, Send, Save, ChevronDown, ChevronUp,
+  Plus, FileDown, Send, Save, ChevronDown, ChevronUp, Eye, Lock,
   Receipt, Building2, CreditCard, StickyNote, Truck,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -101,11 +101,17 @@ export default function InvoiceEditor({
   onSaveDraft,            // (formData) => void
   onSubmit,               // (formData) => void
   onDownloadPdf,          // (invoiceId) => void
+  onSend,                 // (id) => void  — for approved invoices
+  onApprove,              // (id, note) => void — pending approvals
+  onCancel,               // (id, reason) => void
+  onAddCustomer,          // () => void — opens PartyFormModal
   saving = false,
   customers = [],         // [{_id, fullName, businessName, email}]
   className,
 }) {
   const isEdit = !!invoice
+  // Phase 2.1 — only drafts are editable; non-draft invoices render in view mode
+  const isReadOnly = isEdit && invoice?.state !== 'draft'
 
   // ── Form state ─────────────────────────────────────────────────────
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.invoiceNumber || '')
@@ -184,7 +190,18 @@ export default function InvoiceEditor({
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
-    <div className={cn('grid grid-cols-1 lg:grid-cols-3 gap-6', className)}>
+    <div className={cn('space-y-4', className)}>
+      {isReadOnly && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-200">
+          <Lock className="h-4 w-4 flex-shrink-0" />
+          <span>
+            This invoice is <strong className="font-semibold">{invoice?.state?.replace('_', ' ')}</strong> and cannot be edited.
+            Use the action buttons on the right to change its status, or download a PDF.
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ═══ LEFT: Main form (spans 2 cols on desktop) ═══ */}
       <div className="lg:col-span-2 space-y-6">
         {/* Header */}
@@ -263,23 +280,35 @@ export default function InvoiceEditor({
           </div>
 
           {/* Customer selector */}
-          {customers.length > 0 && (
-            <div className="mt-4">
-              <label className="mb-1.5 block text-sm font-medium text-text-secondary">Customer</label>
-              <select
-                className="w-full rounded-lg border border-glass bg-glass-panel px-4 py-3 text-sm text-text-primary transition-premium focus:border-cyan focus:outline-none"
-                value={customerId}
-                onChange={e => setCustomerId(e.target.value)}
-              >
-                <option value="">Select customer...</option>
-                {customers.map(c => (
-                  <option key={c._id} value={c._id}>
-                    {c.businessName || c.fullName} {c.email ? `(${c.email})` : ''}
-                  </option>
-                ))}
-              </select>
+          <div className="mt-4">
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block text-sm font-medium text-text-secondary">Customer</label>
+              {onAddCustomer && !isReadOnly && (
+                <button
+                  type="button"
+                  onClick={onAddCustomer}
+                  className="text-xs text-cyan font-semibold hover:underline"
+                >
+                  + New Customer
+                </button>
+              )}
             </div>
-          )}
+            <select
+              disabled={isReadOnly}
+              className="w-full rounded-lg border border-glass bg-glass-panel px-4 py-3 text-sm text-text-primary transition-premium focus:border-cyan focus:outline-none disabled:opacity-60"
+              value={customerId}
+              onChange={e => setCustomerId(e.target.value)}
+            >
+              <option value="">
+                {customers.length === 0 ? 'No customers yet — click + New Customer above' : 'Select customer...'}
+              </option>
+              {customers.map(c => (
+                <option key={c._id} value={c._id}>
+                  {c.businessName || c.fullName} {c.email ? `(${c.email})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
         </Card>
 
         {/* Line Items */}
@@ -515,27 +544,80 @@ export default function InvoiceEditor({
           {/* Action buttons */}
           <Card>
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || !invoiceNumber}
-                className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={saving || !invoiceNumber || totals.totalAmount <= 0}
-                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-              >
-                <Send className="h-4 w-4" />
-                Submit for Approval
-              </button>
+              {isReadOnly ? (
+                <>
+                  {/* Read-only actions depend on the invoice state */}
+                  {invoice?._id && onDownloadPdf && (
+                    <button
+                      type="button"
+                      onClick={() => onDownloadPdf(invoice._id)}
+                      className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Download PDF
+                    </button>
+                  )}
+                  {invoice?.state === 'pending_approval' && onApprove && (
+                    <button
+                      type="button"
+                      onClick={() => onApprove(invoice._id)}
+                      disabled={saving}
+                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {invoice?.state === 'approved' && onSend && (
+                    <button
+                      type="button"
+                      onClick={() => onSend(invoice._id)}
+                      disabled={saving}
+                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                    >
+                      <Send className="h-4 w-4" />
+                      Send to Customer
+                    </button>
+                  )}
+                  {onCancel && ['approved', 'sent', 'pending_approval'].includes(invoice?.state) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const reason = window.prompt('Cancellation reason (optional):')
+                        if (reason !== null) onCancel(invoice._id, reason)
+                      }}
+                      disabled={saving}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                    >
+                      Cancel Invoice
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving || !invoiceNumber}
+                    className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                  >
+                    <Save className="h-4 w-4" />
+                    {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={saving || !invoiceNumber || totals.totalAmount <= 0}
+                    className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
+                  >
+                    <Send className="h-4 w-4" />
+                    Submit for Approval
+                  </button>
+                </>
+              )}
             </div>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   )
