@@ -26,6 +26,8 @@ import {
   Sparkles,
   CalendarDays,
   DollarSign,
+  ShoppingBag,
+  Truck,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -53,9 +55,11 @@ const NAV = [
   {
     kind: 'group', name: 'Purchases', icon: PackageOpen, key: 'purchases',
     children: [
-      { name: 'Vendors',  href: '/vendors',            icon: Briefcase  },
-      { name: 'Bills',    href: '/purchases/bills',    icon: Receipt    },
-      { name: 'Payables', href: '/purchases/payables', icon: CreditCard },
+      { name: 'Vendors',         href: '/vendors',                             icon: Briefcase  },
+      { name: 'Bills',           href: '/purchases/bills',                     icon: Receipt    },
+      { name: 'Payables',        href: '/purchases/payables',                  icon: CreditCard },
+      { name: 'Purchase Orders', href: '/procurement/purchase-orders',         icon: ShoppingBag },
+      { name: 'Goods Receipts',  href: '/procurement/goods-receipts',          icon: Truck       },
     ],
   },
   { kind: 'link', name: 'Inventory',         href: '/inventory',                          icon: Boxes },
@@ -77,6 +81,8 @@ const NAV = [
 
 /* Decide which group should be expanded based on current URL */
 function activeGroupKey(pathname) {
+  // Phase 3.1: procurement paths belong to the Purchases group
+  if (pathname.startsWith('/procurement')) return 'purchases'
   for (const item of NAV) {
     if (item.kind === 'group') {
       if (item.children.some((c) => pathname.startsWith(c.href))) return item.key

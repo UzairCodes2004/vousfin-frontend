@@ -36,6 +36,10 @@ const FiscalYearPage       = lazy(() => import('@/pages/accounting/FiscalYearPag
 const CurrencyRatesPage    = lazy(() => import('@/pages/settings/CurrencyRatesPage'))
 const TaxConfigPage        = lazy(() => import('@/pages/settings/TaxConfigPage'))    // Phase 5.4.8
 const InventoryPage        = lazy(() => import('@/pages/inventory/InventoryPage'))    // Phase 5.5 Step 4
+/* Phase 3.1 — Procurement */
+const PurchaseOrdersPage     = lazy(() => import('@/pages/procurement/PurchaseOrdersPage'))
+const PurchaseOrderEditorPage = lazy(() => import('@/pages/procurement/PurchaseOrderEditorPage'))
+const GoodsReceiptsPage      = lazy(() => import('@/pages/procurement/GoodsReceiptsPage'))
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-navy">
@@ -140,6 +144,12 @@ export const routes = [
           { path: 'purchases/bills/:id/edit', element: withSuspense(BillEditorPage)  },
           { path: 'purchases',              element: <Navigate to="/vendors" replace /> },
           { path: 'purchases/vendors',      element: <Navigate to="/vendors" replace /> },
+          /* Phase 3.1 — Procurement */
+          { path: 'procurement/purchase-orders',          element: withSuspense(PurchaseOrdersPage)      },
+          { path: 'procurement/purchase-orders/new',      element: withSuspense(PurchaseOrderEditorPage) },
+          { path: 'procurement/purchase-orders/:id/edit', element: withSuspense(PurchaseOrderEditorPage) },
+          { path: 'procurement/goods-receipts',           element: withSuspense(GoodsReceiptsPage)       },
+          { path: 'procurement', element: <Navigate to="/procurement/purchase-orders" replace /> },
           { path: 'business/settings', element: withSuspense(BusinessSettings)  },
           { path: 'accounting/fiscal-years',    element: withSuspense(FiscalYearPage)     },
           { path: 'settings/exchange-rates',    element: withSuspense(CurrencyRatesPage)  },
