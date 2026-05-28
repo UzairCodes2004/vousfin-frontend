@@ -40,6 +40,9 @@ const InventoryPage        = lazy(() => import('@/pages/inventory/InventoryPage'
 const PurchaseOrdersPage     = lazy(() => import('@/pages/procurement/PurchaseOrdersPage'))
 const PurchaseOrderEditorPage = lazy(() => import('@/pages/procurement/PurchaseOrderEditorPage'))
 const GoodsReceiptsPage      = lazy(() => import('@/pages/procurement/GoodsReceiptsPage'))
+/* Phase 3.3 — Vendor Portal & AP Automation */
+const VendorPortal   = lazy(() => import('@/pages/vendor/VendorPortal'))
+const APWorkflowBoard = lazy(() => import('@/pages/ap/APWorkflowBoard'))
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-navy">
@@ -150,6 +153,9 @@ export const routes = [
           { path: 'procurement/purchase-orders/:id/edit', element: withSuspense(PurchaseOrderEditorPage) },
           { path: 'procurement/goods-receipts',           element: withSuspense(GoodsReceiptsPage)       },
           { path: 'procurement', element: <Navigate to="/procurement/purchase-orders" replace /> },
+          /* Phase 3.3 — Vendor Portal + AP Workflow */
+          { path: 'vendors/:id/portal', element: withSuspense(VendorPortal) },
+          { path: 'purchases/ap-workflow', element: withSuspense(APWorkflowBoard) },
           { path: 'business/settings', element: withSuspense(BusinessSettings)  },
           { path: 'accounting/fiscal-years',    element: withSuspense(FiscalYearPage)     },
           { path: 'settings/exchange-rates',    element: withSuspense(CurrencyRatesPage)  },
