@@ -168,6 +168,10 @@ function makeBillMutation(call, { successMessage, invalidateId } = {}) {
 export const useCreateBillDraft   = makeBillMutation((data) => billService.createDraft(data),
   { successMessage: 'Bill draft created' })
 
+// Phase 2: Update bill draft
+export const useUpdateBillDraft   = makeBillMutation(({ id, ...data }) => billService.updateDraft(id, data),
+  { successMessage: 'Bill draft updated', invalidateId: true })
+
 export const useSubmitBill        = makeBillMutation(({ id })             => billService.submitForApproval(id),
   { successMessage: 'Bill submitted',  invalidateId: true })
 

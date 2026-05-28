@@ -83,15 +83,20 @@ export function useUpdateInventoryItem() {
 export function useAddStock() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, qty, costPerUnit }) => {
-      const { data } = await inventoryService.addStock(id, { qty, costPerUnit })
+    mutationFn: async ({ id, qty, costPerUnit, paymentMode, sourceAccountId, vendorId, notes, transactionDate }) => {
+      const { data } = await inventoryService.addStock(id, {
+        qty, costPerUnit, paymentMode, sourceAccountId, vendorId, notes, transactionDate,
+      })
       return data.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] })
       queryClient.invalidateQueries({ queryKey: ['inventory-valuation'] })
       queryClient.invalidateQueries({ queryKey: ['inventory-low-stock'] })
-      toast.success('Stock updated')
+      // Also invalidate transactions + AP balances (stock purchase posts a JE)
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['outstanding-balances'] })
+      toast.success('Stock added & journal posted')
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })

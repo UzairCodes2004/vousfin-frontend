@@ -1457,7 +1457,8 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues, editT
       )}
 
       {/* Inventory Item Selector — shown for Inventory Sale / Inventory Purchase */}
-      {(transactionType === 'Inventory Sale' || transactionType === 'Inventory Purchase') && inventoryItems.length > 0 && (
+      {/* Inventory selector — shown for any sale or purchase type so stock stays in sync */}
+      {(['Inventory Sale', 'Inventory Purchase', 'Cash Sale', 'Credit Sale', 'Cash Purchase', 'Credit Purchase', 'Income'].includes(transactionType)) && inventoryItems.length > 0 && (
         <div className="animate-fade-in p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
           <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">
             Inventory Item
@@ -1502,9 +1503,9 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues, editT
               </div>
             )
           })()}
-          {transactionType === 'Inventory Sale' && (
+          {['Inventory Sale', 'Cash Sale', 'Credit Sale', 'Income'].includes(transactionType) && (
             <p className="text-[11px] text-text-muted">
-              COGS journal lines will be auto-generated: DR Cost of Goods Sold / CR Inventory.
+              Stock will be decremented and COGS auto-posted (DR Cost of Goods Sold · CR Inventory).
             </p>
           )}
         </div>

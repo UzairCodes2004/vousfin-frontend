@@ -8,7 +8,7 @@
  *   - Create / Edit item modal
  *   - Inventory valuation summary
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   PackageOpen, Plus, AlertTriangle, Search, RefreshCw,
   TrendingUp, X, ChevronDown, ChevronUp, Package,
@@ -19,6 +19,8 @@ import {
   useCreateInventoryItem, useUpdateInventoryItem, useAddStock,
   useToggleInventoryActive,
 } from '@/hooks/useInventory'
+import { useAccounts } from '@/hooks/useAccounts'
+import { useVendors } from '@/hooks/useParties'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
 
@@ -237,12 +239,79 @@ function ItemForm({ initial, onClose, currency }) {
 /* ── Add Stock inline form ───────────────────────────────────────────── */
 function AddStockForm({ item, onClose, currency }) {
   const addStock = useAddStock()
+  const { data: accountsData } = useAccounts()
+  const { data: vendorsData } = useVendors({ limit: 200 })
+
   const [qty,  setQty]  = useState('1')
   const [cost, setCost] = useState(String(item.unitCostPrice))
-  const valid = parseFloat(qty) > 0
+  const [paymentMode, setPaymentMode] = useState('cash')   // cash | bank | credit | loan
+  const [sourceAccountId, setSourceAccountId] = useState('')
+  const [vendorId, setVendorId] = useState(item.preferredVendorId || '')
+  const [notes, setNotes] = useState('')
+
+  const accounts = useMemo(() => {
+    const arr = Array.isArray(accountsData?.data) ? accountsData.data
+              : Array.isArray(accountsData)       ? accountsData : []
+    return arr
+  }, [accountsData])
+
+  const vendors = useMemo(() => {
+    const arr = Array.isArray(vendorsData?.docs) ? vendorsData.docs
+              : Array.isArray(vendorsData?.data) ? vendorsData.data
+              : Array.isArray(vendorsData)       ? vendorsData : []
+    return arr
+  }, [vendorsData])
+
+  // Filter accounts by payment mode
+  const fundingAccounts = useMemo(() => {
+    if (paymentMode === 'cash') {
+      return accounts.filter(a => /cash/i.test(a.accountName) && a.accountType === 'Asset')
+    }
+    if (paymentMode === 'bank') {
+      return accounts.filter(a => /bank/i.test(a.accountName) && a.accountType === 'Asset')
+    }
+    if (paymentMode === 'loan') {
+      return accounts.filter(a => /loan/i.test(a.accountName) && a.accountType === 'Liability')
+    }
+    return []
+  }, [accounts, paymentMode])
+
+  // Auto-select first funding account when mode changes
+  useEffect(() => {
+    if (paymentMode === 'credit') return
+    if (fundingAccounts.length > 0 && !fundingAccounts.some(a => a._id === sourceAccountId)) {
+      setSourceAccountId(fundingAccounts[0]._id)
+    }
+  }, [paymentMode, fundingAccounts, sourceAccountId])
+
+  const isCredit = paymentMode === 'credit'
+  const valid = parseFloat(qty) > 0 && parseFloat(cost) >= 0 && (
+    isCredit ? !!vendorId : !!sourceAccountId
+  )
+  const totalCost = (parseFloat(qty) || 0) * (parseFloat(cost) || 0)
+
+  const handleSubmit = async () => {
+    await addStock.mutateAsync({
+      id:           item._id,
+      qty:          parseFloat(qty),
+      costPerUnit:  parseFloat(cost) || item.unitCostPrice,
+      paymentMode,
+      sourceAccountId: isCredit ? undefined : sourceAccountId,
+      vendorId:        isCredit ? vendorId  : undefined,
+      notes:           notes || undefined,
+    })
+    onClose()
+  }
+
+  const PAYMENT_OPTIONS = [
+    { value: 'cash',   label: 'Cash',      desc: 'Paid from cash on hand' },
+    { value: 'bank',   label: 'Bank',      desc: 'Paid via bank transfer' },
+    { value: 'credit', label: 'On Credit', desc: 'Pay vendor later (AP)' },
+    { value: 'loan',   label: 'Loan',      desc: 'Financed via loan' },
+  ]
 
   return (
-    <div className="bg-navy/80 border border-emerald-500/20 rounded-xl p-4 space-y-3 animate-fade-in">
+    <div className="bg-navy/80 border border-emerald-500/20 rounded-xl p-4 space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
           <Plus className="h-4 w-4" /> Add Stock — {item.name}
@@ -251,18 +320,106 @@ function AddStockForm({ item, onClose, currency }) {
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Qty + Cost */}
       <div className="grid grid-cols-2 gap-3">
         <Input label={`Quantity (${item.unit})`} type="number" step="1" min="1"
           value={qty} onChange={e => setQty(e.target.value)} />
         <Input label={`Cost per ${item.unit} (${currency})`} type="number" step="0.01" min="0"
           value={cost} onChange={e => setCost(e.target.value)} />
       </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={onClose} disabled={addStock.isPending}>Cancel</Button>
-        <Button size="sm" onClick={() => addStock.mutateAsync({ id: item._id, qty: parseFloat(qty), costPerUnit: parseFloat(cost) || item.unitCostPrice }).then(onClose)}
-          loading={addStock.isPending} disabled={!valid}>
-          Add {qty} {item.unit}
-        </Button>
+
+      {/* Payment mode segmented control */}
+      <div>
+        <label className="block text-xs font-medium text-text-secondary mb-1.5">
+          How was this paid?
+          <span className="ml-1 text-text-muted font-normal">— posts the matching journal entry</span>
+        </label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {PAYMENT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setPaymentMode(opt.value)}
+              title={opt.desc}
+              className={cn(
+                'rounded-lg border px-2 py-2 text-xs font-semibold transition-all',
+                paymentMode === opt.value
+                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
+                  : 'border-glass text-text-muted hover:border-emerald-500/30 hover:text-text-secondary'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Source account OR vendor selector */}
+      {isCredit ? (
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
+            Vendor <span className="text-red-400">*</span>
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-emerald-500 focus:outline-none"
+            value={vendorId}
+            onChange={e => setVendorId(e.target.value)}
+          >
+            <option value="">Select vendor...</option>
+            {vendors.map(v => (
+              <option key={v._id} value={v._id}>
+                {v.businessName || v.fullName} {v.email ? `· ${v.email}` : ''}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-text-muted mt-1">
+            Posts: DR Inventory · CR Accounts Payable (vendor balance increases)
+          </p>
+        </div>
+      ) : (
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
+            {paymentMode === 'loan' ? 'Loan Account' : paymentMode === 'bank' ? 'Bank Account' : 'Cash Account'}
+            <span className="text-red-400"> *</span>
+          </label>
+          <select
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-emerald-500 focus:outline-none"
+            value={sourceAccountId}
+            onChange={e => setSourceAccountId(e.target.value)}
+          >
+            <option value="">Select account...</option>
+            {fundingAccounts.map(a => (
+              <option key={a._id} value={a._id}>
+                {a.accountCode ? `${a.accountCode} · ` : ''}{a.accountName}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-text-muted mt-1">
+            Posts: DR Inventory · CR {paymentMode === 'loan' ? 'Loan' : paymentMode === 'bank' ? 'Bank' : 'Cash'}
+          </p>
+        </div>
+      )}
+
+      {/* Notes */}
+      <Input
+        label="Notes (optional)"
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        placeholder="e.g. invoice #1234 from vendor"
+      />
+
+      {/* Total preview + actions */}
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-glass">
+        <div className="text-xs text-text-muted">
+          Total: <span className="text-text-primary font-bold tabular-nums">{formatCurrency(totalCost, currency)}</span>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={addStock.isPending}>Cancel</Button>
+          <Button size="sm" onClick={handleSubmit} loading={addStock.isPending} disabled={!valid}>
+            Add {qty} {item.unit}
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -20,8 +20,13 @@ const CustomersList   = lazy(() => import('@/pages/parties/CustomersList'))
 const VendorsList     = lazy(() => import('@/pages/parties/VendorsList'))
 const CustomerDetail  = lazy(() => import('@/pages/parties/CustomerDetail'))
 const VendorDetail    = lazy(() => import('@/pages/parties/VendorDetail'))
-const ReceivablesPage = lazy(() => import('@/pages/parties/ReceivablesPage'))
-const PayablesPage    = lazy(() => import('@/pages/parties/PayablesPage'))
+const ReceivablesPage   = lazy(() => import('@/pages/parties/ReceivablesPage'))
+const PayablesPage      = lazy(() => import('@/pages/parties/PayablesPage'))
+/* Phase 2 — Invoice & Bill editors */
+const InvoicesListPage  = lazy(() => import('@/pages/parties/InvoicesListPage'))
+const InvoiceEditorPage = lazy(() => import('@/pages/parties/InvoiceEditorPage'))
+const BillsListPage     = lazy(() => import('@/pages/parties/BillsListPage'))
+const BillEditorPage    = lazy(() => import('@/pages/parties/BillEditorPage'))
 const AIAssistantPage = lazy(() => import('@/pages/ai/AIAssistantPage'))
 
 /* ── New unified hub pages ── */
@@ -118,6 +123,10 @@ export const routes = [
           { path: 'customers',              element: withSuspense(CustomersList)   },
           { path: 'customers/:id',          element: withSuspense(CustomerDetail)  },
           { path: 'sales/receivables',      element: withSuspense(ReceivablesPage) },
+          /* Phase 2 — Invoice generator */
+          { path: 'sales/invoices',          element: withSuspense(InvoicesListPage)  },
+          { path: 'sales/invoices/new',      element: withSuspense(InvoiceEditorPage) },
+          { path: 'sales/invoices/:id/edit', element: withSuspense(InvoiceEditorPage) },
           { path: 'sales',                  element: <Navigate to="/customers" replace /> },
           { path: 'sales/customers',        element: <Navigate to="/customers" replace /> },
 
@@ -125,6 +134,10 @@ export const routes = [
           { path: 'vendors',                element: withSuspense(VendorsList)    },
           { path: 'vendors/:id',            element: withSuspense(VendorDetail)   },
           { path: 'purchases/payables',     element: withSuspense(PayablesPage)   },
+          /* Phase 2 — Bill generator */
+          { path: 'purchases/bills',          element: withSuspense(BillsListPage)   },
+          { path: 'purchases/bills/new',      element: withSuspense(BillEditorPage)  },
+          { path: 'purchases/bills/:id/edit', element: withSuspense(BillEditorPage)  },
           { path: 'purchases',              element: <Navigate to="/vendors" replace /> },
           { path: 'purchases/vendors',      element: <Navigate to="/vendors" replace /> },
           { path: 'business/settings', element: withSuspense(BusinessSettings)  },

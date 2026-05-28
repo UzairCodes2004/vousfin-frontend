@@ -4,6 +4,7 @@ import api from './api';
 
 const billService = {
   createDraft:        (data)              => api.post('/bills', data),
+  updateDraft:        (id, data)          => api.put(`/bills/${id}`, data),
   list:               (params)            => api.get('/bills', { params }),
   getById:            (id)                => api.get(`/bills/${id}`),
   getTimeline:        (id)                => api.get(`/bills/${id}/timeline`),

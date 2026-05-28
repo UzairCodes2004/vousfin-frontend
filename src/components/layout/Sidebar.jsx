@@ -45,14 +45,16 @@ const NAV = [
   {
     kind: 'group', name: 'Sales', icon: ShoppingCart, key: 'sales',
     children: [
-      { name: 'Customers',   href: '/customers',         icon: Users  },
-      { name: 'Receivables', href: '/sales/receivables', icon: Wallet },
+      { name: 'Customers',   href: '/customers',         icon: Users   },
+      { name: 'Invoices',    href: '/sales/invoices',    icon: Receipt },
+      { name: 'Receivables', href: '/sales/receivables', icon: Wallet  },
     ],
   },
   {
     kind: 'group', name: 'Purchases', icon: PackageOpen, key: 'purchases',
     children: [
       { name: 'Vendors',  href: '/vendors',            icon: Briefcase  },
+      { name: 'Bills',    href: '/purchases/bills',    icon: Receipt    },
       { name: 'Payables', href: '/purchases/payables', icon: CreditCard },
     ],
   },

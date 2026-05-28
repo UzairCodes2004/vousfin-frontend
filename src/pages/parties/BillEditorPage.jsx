@@ -1,0 +1,78 @@
+/**
+ * BillEditorPage — Phase 2 — wraps BillEditor with data + mutation wiring.
+ */
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
+import {
+  useBill, useCreateBillDraft, useUpdateBillDraft, useSubmitBill,
+} from '@/hooks/useInvoices'
+import { useVendors } from '@/hooks/useParties'
+import BillEditor from '@/components/invoice/BillEditor'
+import SkeletonLoader from '@/components/ui/SkeletonLoader'
+
+export default function BillEditorPage() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const isEdit = !!id
+
+  const { data: bill, isLoading } = useBill(id)
+  const { data: vendorsData } = useVendors({ limit: 200 })
+  const vendors = Array.isArray(vendorsData?.docs) ? vendorsData.docs
+                 : Array.isArray(vendorsData?.data) ? vendorsData.data
+                 : Array.isArray(vendorsData) ? vendorsData : []
+
+  const createDraft = useCreateBillDraft()
+  const updateDraft = useUpdateBillDraft()
+  const submit     = useSubmitBill()
+
+  const saving = createDraft.isPending || updateDraft.isPending || submit.isPending
+
+  const handleSaveDraft = async (formData) => {
+    if (isEdit) {
+      await updateDraft.mutateAsync({ id, ...formData })
+    } else {
+      const resp = await createDraft.mutateAsync(formData)
+      const newId = resp?.data?.data?._id || resp?.data?._id
+      if (newId) navigate(`/purchases/bills/${newId}/edit`, { replace: true })
+    }
+  }
+
+  const handleSubmitForApproval = async (formData) => {
+    let billId = id
+    if (!isEdit) {
+      const resp = await createDraft.mutateAsync(formData)
+      billId = resp?.data?.data?._id || resp?.data?._id
+    } else {
+      await updateDraft.mutateAsync({ id, ...formData })
+    }
+    if (billId) {
+      await submit.mutateAsync({ id: billId })
+      navigate('/purchases/bills')
+    }
+  }
+
+  if (isEdit && isLoading) {
+    return <div className="space-y-5"><SkeletonLoader count={3} /></div>
+  }
+
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <button
+        type="button"
+        onClick={() => navigate('/purchases/bills')}
+        className="flex items-center gap-1.5 text-sm text-text-muted hover:text-cyan transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Bills
+      </button>
+
+      <BillEditor
+        bill={isEdit ? bill : null}
+        vendors={vendors}
+        saving={saving}
+        onSaveDraft={handleSaveDraft}
+        onSubmit={handleSubmitForApproval}
+      />
+    </div>
+  )
+}
