@@ -15,7 +15,7 @@ const partySchema = z.object({
   taxId: z.string().optional(),
 })
 
-export default function PartyFormModal({ isOpen, onClose, type = 'customer' }) {
+export default function PartyFormModal({ isOpen, onClose, type = 'customer', onCreated }) {
   const createCustomer = useCreateCustomer()
   const createVendor = useCreateVendor()
 
@@ -48,11 +48,11 @@ export default function PartyFormModal({ isOpen, onClose, type = 'customer' }) {
   const onSubmit = async (formData) => {
     try {
       const { name, email, phone, address, taxId } = formData
-      if (isCustomer) {
-        await createCustomer.mutateAsync({ fullName: name, email, phone, address, taxId })
-      } else {
-        await createVendor.mutateAsync({ vendorName: name, email, phone, address, taxId })
-      }
+      const created = isCustomer
+        ? await createCustomer.mutateAsync({ fullName: name, email, phone, address, taxId })
+        : await createVendor.mutateAsync({ vendorName: name, email, phone, address, taxId })
+      // Pass the newly-created party back to the caller so it can pre-select it
+      if (onCreated && created?._id) onCreated(created)
       onClose()
     } catch {
       // toast handled in hook

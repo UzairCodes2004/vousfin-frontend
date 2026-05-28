@@ -39,6 +39,9 @@ export default function InvoiceEditorPage() {
   const downloadPdf = useDownloadInvoicePdf()
 
   const [showCustomerModal, setShowCustomerModal] = useState(false)
+  // When a new customer is created via the inline modal we stash its id here
+  // so the editor can pre-select it on next render.
+  const [pendingCustomerId, setPendingCustomerId] = useState(null)
 
   const saving =
     createDraft.isPending || updateDraft.isPending || submit.isPending ||
@@ -68,7 +71,11 @@ export default function InvoiceEditorPage() {
     }
   }
 
-  if (isEdit && isLoading) {
+  // Gate render until invoice is actually loaded (not just !isLoading).
+  // React Query can briefly return isLoading=false data=undefined on first
+  // mount before the fetch starts, which would cause the editor's useState
+  // initializers to fire with undefined and lock in empty values.
+  if (isEdit && (isLoading || !invoice)) {
     return <div className="space-y-5"><SkeletonLoader count={3} /></div>
   }
 
@@ -84,8 +91,12 @@ export default function InvoiceEditorPage() {
       </button>
 
       <InvoiceEditor
+        // key includes pendingCustomerId so a fresh mount happens after
+        // inline customer creation, picking up the new selection.
+        key={`${invoice?._id || 'new'}-${pendingCustomerId || ''}`}
         invoice={isEdit ? invoice : null}
         customers={customers}
+        defaultCustomerId={pendingCustomerId || (isEdit ? invoice?.customerId : null)}
         saving={saving}
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmitForApproval}
@@ -99,6 +110,7 @@ export default function InvoiceEditorPage() {
       <PartyFormModal
         isOpen={showCustomerModal}
         onClose={() => setShowCustomerModal(false)}
+        onCreated={(c) => setPendingCustomerId(c._id)}
         type="customer"
       />
     </div>

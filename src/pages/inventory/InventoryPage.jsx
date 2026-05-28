@@ -233,7 +233,7 @@ function ItemForm({ initial, onClose, currency }) {
             </option>
             {vendors.map(v => (
               <option key={v._id} value={v._id}>
-                {v.businessName || v.fullName} {v.email ? `· ${v.email}` : ''}
+                {v.vendorName || v.contactPerson || '(unnamed vendor)'} {v.email ? `· ${v.email}` : ''}
               </option>
             ))}
           </select>
@@ -401,7 +401,7 @@ function AddStockForm({ item, onClose, currency }) {
             <option value="">Select vendor...</option>
             {vendors.map(v => (
               <option key={v._id} value={v._id}>
-                {v.businessName || v.fullName} {v.email ? `· ${v.email}` : ''}
+                {v.vendorName || v.contactPerson || '(unnamed vendor)'} {v.email ? `· ${v.email}` : ''}
               </option>
             ))}
           </select>

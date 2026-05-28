@@ -33,6 +33,7 @@ export default function BillEditorPage() {
   const cancel      = useCancelBill()
 
   const [showVendorModal, setShowVendorModal] = useState(false)
+  const [pendingVendorId, setPendingVendorId] = useState(null)
 
   const saving =
     createDraft.isPending || updateDraft.isPending || submit.isPending ||
@@ -62,7 +63,10 @@ export default function BillEditorPage() {
     }
   }
 
-  if (isEdit && isLoading) {
+  // Gate render until bill is actually loaded (not just !isLoading) to
+  // prevent the editor from mounting with undefined data and locking in
+  // empty form values.
+  if (isEdit && (isLoading || !bill)) {
     return <div className="space-y-5"><SkeletonLoader count={3} /></div>
   }
 
@@ -78,8 +82,10 @@ export default function BillEditorPage() {
       </button>
 
       <BillEditor
+        key={`${bill?._id || 'new'}-${pendingVendorId || ''}`}
         bill={isEdit ? bill : null}
         vendors={vendors}
+        defaultVendorId={pendingVendorId || (isEdit ? bill?.vendorId : null)}
         saving={saving}
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmitForApproval}
@@ -92,6 +98,7 @@ export default function BillEditorPage() {
       <PartyFormModal
         isOpen={showVendorModal}
         onClose={() => setShowVendorModal(false)}
+        onCreated={(v) => setPendingVendorId(v._id)}
         type="vendor"
       />
     </div>

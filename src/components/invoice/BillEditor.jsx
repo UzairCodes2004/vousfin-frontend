@@ -19,6 +19,7 @@ import Input from '@/components/ui/Input'
 import LineItemRow, { computeLineValues } from './LineItemRow'
 import TotalsPanel from './TotalsPanel'
 import InvoiceStatusBadge from './InvoiceStatusBadge'
+import EditorActionBar from './EditorActionBar'
 
 const emptyLine = () => ({
   _tempId: `li-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -82,6 +83,7 @@ function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }
 export default function BillEditor({
   bill = null,
   vendors = [],
+  defaultVendorId = null,
   saving = false,
   onSaveDraft,
   onSubmit,
@@ -96,7 +98,7 @@ export default function BillEditor({
 
   const [billNumber, setBillNumber] = useState(bill?.billNumber || '')
   const [vendorReferenceNumber, setVendorReferenceNumber] = useState(bill?.vendorReferenceNumber || '')
-  const [vendorId, setVendorId] = useState(bill?.vendorId || '')
+  const [vendorId, setVendorId] = useState(bill?.vendorId || defaultVendorId || '')
   const [issueDate, setIssueDate] = useState(
     bill?.issueDate ? new Date(bill.issueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   )
@@ -154,15 +156,20 @@ export default function BillEditor({
 
   return (
     <div className={cn('space-y-4', className)}>
-      {isReadOnly && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-200">
-          <Lock className="h-4 w-4 flex-shrink-0" />
-          <span>
-            This bill is <strong className="font-semibold">{bill?.state?.replace('_', ' ')}</strong> and cannot be edited.
-            Use the action buttons on the right to change its status.
-          </span>
-        </div>
-      )}
+      {/* Always-visible top action bar */}
+      <EditorActionBar
+        kind="bill"
+        doc={bill}
+        isReadOnly={isReadOnly}
+        canSave={!!billNumber}
+        canSubmit={!!billNumber && totals.totalAmount > 0}
+        saving={saving}
+        onSaveDraft={() => onSaveDraft?.(buildFormData())}
+        onSubmit={() => onSubmit?.(buildFormData())}
+        onApprove={onApprove}
+        onSchedule={onSchedule}
+        onCancel={onCancel}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
@@ -231,7 +238,7 @@ export default function BillEditor({
                 </option>
                 {vendors.map(v => (
                   <option key={v._id} value={v._id}>
-                    {v.businessName || v.fullName} {v.email ? `(${v.email})` : ''}
+                    {v.vendorName || v.contactPerson || '(unnamed vendor)'} {v.email ? `· ${v.email}` : ''}
                   </option>
                 ))}
               </select>

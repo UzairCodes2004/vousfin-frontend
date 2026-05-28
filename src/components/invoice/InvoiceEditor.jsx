@@ -24,6 +24,7 @@ import Input from '@/components/ui/Input'
 import LineItemRow, { computeLineValues } from './LineItemRow'
 import TotalsPanel from './TotalsPanel'
 import InvoiceStatusBadge from './InvoiceStatusBadge'
+import EditorActionBar from './EditorActionBar'
 
 // ── Default empty line item ──────────────────────────────────────────────────
 const emptyLine = () => ({
@@ -98,6 +99,7 @@ function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }
 
 export default function InvoiceEditor({
   invoice = null,         // existing invoice to edit (null = new)
+  defaultCustomerId = null, // pre-select this customer on mount
   onSaveDraft,            // (formData) => void
   onSubmit,               // (formData) => void
   onDownloadPdf,          // (invoiceId) => void
@@ -115,7 +117,7 @@ export default function InvoiceEditor({
 
   // ── Form state ─────────────────────────────────────────────────────
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.invoiceNumber || '')
-  const [customerId, setCustomerId] = useState(invoice?.customerId || '')
+  const [customerId, setCustomerId] = useState(invoice?.customerId || defaultCustomerId || '')
   const [issueDate, setIssueDate] = useState(
     invoice?.issueDate ? new Date(invoice.issueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   )
@@ -191,15 +193,21 @@ export default function InvoiceEditor({
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <div className={cn('space-y-4', className)}>
-      {isReadOnly && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-200">
-          <Lock className="h-4 w-4 flex-shrink-0" />
-          <span>
-            This invoice is <strong className="font-semibold">{invoice?.state?.replace('_', ' ')}</strong> and cannot be edited.
-            Use the action buttons on the right to change its status, or download a PDF.
-          </span>
-        </div>
-      )}
+      {/* Always-visible top action bar with state + action buttons */}
+      <EditorActionBar
+        kind="invoice"
+        doc={invoice}
+        isReadOnly={isReadOnly}
+        canSave={!!invoiceNumber}
+        canSubmit={!!invoiceNumber && totals.totalAmount > 0}
+        saving={saving}
+        onSaveDraft={handleSave}
+        onSubmit={handleSubmit}
+        onApprove={onApprove}
+        onSend={onSend}
+        onCancel={onCancel}
+        onDownloadPdf={onDownloadPdf}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ═══ LEFT: Main form (spans 2 cols on desktop) ═══ */}
