@@ -190,6 +190,19 @@ export const useCancelBill        = makeBillMutation(({ id, reason })     => bil
 export const useArchiveBill       = makeBillMutation(({ id })             => billService.archive(id),
   { successMessage: 'Bill archived',   invalidateId: true })
 
+// Phase 3.2 — 3-way match on demand
+export function useRunBillMatch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, toleranceCfg }) => billService.runMatch(id, toleranceCfg),
+    onSuccess: (_resp, vars) => {
+      qc.invalidateQueries({ queryKey: ['bill', vars.id] })
+      qc.invalidateQueries({ queryKey: ['bills'] })
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+}
+
 // ── Credit Notes ──────────────────────────────────────────────────────────────
 
 export function useCreditNotes(params = {}) {

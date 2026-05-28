@@ -20,6 +20,9 @@ const billService = {
   transition:         (id, toState, reason) => api.post(`/bills/${id}/transition`, { toState, reason }),
 
   archive:            (id)                => api.delete(`/bills/${id}`),
+
+  // Phase 3.2 — 3-way match
+  runMatch:           (id, toleranceCfg)  => api.post(`/bills/${id}/match`, { toleranceCfg: toleranceCfg || {} }),
 };
 
 export default billService;

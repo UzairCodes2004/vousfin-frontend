@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import {
   usePurchaseOrder,
+  usePurchaseOrderTimeline,
   useCreatePODraft,
   useUpdatePODraft,
   useSubmitPO,
@@ -18,6 +19,8 @@ import {
 } from '@/hooks/useProcurement'
 import { useVendors } from '@/hooks/useParties'
 import POEditor from '@/components/procurement/POEditor'
+import POReceivingProgress from '@/components/procurement/POReceivingProgress'
+import ProcurementTimeline from '@/components/procurement/ProcurementTimeline'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
@@ -27,6 +30,7 @@ export default function PurchaseOrderEditorPage() {
   const isEdit = !!id
 
   const { data: po, isLoading } = usePurchaseOrder(id)
+  const { data: timelineData } = usePurchaseOrderTimeline(id)
   const { data: vendorsData } = useVendors({ limit: 200 })
   const vendors = Array.isArray(vendorsData?.docs)  ? vendorsData.docs
                 : Array.isArray(vendorsData?.data)  ? vendorsData.data
@@ -100,6 +104,14 @@ export default function PurchaseOrderEditorPage() {
         onClose={(poId, reason) => close.mutate({ id: poId, reason })}
         onAddVendor={() => setShowVendorModal(true)}
       />
+
+      {/* Phase 3.2 — GRN progress bars + procurement timeline (edit mode only) */}
+      {isEdit && po && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <POReceivingProgress po={po} />
+          <ProcurementTimeline timeline={timelineData?.timeline} />
+        </div>
+      )}
 
       <PartyFormModal
         isOpen={showVendorModal}

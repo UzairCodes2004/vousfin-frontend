@@ -7,10 +7,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import {
   useBill, useCreateBillDraft, useUpdateBillDraft, useSubmitBill,
-  useApproveBill, useScheduleBill, useCancelBill,
+  useApproveBill, useScheduleBill, useCancelBill, useRunBillMatch,
 } from '@/hooks/useInvoices'
 import { useVendors } from '@/hooks/useParties'
 import BillEditor from '@/components/invoice/BillEditor'
+import ThreeWayMatchPanel from '@/components/invoice/ThreeWayMatchPanel'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
@@ -32,6 +33,7 @@ export default function BillEditorPage() {
   const schedule    = useScheduleBill()
   const cancel      = useCancelBill()
 
+  const runMatch = useRunBillMatch()
   const [showVendorModal, setShowVendorModal] = useState(false)
   const [pendingVendorId, setPendingVendorId] = useState(null)
 
@@ -94,6 +96,15 @@ export default function BillEditorPage() {
         onCancel={(billId, reason) => cancel.mutate({ id: billId, reason })}
         onAddVendor={() => setShowVendorModal(true)}
       />
+
+      {/* Phase 3.2 — 3-way match panel (only shown for existing bills with a linked PO) */}
+      {isEdit && bill && (
+        <ThreeWayMatchPanel
+          bill={bill}
+          isRunning={runMatch.isPending}
+          onRunMatch={() => runMatch.mutate({ id: bill._id })}
+        />
+      )}
 
       <PartyFormModal
         isOpen={showVendorModal}
