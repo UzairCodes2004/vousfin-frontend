@@ -72,7 +72,7 @@ export default function EditorActionBar({
             </div>
             {isReadOnly && (
               <p className="text-[11px] text-text-muted mt-0.5">
-                Read-only — use the buttons on the right to change status.
+                Read-only — use the buttons here to change status.
               </p>
             )}
           </div>

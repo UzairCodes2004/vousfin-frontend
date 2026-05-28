@@ -276,7 +276,11 @@ function AddStockForm({ item, onClose, currency }) {
 
   const [qty,  setQty]  = useState('1')
   const [cost, setCost] = useState(String(item.unitCostPrice))
-  const [paymentMode, setPaymentMode] = useState('cash')   // cash | bank | credit | loan
+  // Inventory is normally paid from operating funds (cash/bank) or bought on
+  // credit from a vendor (AP). Loan-financed inventory is unusual for SMBs
+  // and was removed to keep the form intuitive — if you ever need it,
+  // record it manually as a Transaction.
+  const [paymentMode, setPaymentMode] = useState('cash')   // cash | bank | credit
   const [sourceAccountId, setSourceAccountId] = useState('')
   const [vendorId, setVendorId] = useState(item.preferredVendorId || '')
   const [notes, setNotes] = useState('')
@@ -301,9 +305,6 @@ function AddStockForm({ item, onClose, currency }) {
     }
     if (paymentMode === 'bank') {
       return accounts.filter(a => /bank/i.test(a.accountName) && a.accountType === 'Asset')
-    }
-    if (paymentMode === 'loan') {
-      return accounts.filter(a => /loan/i.test(a.accountName) && a.accountType === 'Liability')
     }
     return []
   }, [accounts, paymentMode])
@@ -339,7 +340,6 @@ function AddStockForm({ item, onClose, currency }) {
     { value: 'cash',   label: 'Cash',      desc: 'Paid from cash on hand' },
     { value: 'bank',   label: 'Bank',      desc: 'Paid via bank transfer' },
     { value: 'credit', label: 'On Credit', desc: 'Pay vendor later (AP)' },
-    { value: 'loan',   label: 'Loan',      desc: 'Financed via loan' },
   ]
 
   return (
@@ -367,7 +367,7 @@ function AddStockForm({ item, onClose, currency }) {
           How was this paid?
           <span className="ml-1 text-text-muted font-normal">— posts the matching journal entry</span>
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {PAYMENT_OPTIONS.map(opt => (
             <button
               key={opt.value}
@@ -412,7 +412,7 @@ function AddStockForm({ item, onClose, currency }) {
       ) : (
         <div>
           <label className="block text-xs font-medium text-text-secondary mb-1.5">
-            {paymentMode === 'loan' ? 'Loan Account' : paymentMode === 'bank' ? 'Bank Account' : 'Cash Account'}
+            {paymentMode === 'bank' ? 'Bank Account' : 'Cash Account'}
             <span className="text-red-400"> *</span>
           </label>
           <select
@@ -428,7 +428,7 @@ function AddStockForm({ item, onClose, currency }) {
             ))}
           </select>
           <p className="text-[10px] text-text-muted mt-1">
-            Posts: DR Inventory · CR {paymentMode === 'loan' ? 'Loan' : paymentMode === 'bank' ? 'Bank' : 'Cash'}
+            Posts: DR Inventory · CR {paymentMode === 'bank' ? 'Bank' : 'Cash'}
           </p>
         </div>
       )}

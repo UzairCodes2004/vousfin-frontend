@@ -15,15 +15,13 @@
  */
 import { useState, useMemo, useCallback } from 'react'
 import {
-  Plus, FileDown, Send, Save, ChevronDown, ChevronUp, Eye, Lock,
-  Receipt, Building2, CreditCard, StickyNote, Truck,
+  Plus, ChevronDown, ChevronUp, Receipt, CreditCard, StickyNote, Truck,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import Card from '@/components/ui/Card'
 import Input from '@/components/ui/Input'
 import LineItemRow, { computeLineValues } from './LineItemRow'
 import TotalsPanel from './TotalsPanel'
-import InvoiceStatusBadge from './InvoiceStatusBadge'
 import EditorActionBar from './EditorActionBar'
 
 // ── Default empty line item ──────────────────────────────────────────────────
@@ -141,8 +139,36 @@ export default function InvoiceEditor({
   const [bankDetails, setBankDetails] = useState(invoice?.bankDetails || {})
 
   // Line items
+  //   1. Phase 2 invoice → use stored lineItems[]
+  //   2. Phase 1 legacy invoice (only `amount` field) → synthesize a single line
+  //      so the editor renders the actual invoice value instead of a blank row
+  //   3. New invoice → start with one empty editable row
   const [lineItems, setLineItems] = useState(() => {
-    if (invoice?.lineItems?.length) return invoice.lineItems.map(li => ({ ...li, _tempId: li._id || `li-${Math.random().toString(36).slice(2)}` }))
+    if (invoice?.lineItems?.length) {
+      return invoice.lineItems.map(li => ({
+        ...li,
+        _tempId: li._id || `li-${Math.random().toString(36).slice(2)}`,
+      }))
+    }
+    if (invoice && invoice.amount > 0) {
+      // Legacy invoice — backfill a synthetic line so totals + form make sense.
+      const legacyAmount  = Number(invoice.amount)    || 0
+      const legacyTax     = Number(invoice.taxAmount) || 0
+      const taxRate       = legacyAmount > 0 ? Math.round((legacyTax / legacyAmount) * 10000) / 100 : 0
+      return [{
+        _tempId: 'legacy-1',
+        itemType:     'custom',
+        name:         invoice.description || invoice.invoiceNumber || 'Invoice item',
+        description:  invoice.description || '',
+        quantity:     1,
+        unitPrice:    legacyAmount,
+        discountType: null,
+        discountValue: 0,
+        taxRate,
+        taxInclusive: false,
+        sortOrder:    0,
+      }]
+    }
     return [emptyLine()]
   })
 
@@ -218,20 +244,9 @@ export default function InvoiceEditor({
             <div className="flex items-center gap-3">
               <Receipt className="h-5 w-5 text-cyan" />
               <h2 className="text-lg font-bold text-text-primary">
-                {isEdit ? 'Edit Invoice' : 'New Invoice'}
+                {isReadOnly ? 'View Invoice' : isEdit ? 'Edit Invoice' : 'New Invoice'}
               </h2>
-              {invoice?.state && <InvoiceStatusBadge state={invoice.state} />}
             </div>
-            {isEdit && invoice?._id && onDownloadPdf && (
-              <button
-                type="button"
-                onClick={() => onDownloadPdf(invoice._id)}
-                className="btn-outline flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
-              >
-                <FileDown className="h-4 w-4" />
-                PDF
-              </button>
-            )}
           </div>
 
           {/* Invoice meta fields */}
@@ -549,84 +564,76 @@ export default function InvoiceEditor({
             </div>
           </Card>
 
-          {/* Action buttons */}
-          <Card>
-            <div className="space-y-3">
-              {isReadOnly ? (
-                <>
-                  {/* Read-only actions depend on the invoice state */}
-                  {invoice?._id && onDownloadPdf && (
-                    <button
-                      type="button"
-                      onClick={() => onDownloadPdf(invoice._id)}
-                      className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold"
-                    >
-                      <FileDown className="h-4 w-4" />
-                      Download PDF
-                    </button>
-                  )}
-                  {invoice?.state === 'pending_approval' && onApprove && (
-                    <button
-                      type="button"
-                      onClick={() => onApprove(invoice._id)}
-                      disabled={saving}
-                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {invoice?.state === 'approved' && onSend && (
-                    <button
-                      type="button"
-                      onClick={() => onSend(invoice._id)}
-                      disabled={saving}
-                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                    >
-                      <Send className="h-4 w-4" />
-                      Send to Customer
-                    </button>
-                  )}
-                  {onCancel && ['approved', 'sent', 'pending_approval'].includes(invoice?.state) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const reason = window.prompt('Cancellation reason (optional):')
-                        if (reason !== null) onCancel(invoice._id, reason)
-                      }}
-                      disabled={saving}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-                    >
-                      Cancel Invoice
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving || !invoiceNumber}
-                    className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                  >
-                    <Save className="h-4 w-4" />
-                    {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={saving || !invoiceNumber || totals.totalAmount <= 0}
-                    className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                  >
-                    <Send className="h-4 w-4" />
-                    Submit for Approval
-                  </button>
-                </>
-              )}
-            </div>
-          </Card>
+          {/* What happens next — explains the current state and the next step */}
+          <NextStepsCard state={invoice?.state} kind="invoice" isReadOnly={isReadOnly} />
         </div>
       </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * NextStepsCard — small inline guidance card explaining the invoice/bill
+ * lifecycle to non-accountant users. Replaces the duplicated action buttons
+ * that used to live in the right sidebar (they're now exclusively in the
+ * top action bar, so only one place to click).
+ */
+function NextStepsCard({ state, kind = 'invoice' }) {
+  const isBill = kind === 'bill'
+  const flow = isBill
+    ? [
+        { key: 'draft',                 label: 'Draft',          desc: 'Fill in line items, then click Submit for Approval above.' },
+        { key: 'awaiting_approval',     label: 'Awaiting Approval', desc: 'Approver: click Approve above. Or Cancel to discard.' },
+        { key: 'approved',              label: 'Approved',       desc: 'Ready to pay. Click Schedule Payment above to set the pay date.' },
+        { key: 'scheduled',             label: 'Scheduled',      desc: 'Will post automatically on the scheduled pay date.' },
+        { key: 'paid',                  label: 'Paid',           desc: 'Bill is fully paid. No further action needed.' },
+        { key: 'cancelled',             label: 'Cancelled',      desc: 'This bill has been voided.' },
+      ]
+    : [
+        { key: 'draft',                 label: 'Draft',          desc: 'Fill in line items, then click Submit for Approval above.' },
+        { key: 'pending_approval',      label: 'Pending Approval', desc: 'Approver: click Approve above. Or Cancel to discard.' },
+        { key: 'approved',              label: 'Approved',       desc: 'Click Send to Customer above to deliver, or download as PDF.' },
+        { key: 'sent',                  label: 'Sent',           desc: 'Awaiting payment from the customer.' },
+        { key: 'paid',                  label: 'Paid',           desc: 'Invoice fully paid. No further action needed.' },
+        { key: 'overdue',               label: 'Overdue',        desc: 'Past due date — payment reminder will be emailed automatically.' },
+        { key: 'cancelled',             label: 'Cancelled',      desc: 'This invoice has been voided.' },
+      ]
+
+  const currentIdx = Math.max(0, flow.findIndex(s => s.key === (state || 'draft')))
+  const current = flow[currentIdx] || flow[0]
+
+  return (
+    <Card>
+      <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-3">
+        What happens next?
+      </h3>
+      <div className="space-y-2">
+        <div className="rounded-lg border border-cyan/30 bg-cyan/5 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-cyan font-bold mb-1">
+            Current — {current.label}
+          </p>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            {current.desc}
+          </p>
+        </div>
+        {/* Mini progress strip */}
+        <div className="flex items-center gap-1 pt-1">
+          {flow.filter(s => !['cancelled', 'overdue'].includes(s.key)).map((s, i) => {
+            const reached = i <= currentIdx
+            return (
+              <div
+                key={s.key}
+                title={s.label}
+                className={cn(
+                  'h-1 flex-1 rounded-full transition-colors',
+                  reached ? 'bg-cyan' : 'bg-glass'
+                )}
+              />
+            )
+          })}
+        </div>
+      </div>
+    </Card>
   )
 }

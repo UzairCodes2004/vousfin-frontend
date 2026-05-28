@@ -8,10 +8,9 @@
  *   - No PDF download (bills aren't sent — they're received)
  *   - "Submit for Approval" instead of "Send to Customer"
  */
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
-  Plus, Send, Save, ChevronDown, ChevronUp, Lock, CalendarCheck,
-  FileText, CreditCard, StickyNote, Truck,
+  Plus, ChevronDown, ChevronUp, FileText, StickyNote, Truck,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import Card from '@/components/ui/Card'
@@ -116,8 +115,36 @@ export default function BillEditor({
   const [shippingCharges, setShippingCharges] = useState(bill?.shippingCharges || 0)
   const [roundingAdjustment, setRoundingAdjustment] = useState(bill?.roundingAdjustment || 0)
 
+  // Line items
+  //   1. Phase 2 bill   → use stored lineItems[]
+  //   2. Phase 1 legacy → synthesize a single line from `amount` so the editor
+  //                       shows the real bill value, not a blank row
+  //   3. New bill       → start with one empty editable row
   const [lineItems, setLineItems] = useState(() => {
-    if (bill?.lineItems?.length) return bill.lineItems.map(li => ({ ...li, _tempId: li._id || `li-${Math.random().toString(36).slice(2)}` }))
+    if (bill?.lineItems?.length) {
+      return bill.lineItems.map(li => ({
+        ...li,
+        _tempId: li._id || `li-${Math.random().toString(36).slice(2)}`,
+      }))
+    }
+    if (bill && bill.amount > 0) {
+      const legacyAmount = Number(bill.amount)    || 0
+      const legacyTax    = Number(bill.taxAmount) || 0
+      const taxRate      = legacyAmount > 0 ? Math.round((legacyTax / legacyAmount) * 10000) / 100 : 0
+      return [{
+        _tempId: 'legacy-1',
+        itemType:     'custom',
+        name:         bill.description || bill.billNumber || 'Bill item',
+        description:  bill.description || '',
+        quantity:     1,
+        unitPrice:    legacyAmount,
+        discountType: null,
+        discountValue: 0,
+        taxRate,
+        taxInclusive: false,
+        sortOrder:    0,
+      }]
+    }
     return [emptyLine()]
   })
 
@@ -403,76 +430,62 @@ export default function BillEditor({
             )}
           </Card>
 
-          <Card>
-            <div className="space-y-3">
-              {isReadOnly ? (
-                <>
-                  {bill?.state === 'awaiting_approval' && onApprove && (
-                    <button
-                      type="button"
-                      onClick={() => onApprove(bill._id)}
-                      disabled={saving}
-                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                    >
-                      Approve Bill
-                    </button>
-                  )}
-                  {bill?.state === 'approved' && onSchedule && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const today = new Date().toISOString().split('T')[0]
-                        const payDate = window.prompt('Schedule payment for date (YYYY-MM-DD):', today)
-                        if (payDate) onSchedule(bill._id, payDate)
-                      }}
-                      disabled={saving}
-                      className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                    >
-                      <CalendarCheck className="h-4 w-4" />
-                      Schedule Payment
-                    </button>
-                  )}
-                  {onCancel && ['awaiting_approval', 'approved', 'scheduled'].includes(bill?.state) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const reason = window.prompt('Cancellation reason (optional):')
-                        if (reason !== null) onCancel(bill._id, reason)
-                      }}
-                      disabled={saving}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-                    >
-                      Cancel Bill
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => onSaveDraft?.(buildFormData())}
-                    disabled={saving || !billNumber}
-                    className="btn-outline flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                  >
-                    <Save className="h-4 w-4" />
-                    {saving ? 'Saving...' : isEdit ? 'Update Draft' : 'Save Draft'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSubmit?.(buildFormData())}
-                    disabled={saving || !billNumber || totals.totalAmount <= 0}
-                    className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-40"
-                  >
-                    <Send className="h-4 w-4" />
-                    Submit for Approval
-                  </button>
-                </>
-              )}
-            </div>
-          </Card>
+          {/* What happens next — explains the current state and the next step */}
+          <NextStepsCard state={bill?.state} />
         </div>
       </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * NextStepsCard — small inline guidance card explaining the bill lifecycle
+ * to non-accountant users. The action buttons themselves live exclusively
+ * in the top action bar (single source of truth).
+ */
+function NextStepsCard({ state }) {
+  const flow = [
+    { key: 'draft',             label: 'Draft',             desc: 'Fill in line items, then click Submit for Approval above.' },
+    { key: 'awaiting_approval', label: 'Awaiting Approval', desc: 'Approver: click Approve above. Or Cancel to discard.' },
+    { key: 'approved',          label: 'Approved',          desc: 'Ready to pay. Click Schedule Payment above to set a pay date.' },
+    { key: 'scheduled',         label: 'Scheduled',         desc: 'The bill will post automatically on the scheduled pay date.' },
+    { key: 'paid',              label: 'Paid',              desc: 'Bill is fully paid. No further action needed.' },
+    { key: 'cancelled',         label: 'Cancelled',         desc: 'This bill has been voided.' },
+  ]
+  const currentIdx = Math.max(0, flow.findIndex(s => s.key === (state || 'draft')))
+  const current = flow[currentIdx] || flow[0]
+
+  return (
+    <Card>
+      <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-3">
+        What happens next?
+      </h3>
+      <div className="space-y-2">
+        <div className="rounded-lg border border-cyan/30 bg-cyan/5 p-3">
+          <p className="text-[10px] uppercase tracking-wider text-cyan font-bold mb-1">
+            Current — {current.label}
+          </p>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            {current.desc}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 pt-1">
+          {flow.filter(s => s.key !== 'cancelled').map((s, i) => {
+            const reached = i <= currentIdx
+            return (
+              <div
+                key={s.key}
+                title={s.label}
+                className={cn(
+                  'h-1 flex-1 rounded-full transition-colors',
+                  reached ? 'bg-cyan' : 'bg-glass'
+                )}
+              />
+            )
+          })}
+        </div>
+      </div>
+    </Card>
   )
 }
