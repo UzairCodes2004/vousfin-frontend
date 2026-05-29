@@ -45,6 +45,8 @@ const VendorPortal         = lazy(() => import('@/pages/vendor/VendorPortal'))
 const APWorkflowBoard      = lazy(() => import('@/pages/ap/APWorkflowBoard'))
 /* Phase 3.4 — Procurement Dashboard */
 const ProcurementDashboard = lazy(() => import('@/pages/ap/ProcurementDashboard'))
+/* ERP Step 9 — Unified cross-module audit / activity trail */
+const ActivityTimelinePage = lazy(() => import('@/pages/audit/ActivityTimelinePage'))
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-navy">
@@ -165,6 +167,7 @@ export const routes = [
           { path: 'settings/exchange-rates',    element: withSuspense(CurrencyRatesPage)  },
           { path: 'settings/tax',               element: withSuspense(TaxConfigPage)      }, // Phase 5.4.8
           { path: 'inventory',                  element: withSuspense(InventoryPage)      }, // Phase 5.5 Step 4
+          { path: 'activity',                   element: withSuspense(ActivityTimelinePage) }, // ERP Step 9
 
           /* ── Financial Reports hub ─────────────────────────────────────── */
           /* /financial-reports  → default tab */

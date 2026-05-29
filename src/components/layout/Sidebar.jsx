@@ -28,6 +28,7 @@ import {
   DollarSign,
   ShoppingBag,
   Truck,
+  Activity,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -64,6 +65,7 @@ const NAV = [
   },
   { kind: 'link', name: 'Inventory',         href: '/inventory',                          icon: Boxes },
   { kind: 'link', name: 'Financial Reports', href: '/financial-reports/income-statement', activePrefix: '/financial-reports', icon: FileBarChart2 },
+  { kind: 'link', name: 'Activity',          href: '/activity',                           icon: Activity },
   {
     kind: 'group', name: 'AI Analyst', icon: BrainCircuit, key: 'ai-analyst',
     children: [
