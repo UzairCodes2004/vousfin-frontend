@@ -17,6 +17,7 @@ import {
 import { useCustomers } from '@/hooks/useParties'
 import InvoiceEditor from '@/components/invoice/InvoiceEditor'
 import AccountingImpactPanel from '@/components/invoice/AccountingImpactPanel'
+import SmartContextPanel from '@/components/common/SmartContextPanel'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 import { useBusinessStore } from '@/stores/useBusinessStore'
@@ -109,6 +110,11 @@ export default function InvoiceEditorPage() {
         onCancel={(invId, reason) => cancel.mutate({ id: invId, reason })}
         onAddCustomer={() => setShowCustomerModal(true)}
       />
+
+      {/* ERP Step 8 — contextual intelligence: next step, alerts, cross-module links */}
+      {isEdit && invoice && (
+        <SmartContextPanel kind="invoice" entity={invoice} />
+      )}
 
       {/* ERP Step 4 — show the AR double-entry + customer-balance impact */}
       {isEdit && invoice && (

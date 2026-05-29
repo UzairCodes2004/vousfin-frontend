@@ -13,6 +13,7 @@ import { useVendors } from '@/hooks/useParties'
 import BillEditor from '@/components/invoice/BillEditor'
 import ThreeWayMatchPanel from '@/components/invoice/ThreeWayMatchPanel'
 import AccountingImpactPanel from '@/components/invoice/AccountingImpactPanel'
+import SmartContextPanel from '@/components/common/SmartContextPanel'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 import { useBusinessStore } from '@/stores/useBusinessStore'
@@ -107,6 +108,11 @@ export default function BillEditorPage() {
           isRunning={runMatch.isPending}
           onRunMatch={() => runMatch.mutate({ id: bill._id })}
         />
+      )}
+
+      {/* ERP Step 8 — contextual intelligence: next step, alerts, cross-module links */}
+      {isEdit && bill && (
+        <SmartContextPanel kind="bill" entity={bill} />
       )}
 
       {/* ERP Step 4 — show the AP double-entry + vendor-balance impact of this bill */}
