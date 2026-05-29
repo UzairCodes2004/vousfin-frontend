@@ -268,6 +268,7 @@ export function useRecordPayment() {
       queryClient.invalidateQueries({ queryKey: ['vendor-transactions'] })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] }) // ERP Step 7 — refresh analytics
       toast.success('Payment recorded')
     },
     onError: (error) => toast.error(getErrorMessage(error)),

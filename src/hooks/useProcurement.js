@@ -116,6 +116,11 @@ function makeGRNMutation(call, { successMessage, invalidateId } = {}) {
         if (invalidateId && vars?.id) {
           qc.invalidateQueries({ queryKey: ['goods-receipt', vars.id] })
         }
+        // ERP Step 7 — confirming a receipt adds stock at landed cost, changing
+        // inventory valuation; refresh inventory, dashboard and reports.
+        qc.invalidateQueries({ queryKey: ['inventory'] })
+        qc.invalidateQueries({ queryKey: ['dashboard'] })
+        qc.invalidateQueries({ queryKey: ['reports'] })
       },
       onError: (err) => toast.error(getErrorMessage(err)),
     })

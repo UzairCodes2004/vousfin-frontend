@@ -57,6 +57,12 @@ function makeInvoiceMutation(call, { successMessage, invalidateId } = {}) {
           qc.invalidateQueries({ queryKey: ['invoice-timeline', vars.id] })
         }
         qc.invalidateQueries({ queryKey: ['outstanding-balances'] })
+        // ERP Step 7 — approving/paying an invoice posts AR + COGS journals, so
+        // dashboards, reports and forecasts are now stale. Mirror the backend
+        // event-driven cache-sync on the client.
+        qc.invalidateQueries({ queryKey: ['dashboard'] })
+        qc.invalidateQueries({ queryKey: ['reports'] })
+        qc.invalidateQueries({ queryKey: ['outstanding'] })
       },
       onError: (err) => toast.error(getErrorMessage(err)),
     })
@@ -159,6 +165,11 @@ function makeBillMutation(call, { successMessage, invalidateId } = {}) {
           qc.invalidateQueries({ queryKey: ['bill-timeline', vars.id] })
         }
         qc.invalidateQueries({ queryKey: ['outstanding-balances'] })
+        // ERP Step 7 — approving/paying a bill posts AP journals + moves vendor
+        // balances, so analytics are stale. Mirror the backend cache-sync.
+        qc.invalidateQueries({ queryKey: ['dashboard'] })
+        qc.invalidateQueries({ queryKey: ['reports'] })
+        qc.invalidateQueries({ queryKey: ['outstanding'] })
       },
       onError: (err) => toast.error(getErrorMessage(err)),
     })
