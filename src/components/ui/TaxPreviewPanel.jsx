@@ -16,6 +16,7 @@
 import { Receipt, Info, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { useTaxPreview } from '@/hooks/useTax'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function TaxPreviewPanel({
   amount,
@@ -31,8 +32,12 @@ export default function TaxPreviewPanel({
 }) {
   const [expanded, setExpanded] = useState(true)
 
+  // ERP Step 10 — debounce the amount so typing a figure digit-by-digit fires
+  // one /tax/preview request after the user pauses, not one per keystroke.
+  const debouncedAmount = useDebounce(amount, 400)
+
   const { data: preview, isLoading } = useTaxPreview({
-    amount,
+    amount: debouncedAmount,
     transactionType,
     mode,
     taxType,
