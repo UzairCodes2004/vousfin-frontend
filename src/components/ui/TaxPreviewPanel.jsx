@@ -36,7 +36,7 @@ export default function TaxPreviewPanel({
   // one /tax/preview request after the user pauses, not one per keystroke.
   const debouncedAmount = useDebounce(amount, 400)
 
-  const { data: preview, isLoading } = useTaxPreview({
+  const { data: preview, isLoading, isError } = useTaxPreview({
     amount: debouncedAmount,
     transactionType,
     mode,
@@ -48,8 +48,10 @@ export default function TaxPreviewPanel({
     whtCategory,
   })
 
-  // Don't render when tax is not applicable or amount is missing
+  // Don't render when tax is not applicable, amount is missing, or the
+  // (non-critical) preview request failed — fail quietly, never block the form.
   if (!amount || amount <= 0) return null
+  if (isError) return null
   if (!isLoading && preview && !preview.taxApplied) return null
 
   const fmt = (n) =>

@@ -111,14 +111,13 @@ export default function InvoiceEditorPage() {
         onAddCustomer={() => setShowCustomerModal(true)}
       />
 
-      {/* ERP Step 8 — contextual intelligence: next step, alerts, cross-module links */}
+      {/* ERP Steps 8 + 4 — contextual intelligence + accounting impact,
+          side-by-side on wide screens, stacked on mobile */}
       {isEdit && invoice && (
-        <SmartContextPanel kind="invoice" entity={invoice} />
-      )}
-
-      {/* ERP Step 4 — show the AR double-entry + customer-balance impact */}
-      {isEdit && invoice && (
-        <AccountingImpactPanel kind="invoice" entity={invoice} currency={currency} />
+        <div className="grid gap-4 lg:grid-cols-2 items-start">
+          <SmartContextPanel kind="invoice" entity={invoice} />
+          <AccountingImpactPanel kind="invoice" entity={invoice} currency={currency} />
+        </div>
       )}
 
       <PartyFormModal

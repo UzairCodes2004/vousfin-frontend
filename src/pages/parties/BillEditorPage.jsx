@@ -110,14 +110,13 @@ export default function BillEditorPage() {
         />
       )}
 
-      {/* ERP Step 8 — contextual intelligence: next step, alerts, cross-module links */}
+      {/* ERP Steps 8 + 4 — contextual intelligence + accounting impact,
+          side-by-side on wide screens, stacked on mobile */}
       {isEdit && bill && (
-        <SmartContextPanel kind="bill" entity={bill} />
-      )}
-
-      {/* ERP Step 4 — show the AP double-entry + vendor-balance impact of this bill */}
-      {isEdit && bill && (
-        <AccountingImpactPanel kind="bill" entity={bill} currency={currency} />
+        <div className="grid gap-4 lg:grid-cols-2 items-start">
+          <SmartContextPanel kind="bill" entity={bill} />
+          <AccountingImpactPanel kind="bill" entity={bill} currency={currency} />
+        </div>
       )}
 
       <PartyFormModal

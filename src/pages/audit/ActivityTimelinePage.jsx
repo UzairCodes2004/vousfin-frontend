@@ -8,12 +8,13 @@
  * event-driven integration (Steps 2–8) makes possible.
  */
 import { useMemo, useState } from 'react'
-import { Activity, Zap, UserCog, RefreshCw, Filter } from 'lucide-react'
+import { Activity, Zap, UserCog, RefreshCw, Filter, AlertTriangle } from 'lucide-react'
 import { useActivityTimeline } from '@/hooks/useAudit'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import Button from '@/components/ui/Button'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
+import EmptyState from '@/components/ui/EmptyState'
 
 const SOURCE_FILTERS = [
   { value: 'all',   label: 'All activity' },
@@ -42,7 +43,7 @@ function timeAgo(ts) {
 export default function ActivityTimelinePage() {
   const [source, setSource] = useState('all')
   const [limit, setLimit]   = useState(50)
-  const { data, isLoading, isFetching, refetch } = useActivityTimeline({ limit })
+  const { data, isLoading, isFetching, isError, refetch } = useActivityTimeline({ limit })
 
   const items = useMemo(() => {
     const all = data?.items ?? []
@@ -112,10 +113,20 @@ export default function ActivityTimelinePage() {
       <div className="premium-card p-5">
         {isLoading ? (
           <SkeletonLoader count={6} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load activity"
+            description="Something went wrong fetching the activity trail. Please try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
         ) : items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-text-muted">
-            No activity yet. Actions across the system will appear here in real time.
-          </p>
+          <EmptyState
+            icon={Activity}
+            title={source === 'all' ? 'No activity yet' : `No ${source} activity`}
+            description="Actions across the system — ledger postings, approvals, payments, stock moves — will appear here in real time."
+          />
         ) : (
           <ol className="relative border-l border-glass ml-2 space-y-4">
             {items.map((it, i) => (
