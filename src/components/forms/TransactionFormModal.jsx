@@ -1492,22 +1492,100 @@ function StructuredFormTab({ currency, onSuccess, onCancel, initialValues, editT
           {selectedInventoryItemId && (() => {
             const item = inventoryItems.find(i => i._id === selectedInventoryItemId)
             if (!item) return null
-            const cogsEst = Math.round(inventoryQty * item.unitCostPrice * 100) / 100
+            const qty   = Math.max(0, Number(inventoryQty) || 0)
+            const unit  = item.unit || 'units'
+            const isPurchase = ['Inventory Purchase', 'Cash Purchase', 'Credit Purchase'].includes(transactionType)
+            const valuationBefore = Math.round(item.currentStock * item.unitCostPrice * 100) / 100
+
+            // ── Purchase: project new stock + weighted-avg cost (mirrors backend 7a) ──
+            if (isPurchase) {
+              // Backend infers cost/unit = amount / qty when no explicit unit cost is sent.
+              const costPerUnit = qty > 0 && amount > 0
+                ? Math.round((amount / qty) * 100) / 100
+                : item.unitCostPrice
+              const newStock   = item.currentStock + qty
+              const newAvgCost = newStock > 0
+                ? Math.round(((item.currentStock * item.unitCostPrice + qty * costPerUnit) / newStock) * 100) / 100
+                : item.unitCostPrice
+              const valuationAfter = Math.round(newStock * newAvgCost * 100) / 100
+              return (
+                <div className="pt-2 border-t border-emerald-500/15 space-y-2">
+                  <div className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div>
+                      <span className="block text-text-muted">Stock</span>
+                      <span className="text-text-primary font-semibold tabular-nums">
+                        {item.currentStock} → <span className="text-emerald-400">{newStock}</span> {unit}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-text-muted">Avg cost / {unit}</span>
+                      <span className="text-text-primary font-semibold tabular-nums">
+                        {formatCurrency(item.unitCostPrice, currency)}
+                        {newAvgCost !== item.unitCostPrice && (
+                          <> → <span className="text-cyan">{formatCurrency(newAvgCost, currency)}</span></>
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-text-muted">Stock value</span>
+                      <span className="text-text-primary font-semibold tabular-nums">
+                        {formatCurrency(valuationAfter, currency)}
+                      </span>
+                      <span className="ml-1 text-emerald-400 text-[10px]">
+                        +{formatCurrency(Math.round((valuationAfter - valuationBefore) * 100) / 100, currency)}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-text-muted">
+                    Stock will be <span className="text-emerald-400 font-medium">incremented</span> at a
+                    weighted-average cost (DR Inventory). No separate journal — this transaction funds it.
+                  </p>
+                </div>
+              )
+            }
+
+            // ── Sale: project remaining stock, COGS, and stock-out / low-stock warnings ──
+            const cogsEst        = Math.round(qty * item.unitCostPrice * 100) / 100
+            const newStock       = item.currentStock - qty
+            const insufficient   = qty > item.currentStock
+            const valuationAfter = Math.round(Math.max(0, newStock) * item.unitCostPrice * 100) / 100
+            const crossesReorder = newStock >= 0 && newStock <= item.reorderLevel && item.currentStock > item.reorderLevel
             return (
-              <div className="flex flex-wrap gap-4 text-[11px] text-text-muted pt-1 border-t border-emerald-500/15">
-                <span>Avg cost: <span className="text-text-primary font-medium">{item.unitCostPrice.toLocaleString()}</span>/unit</span>
-                <span>Estimated COGS: <span className="text-amber-400 font-semibold">{cogsEst.toLocaleString()}</span></span>
-                {item.currentStock <= item.reorderLevel && (
-                  <span className="text-red-400 font-semibold">⚠ Low stock — only {item.currentStock} remaining</span>
-                )}
+              <div className="pt-2 border-t border-emerald-500/15 space-y-2">
+                <div className="grid grid-cols-3 gap-2 text-[11px]">
+                  <div>
+                    <span className="block text-text-muted">Stock</span>
+                    <span className="text-text-primary font-semibold tabular-nums">
+                      {item.currentStock} → <span className={cn(insufficient ? 'text-red-400' : 'text-amber-400')}>{newStock}</span> {unit}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-text-muted">Est. COGS</span>
+                    <span className="text-amber-400 font-semibold tabular-nums">{formatCurrency(cogsEst, currency)}</span>
+                  </div>
+                  <div>
+                    <span className="block text-text-muted">Stock value</span>
+                    <span className="text-text-primary font-semibold tabular-nums">{formatCurrency(valuationAfter, currency)}</span>
+                  </div>
+                </div>
+                {insufficient ? (
+                  <p className="text-[11px] text-red-400 font-semibold">
+                    ⚠ Insufficient stock — only {item.currentStock} {unit} available. This sale will be rejected.
+                  </p>
+                ) : crossesReorder ? (
+                  <p className="text-[11px] text-red-400 font-medium">
+                    ⚠ This sale drops stock to the reorder level ({item.reorderLevel} {unit}) — a reorder alert will fire.
+                  </p>
+                ) : item.currentStock <= item.reorderLevel ? (
+                  <p className="text-[11px] text-red-400">⚠ Already below reorder level — {item.currentStock} {unit} remaining.</p>
+                ) : null}
+                <p className="text-[11px] text-text-muted">
+                  Stock will be <span className="text-amber-400 font-medium">decremented</span> and COGS auto-posted
+                  (DR Cost of Goods Sold · CR Inventory).
+                </p>
               </div>
             )
           })()}
-          {['Inventory Sale', 'Cash Sale', 'Credit Sale', 'Income'].includes(transactionType) && (
-            <p className="text-[11px] text-text-muted">
-              Stock will be decremented and COGS auto-posted (DR Cost of Goods Sold · CR Inventory).
-            </p>
-          )}
         </div>
       )}
 

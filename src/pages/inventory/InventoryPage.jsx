@@ -10,14 +10,14 @@
  */
 import { useMemo, useState, useEffect } from 'react'
 import {
-  PackageOpen, Plus, AlertTriangle, Search, RefreshCw,
-  TrendingUp, X, ChevronDown, ChevronUp, Package,
+  PackageOpen, Plus, AlertTriangle, Search, X,
+  History, ArrowDownLeft, ArrowUpRight,
 } from 'lucide-react'
 
 import {
   useInventoryItems, useInventoryValuation, useLowStockAlerts,
   useCreateInventoryItem, useUpdateInventoryItem, useAddStock,
-  useToggleInventoryActive,
+  useToggleInventoryActive, useStockLedger,
 } from '@/hooks/useInventory'
 import { useAccounts } from '@/hooks/useAccounts'
 import { useVendors } from '@/hooks/useParties'
@@ -457,6 +457,108 @@ function AddStockForm({ item, onClose, currency }) {
   )
 }
 
+/* ── Stock Ledger / Movement History modal ──────────────────────────────
+ * Surfaces the backend getStockLedger() — every purchase/sale that touched
+ * this item, with a running balance. ERP refactor Step 3: completes the
+ * "movement history" requirement by exposing the audited stock trail.
+ */
+function MovementBadge({ type }) {
+  const isIn = /purchase/i.test(type)
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 rounded px-1.5 py-px text-[10px] font-semibold',
+      isIn ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+    )}>
+      {isIn ? <ArrowDownLeft className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+      {type}
+    </span>
+  )
+}
+
+function StockLedgerModal({ item, onClose, currency }) {
+  const { data, isLoading, isError } = useStockLedger(item._id)
+  const lines   = Array.isArray(data?.lines) ? data.lines : []
+  const summary = data?.summary || { totalIn: 0, totalOut: 0, currentStock: item.currentStock }
+  const stockValue = (summary.currentStock ?? item.currentStock) * (data?.item?.unitCostPrice ?? item.unitCostPrice)
+
+  return (
+    <Modal isOpen={true} onClose={onClose} title={`Stock Ledger — ${item.name}`} className="sm:max-w-3xl">
+      <div className="space-y-4 pb-1">
+        <p className="text-[11px] text-text-muted -mt-4">
+          Every purchase and sale that moved this item, oldest first, with a running balance.
+        </p>
+
+        {/* Summary chips */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <span className="block text-[10px] text-text-muted uppercase tracking-wider">Total In</span>
+            <span className="text-lg font-black text-emerald-400 tabular-nums">+{summary.totalIn}</span>
+          </div>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+            <span className="block text-[10px] text-text-muted uppercase tracking-wider">Total Out</span>
+            <span className="text-lg font-black text-amber-400 tabular-nums">−{summary.totalOut}</span>
+          </div>
+          <div className="rounded-lg border border-glass bg-glass-panel p-3">
+            <span className="block text-[10px] text-text-muted uppercase tracking-wider">Current Stock</span>
+            <span className="text-lg font-black text-text-primary tabular-nums">{summary.currentStock} {item.unit}</span>
+          </div>
+          <div className="rounded-lg border border-glass bg-glass-panel p-3">
+            <span className="block text-[10px] text-text-muted uppercase tracking-wider">Stock Value</span>
+            <span className="text-lg font-black text-text-primary tabular-nums">{formatCurrency(stockValue, currency)}</span>
+          </div>
+        </div>
+
+        {/* Movement table */}
+        <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-glass">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-navy/95 backdrop-blur">
+              <tr className="text-text-muted uppercase tracking-wider text-[10px]">
+                <th className="text-left  font-semibold px-3 py-2">Date</th>
+                <th className="text-left  font-semibold px-3 py-2">Description</th>
+                <th className="text-left  font-semibold px-3 py-2">Type</th>
+                <th className="text-right font-semibold px-3 py-2">In</th>
+                <th className="text-right font-semibold px-3 py-2">Out</th>
+                <th className="text-right font-semibold px-3 py-2">Balance</th>
+                <th className="text-right font-semibold px-3 py-2">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading && (
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-text-muted">Loading movement history…</td></tr>
+              )}
+              {isError && !isLoading && (
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-red-400">Could not load the stock ledger.</td></tr>
+              )}
+              {!isLoading && !isError && lines.length === 0 && (
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-text-muted">
+                  No stock movements yet. Purchases and sales of this item will appear here.
+                </td></tr>
+              )}
+              {lines.map((l) => (
+                <tr key={l._id} className="border-t border-glass/60 hover:bg-glass-hover/40 transition-colors">
+                  <td className="px-3 py-2 text-text-secondary whitespace-nowrap">
+                    {l.date ? new Date(l.date).toLocaleDateString() : '—'}
+                  </td>
+                  <td className="px-3 py-2 text-text-primary max-w-[16rem] truncate" title={l.description}>{l.description || '—'}</td>
+                  <td className="px-3 py-2"><MovementBadge type={l.type} /></td>
+                  <td className="px-3 py-2 text-right tabular-nums text-emerald-400">{l.qtyIn  ? `+${l.qtyIn}`  : '—'}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-amber-400">{l.qtyOut ? `−${l.qtyOut}` : '—'}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-semibold text-text-primary">{l.balance}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-text-secondary">{formatCurrency(l.amount, currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex justify-end pt-1">
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 /* ── Main Page ───────────────────────────────────────────────────────── */
 export default function InventoryPage() {
   const currency = useBusinessStore(s => s.currency)
@@ -469,6 +571,7 @@ export default function InventoryPage() {
   const [showForm,   setShowForm]   = useState(false)
   const [editItem,   setEditItem]   = useState(null)
   const [addStockId, setAddStockId] = useState(null)
+  const [ledgerId,   setLedgerId]   = useState(null)
   const [showInactive, setShowInactive] = useState(false)
 
   const items = useMemo(() => {
@@ -491,6 +594,7 @@ export default function InventoryPage() {
   }, [items, query, showInactive])
 
   const addStockItem = addStockId ? items.find(i => i._id === addStockId) : null
+  const ledgerItem   = ledgerId   ? items.find(i => i._id === ledgerId)   : null
 
   const columns = [
     {
@@ -574,6 +678,10 @@ export default function InventoryPage() {
           <button type="button" onClick={e => { e.stopPropagation(); setAddStockId(r._id === addStockId ? null : r._id) }}
             className="text-[11px] text-emerald-400 hover:underline font-semibold">
             + Stock
+          </button>
+          <button type="button" onClick={e => { e.stopPropagation(); setLedgerId(r._id) }}
+            className="inline-flex items-center gap-1 text-[11px] text-text-secondary hover:text-text-primary hover:underline font-semibold">
+            <History className="h-3 w-3" /> Ledger
           </button>
           <button type="button" onClick={e => { e.stopPropagation(); setEditItem(r) }}
             className="text-[11px] text-cyan hover:underline font-semibold">
@@ -693,6 +801,15 @@ export default function InventoryPage() {
           initial={editItem}
           currency={currency}
           onClose={() => { setShowForm(false); setEditItem(null) }}
+        />
+      )}
+
+      {/* ── Stock Ledger / Movement History Modal ─────────────────── */}
+      {ledgerItem && (
+        <StockLedgerModal
+          item={ledgerItem}
+          currency={currency}
+          onClose={() => setLedgerId(null)}
         />
       )}
     </div>
