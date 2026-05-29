@@ -12,13 +12,16 @@ import {
 import { useVendors } from '@/hooks/useParties'
 import BillEditor from '@/components/invoice/BillEditor'
 import ThreeWayMatchPanel from '@/components/invoice/ThreeWayMatchPanel'
+import AccountingImpactPanel from '@/components/invoice/AccountingImpactPanel'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
+import { useBusinessStore } from '@/stores/useBusinessStore'
 
 export default function BillEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = !!id
+  const currency = useBusinessStore(s => s.currency)
 
   const { data: bill, isLoading } = useBill(id)
   const { data: vendorsData } = useVendors({ limit: 200 })
@@ -104,6 +107,11 @@ export default function BillEditorPage() {
           isRunning={runMatch.isPending}
           onRunMatch={() => runMatch.mutate({ id: bill._id })}
         />
+      )}
+
+      {/* ERP Step 4 — show the AP double-entry + vendor-balance impact of this bill */}
+      {isEdit && bill && (
+        <AccountingImpactPanel kind="bill" entity={bill} currency={currency} />
       )}
 
       <PartyFormModal

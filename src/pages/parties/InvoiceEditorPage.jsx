@@ -16,13 +16,16 @@ import {
 } from '@/hooks/useInvoices'
 import { useCustomers } from '@/hooks/useParties'
 import InvoiceEditor from '@/components/invoice/InvoiceEditor'
+import AccountingImpactPanel from '@/components/invoice/AccountingImpactPanel'
 import PartyFormModal from '@/components/forms/PartyFormModal'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
+import { useBusinessStore } from '@/stores/useBusinessStore'
 
 export default function InvoiceEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = !!id
+  const currency = useBusinessStore(s => s.currency)
 
   const { data: invoice, isLoading } = useInvoice(id)
   const { data: customersData } = useCustomers({ limit: 200 })
@@ -106,6 +109,11 @@ export default function InvoiceEditorPage() {
         onCancel={(invId, reason) => cancel.mutate({ id: invId, reason })}
         onAddCustomer={() => setShowCustomerModal(true)}
       />
+
+      {/* ERP Step 4 — show the AR double-entry + customer-balance impact */}
+      {isEdit && invoice && (
+        <AccountingImpactPanel kind="invoice" entity={invoice} currency={currency} />
+      )}
 
       <PartyFormModal
         isOpen={showCustomerModal}
