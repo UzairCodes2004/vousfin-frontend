@@ -9,7 +9,10 @@ const forecastRegistryService = {
   listModels: (params = {}) => api.get('/forecast-registry/models', { params }),
   accuracy:   (params = {}) => api.get('/forecast-registry/accuracy', { params }),
   ensemble:   (params = {}) => api.get('/forecast-registry/ensemble', { params }), // F4
+  drift:      (params = {}) => api.get('/forecast-registry/drift', { params }),    // F5
+  champion:   (params = {}) => api.get('/forecast-registry/champion', { params }), // F5
   backtest:   (payload = {}) => api.post('/forecast-registry/backtest', payload),
+  retrain:    (payload = {}) => api.post('/forecast-registry/retrain', payload),   // F5
   runAccuracy:() => api.post('/forecast-registry/accuracy/run'),
 }
 
