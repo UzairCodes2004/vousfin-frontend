@@ -33,6 +33,7 @@ import Select from '@/components/ui/Select'
 import InvoiceStatusBadge from '@/components/invoice/InvoiceStatusBadge'
 import ApprovalChip from '@/components/invoice/ApprovalChip'
 import ReconciliationBanner from '@/components/common/ReconciliationBanner'
+import CollectionsSummaryBanner from '@/components/common/CollectionsSummaryBanner'
 import { cn } from '@/utils/cn'
 
 /* ── Phase 1: map legacy paymentStatus to new InvoiceStatusBadge state ────── */
@@ -373,6 +374,9 @@ export default function ReceivablesPage() {
 
       {/* ── M7: reconciled read model (document source of truth vs GL) ── */}
       <ReconciliationBanner type="receivable" />
+
+      {/* ── M8: collections / dunning ladder summary ── */}
+      <CollectionsSummaryBanner />
 
       {/* ── KPIs ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
