@@ -32,6 +32,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import InvoiceStatusBadge from '@/components/invoice/InvoiceStatusBadge'
 import ApprovalChip from '@/components/invoice/ApprovalChip'
+import ReconciliationBanner from '@/components/common/ReconciliationBanner'
 import { cn } from '@/utils/cn'
 
 /* ── Phase 1: legacy paymentStatus → new Bill state ──────────────────────── */
@@ -55,18 +56,6 @@ function ageBucket(days) {
   return                  { label: '90+ d',    variant: 'danger'  }
 }
 
-const STATUS_VARIANT = {
-  unpaid:        'warning',
-  partially_paid:'info',
-  overdue:       'danger',
-  paid:          'success',
-}
-const STATUS_LABEL = {
-  unpaid:        'Unpaid',
-  partially_paid:'Partial',
-  overdue:       'Overdue',
-  paid:          'Paid',
-}
 
 function daysSince(dateStr) {
   if (!dateStr) return 0
@@ -375,6 +364,9 @@ export default function PayablesPage() {
           </Button>
         </div>
       </div>
+
+      {/* ── M7: reconciled read model (document source of truth vs GL) ── */}
+      <ReconciliationBanner type="payable" />
 
       {/* ── KPIs ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
