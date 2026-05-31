@@ -8,6 +8,9 @@ const forecastRegistryService = {
   listRuns:   (params = {}) => api.get('/forecast-registry/runs', { params }),
   listModels: (params = {}) => api.get('/forecast-registry/models', { params }),
   accuracy:   (params = {}) => api.get('/forecast-registry/accuracy', { params }),
+  accuracyScore: (params = {}) => api.get('/forecast-registry/accuracy-score', { params }), // A1
+  governance: () => api.get('/forecast-registry/governance/dashboard'), // F9
+  usage:      (params = {}) => api.get('/forecast-registry/usage', { params }), // F9
   ensemble:   (params = {}) => api.get('/forecast-registry/ensemble', { params }), // F4
   drift:      (params = {}) => api.get('/forecast-registry/drift', { params }),    // F5
   champion:   (params = {}) => api.get('/forecast-registry/champion', { params }), // F5

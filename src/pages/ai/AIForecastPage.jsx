@@ -41,6 +41,7 @@ import {
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import ForecastChart from '@/components/charts/ForecastChart'
+import ForecastCard from '@/components/forecasting/ForecastCard'
 import { formatCurrency } from '@/utils/formatters'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { cn } from '@/utils/cn'
@@ -1012,6 +1013,12 @@ export default function AIForecastPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── A3: trustworthy at-a-glance forecast cards (measured accuracy + confidence) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ForecastCard target="Revenue" horizon={6} />
+        <ForecastCard target="Net Cash Flow" horizon={6} />
       </div>
 
       {/* ── Tabs ── */}
