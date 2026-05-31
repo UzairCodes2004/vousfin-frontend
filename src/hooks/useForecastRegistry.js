@@ -16,6 +16,15 @@ export function useAccuracyScore(target = 'Revenue', horizon = 6) {
   })
 }
 
+// B1 — by-stream forecast reconciled to the total
+export function useHierarchicalForecast(target = 'Revenue', horizon = 6) {
+  return useQuery({
+    queryKey: ['forecast-hierarchical', target, horizon],
+    queryFn: () => forecastRegistryService.hierarchical({ target, horizon }).then((r) => r.data?.data),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 // F9 — champion model governance dashboard
 export function useGovernanceDashboard() {
   return useQuery({

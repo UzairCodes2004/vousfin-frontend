@@ -12,6 +12,7 @@ const forecastRegistryService = {
   governance: () => api.get('/forecast-registry/governance/dashboard'), // F9
   usage:      (params = {}) => api.get('/forecast-registry/usage', { params }), // F9
   ensemble:   (params = {}) => api.get('/forecast-registry/ensemble', { params }), // F4
+  hierarchical: (params = {}) => api.get('/forecast-registry/hierarchical', { params }), // B1
   drift:      (params = {}) => api.get('/forecast-registry/drift', { params }),    // F5
   champion:   (params = {}) => api.get('/forecast-registry/champion', { params }), // F5
   explain:    (params = {}) => api.get('/forecast-registry/explain', { params }),  // F7
