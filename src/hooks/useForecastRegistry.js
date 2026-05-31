@@ -31,6 +31,21 @@ export function useEnsembleForecast(target = 'Revenue', horizon = 6) {
   })
 }
 
+export function useForecastExplanation(target = 'Revenue', horizon = 6) {
+  return useQuery({
+    queryKey: ['forecast-explain', target, horizon],
+    queryFn: () => forecastRegistryService.explain({ target, horizon }).then((r) => r.data?.data),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useForecastScenario() {
+  return useMutation({
+    mutationFn: (payload) => forecastRegistryService.scenario(payload).then((r) => r.data?.data),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
 export function useForecastDrift(target = 'Revenue') {
   return useQuery({
     queryKey: ['forecast-drift', target],
