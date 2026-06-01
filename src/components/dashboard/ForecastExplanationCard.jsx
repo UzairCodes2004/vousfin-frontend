@@ -1,139 +1,181 @@
 /**
- * ForecastExplanationCard — Phase 5.6 Step 2
+ * ForecastExplanationCard
  *
- * Explains WHY the AI forecast changed — derives drivers from the
- * historical + predicted data returned by the LSTM model.
+ * Explains the forecast in plain English, grounded in the business's real
+ * numbers: typical level, volatility, recent trend, where the model thinks the
+ * metric is headed, an honest data-sufficiency caveat, and the real measured
+ * confidence (never a reconstructed NaN).
  *
  * Props:
- *   forecastData  — result from revenueForecast / cashflowForecast / expensesForecast
- *   metric        — 'revenue' | 'cashflow' | 'expenses'
- *   horizon       — number (months)
+ *   forecastData — result from revenue/cashflow/expenses forecast
+ *   metric       — 'revenue' | 'cashflow' | 'expenses'
+ *   horizon      — number (months)
  */
 import { memo, useMemo } from 'react'
 import {
-  Lightbulb, TrendingUp, TrendingDown, AlertCircle, Info,
+  Lightbulb, TrendingUp, TrendingDown, AlertCircle, Activity,
 } from 'lucide-react'
-import { cn } from '@/utils/cn'
 
-/* ── Metric → data key map ─────────────────────────────────────────── */
 const METRIC_KEY = {
   revenue:  'revenue',
   cashflow: 'netCashFlow',
   expenses: 'expenses',
 }
-
-/* ── Extract a numeric value from a data point ─────────────────────── */
-function valueOf(point, key) {
-  if (!point) return 0
-  return point[key] ?? point.value ?? point.predicted ?? point.actual ?? 0
+const METRIC_NOUN = {
+  revenue:  'revenue',
+  cashflow: 'net cash flow',
+  expenses: 'expenses',
 }
 
-/* ── Core driver computation ───────────────────────────────────────── */
-function deriveDrivers(forecastData, metric, horizon) {
+/* ── helpers ───────────────────────────────────────────────────────── */
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v)
+
+function valueOf(point, key) {
+  if (point == null) return 0
+  if (typeof point === 'number') return point
+  const v = point[key] ?? point.value ?? point.predicted ?? point.actual ?? 0
+  return isNum(v) ? v : 0
+}
+
+function mean(a) { return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0 }
+function coefVar(a) {
+  if (a.length < 2) return 0
+  const m = mean(a)
+  if (m === 0) return 0
+  const sd = Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / a.length)
+  return sd / Math.abs(m)
+}
+
+function fmtMoney(v, currency = '') {
+  const n = Math.abs(v || 0)
+  const sign = v < 0 ? '-' : ''
+  const cur = currency ? `${currency} ` : ''
+  if (n >= 1_000_000) return `${cur}${sign}${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000)     return `${cur}${sign}${(n / 1_000).toFixed(0)}K`
+  return `${cur}${sign}${Math.round(n).toLocaleString()}`
+}
+
+/** Resolve a real confidence % — never NaN. Prefer the server's measured value;
+ *  otherwise derive from the anomaly-risk OBJECT (not the object itself). */
+function resolveConfidence(forecastData) {
+  if (isNum(forecastData.confidenceNumeric)) return Math.round(forecastData.confidenceNumeric)
+  const ar = forecastData.anomalyRisk
+  const risk = typeof ar === 'object' && ar !== null ? Number(ar.riskScore) : Number(ar)
+  if (isNum(risk)) return Math.round((1 - Math.min(0.9, Math.max(0, risk))) * 100)
+  return null
+}
+
+/* ── narrative + drivers ───────────────────────────────────────────── */
+function build(forecastData, metric, horizon) {
   if (!forecastData) return null
+  const key  = METRIC_KEY[metric]  || 'revenue'
+  const noun = METRIC_NOUN[metric] || 'revenue'
+  const cur  = forecastData.currency || ''
 
-  const hist = forecastData.historical || []
-  const pred = forecastData.predicted  || forecastData.forecast || []
-  const key  = METRIC_KEY[metric] || 'revenue'
+  const histAll = (forecastData.historical || []).map((p) => valueOf(p, key))
+  const pred    = (forecastData.predicted || forecastData.forecast || []).map((p) => valueOf(p, key))
+  const hist    = histAll.filter((v) => v !== 0)
 
-  if (hist.length < 2 && pred.length < 1) return null
+  if (hist.length < 1 && pred.length < 1) return null
 
-  /* Historical trend: slope over last 3 data points */
-  const hVals = hist.slice(-4).map(p => valueOf(p, key))
-  const pVals = pred.slice(0, 3).map(p => valueOf(p, key))
+  const months = forecastData.dataSufficiency?.nonZeroMonths ?? hist.length
+  const recent = hist.slice(-6)
+  const avg    = recent.length ? mean(recent) : (pred[0] ?? 0)
+  const cv     = coefVar(recent)
+  const volWord = cv < 0.15 ? 'steady' : cv < 0.4 ? 'somewhat variable' : 'highly volatile'
 
-  const lastHist  = hVals[hVals.length - 1] ?? 0
-  const firstPred = pVals[0] ?? lastHist
-  const lastPred  = pVals[pVals.length - 1] ?? firstPred
+  const histTrendPct = recent.length >= 2 && recent[0] !== 0
+    ? ((recent[recent.length - 1] - recent[0]) / Math.abs(recent[0])) * 100
+    : null
 
-  /* Month-on-month trend in history (%) */
-  const histTrend = hVals.length >= 2 && hVals[0] !== 0
-    ? ((hVals[hVals.length - 1] - hVals[0]) / Math.abs(hVals[0])) * 100
-    : 0
+  const firstP = pred[0] ?? avg
+  const lastP  = pred[pred.length - 1] ?? firstP
+  const fcastPct = isNum(firstP) && firstP !== 0 ? ((lastP - firstP) / Math.abs(firstP)) * 100 : 0
 
-  /* Jump from last actual to first forecast (%) */
-  const jumpPct = lastHist !== 0
-    ? ((firstPred - lastHist) / Math.abs(lastHist)) * 100
-    : 0
+  const conf = resolveConfidence(forecastData)
 
-  /* Projected total change over full horizon (%) */
-  const totalPct = lastHist !== 0 && pVals.length > 1
-    ? ((lastPred - lastHist) / Math.abs(lastHist)) * 100
-    : 0
+  /* ── Plain-English summary sentences ── */
+  const sentences = []
+  if (recent.length >= 1) {
+    sentences.push(
+      `Your monthly ${noun} has averaged about ${fmtMoney(avg, cur)} over the last ${months} month${months === 1 ? '' : 's'}, and has been ${volWord}.`
+    )
+  }
+  if (histTrendPct != null && Math.abs(histTrendPct) >= 5) {
+    sentences.push(
+      `It ${histTrendPct > 0 ? 'rose' : 'fell'} about ${Math.abs(histTrendPct).toFixed(0)}% across that period.`
+    )
+  }
+  if (pred.length >= 1) {
+    if (Math.abs(fcastPct) >= 5) {
+      sentences.push(
+        `The model expects ${noun} to ${fcastPct > 0 ? 'rise' : 'ease'} toward ${fmtMoney(lastP, cur)} over the next ${horizon} months.`
+      )
+    } else {
+      sentences.push(
+        `The model expects ${noun} to hold around ${fmtMoney(firstP, cur)} over the next ${horizon} months.`
+      )
+    }
+  }
+  if (months < 6) {
+    sentences.push(
+      `With only ${months} month${months === 1 ? '' : 's'} of history this is an early estimate — accuracy improves a lot past 6–12 months of data.`
+    )
+  }
 
-  /* Anomaly risk (0–1) */
-  const rawRisk  = forecastData.anomalyRisk ?? 0
-  const confPct  = Math.round((1 - Math.min(0.9, rawRisk)) * 100)
-
-  /* Compose driver chips */
+  /* ── Driver chips ── */
   const drivers = []
-
-  /* Driver 1: historical momentum */
-  if (Math.abs(histTrend) >= 2) {
+  if (histTrendPct != null && Math.abs(histTrendPct) >= 2) {
     drivers.push({
-      Icon:  histTrend > 0 ? TrendingUp : TrendingDown,
-      color: histTrend > 0 ? '#34d399' : '#f87171',
-      text:  `Recent ${metric} ${histTrend > 0 ? 'growing' : 'declining'} ${Math.abs(histTrend).toFixed(1)}% over past ${hVals.length} months`,
+      Icon: histTrendPct > 0 ? TrendingUp : TrendingDown,
+      color: histTrendPct > 0 ? '#34d399' : '#f87171',
+      text: `Recent ${noun} ${histTrendPct > 0 ? 'up' : 'down'} ${Math.abs(histTrendPct).toFixed(0)}% over ${recent.length} months`,
     })
   } else {
+    drivers.push({ Icon: Activity, color: '#94a3b8', text: `${noun[0].toUpperCase() + noun.slice(1)} has been ${volWord} recently` })
+  }
+  if (Math.abs(fcastPct) >= 5 && pred.length > 1) {
     drivers.push({
-      Icon: Info, color: '#94a3b8',
-      text: `${metric.charAt(0).toUpperCase() + metric.slice(1)} trend stable over recent months`,
+      Icon: fcastPct > 0 ? TrendingUp : TrendingDown,
+      color: fcastPct > 0 ? '#06b6d4' : '#fbbf24',
+      text: `${horizon}-month projection: ${fcastPct > 0 ? '+' : ''}${fcastPct.toFixed(0)}% vs first forecast month`,
+    })
+  }
+  if (conf != null) {
+    drivers.push({
+      Icon: conf >= 70 ? Lightbulb : AlertCircle,
+      color: conf >= 70 ? '#a78bfa' : '#fbbf24',
+      text: `Model confidence ${conf}% — ${conf >= 75 ? 'strong signal' : conf >= 55 ? 'moderate signal' : 'limited data, treat as directional'}`,
     })
   }
 
-  /* Driver 2: model projection jump */
-  if (Math.abs(jumpPct) >= 2) {
-    drivers.push({
-      Icon:  jumpPct > 0 ? TrendingUp : TrendingDown,
-      color: jumpPct > 0 ? '#06b6d4' : '#fbbf24',
-      text:  `Model projects ${jumpPct > 0 ? '+' : ''}${jumpPct.toFixed(1)}% shift entering the forecast window`,
-    })
-  }
-
-  /* Driver 3: full-horizon outlook */
-  if (Math.abs(totalPct) >= 3 && pVals.length > 1) {
-    drivers.push({
-      Icon:  totalPct > 0 ? TrendingUp : TrendingDown,
-      color: totalPct > 0 ? '#34d399' : '#f87171',
-      text:  `${horizon}-month total projection: ${totalPct > 0 ? '+' : ''}${totalPct.toFixed(1)}% from current`,
-    })
-  }
-
-  /* Driver 4: model confidence */
-  drivers.push({
-    Icon:  confPct >= 70 ? Lightbulb : AlertCircle,
-    color: confPct >= 70 ? '#a78bfa' : '#fbbf24',
-    text:  `Model confidence: ${confPct}% — ${confPct >= 80 ? 'strong signal' : confPct >= 60 ? 'moderate signal' : 'limited data — add more transactions for accuracy'}`,
-  })
-
-  return drivers
+  return { summary: sentences.join(' '), drivers }
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
 const ForecastExplanationCard = memo(function ForecastExplanationCard({ forecastData, metric = 'revenue', horizon = 6 }) {
-  const drivers = useMemo(
-    () => deriveDrivers(forecastData, metric, horizon),
-    [forecastData, metric, horizon],
-  )
-
-  if (!drivers) return null
+  const data = useMemo(() => build(forecastData, metric, horizon), [forecastData, metric, horizon])
+  if (!data) return null
 
   return (
     <div className="mt-3 rounded-xl border border-violet-500/20 bg-violet-500/5 p-3.5">
-      {/* header */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2.5">
         <div className="p-1 rounded-md bg-violet-500/15">
           <Lightbulb className="h-3.5 w-3.5 text-violet-400" />
         </div>
         <p className="text-[11px] font-bold text-violet-300 uppercase tracking-wider">
-          Why this forecast changed
+          What this means for your business
         </p>
       </div>
 
+      {/* plain-English summary */}
+      {data.summary && (
+        <p className="text-[12px] text-text-secondary leading-relaxed mb-3">{data.summary}</p>
+      )}
+
       {/* driver chips */}
       <div className="space-y-2">
-        {drivers.map((d, i) => (
+        {data.drivers.map((d, i) => (
           <div key={i} className="flex items-start gap-2.5">
             <div className="p-0.5 rounded flex-shrink-0 mt-0.5" style={{ color: d.color }}>
               <d.Icon className="h-3 w-3" />
