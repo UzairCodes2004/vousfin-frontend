@@ -40,6 +40,10 @@ const aiService = {
   healthScore: () =>
     api.get('/ai/health-score'),
 
+  // Health score over time + change vs last month (trend sparkline).
+  healthHistory: (days = 90) =>
+    api.get('/ai/health-history', { params: { days } }),
+
   // Forward-looking outlook: projected runway / margin / forward health
   // + proactive signals, derived from the ensemble forecast.
   healthOutlook: (horizon = 6) =>

@@ -121,6 +121,21 @@ export function useHealthScore() {
   })
 }
 
+// ── Health score history + trend (sparkline + change vs last month) ──
+export function useHealthHistory(days = 90) {
+  const businessId = useAuthStore(s => s.user?.businessId)
+  return useQuery({
+    queryKey: ['healthHistory', businessId, days],
+    queryFn: async () => {
+      const { data } = await api.get('/ai/health-history', { params: { days } })
+      return data.data
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!businessId,
+    retry: false,
+  })
+}
+
 // ── Forward-looking outlook (projected runway / margin / forward health) ──
 export function useHealthOutlook(horizon = 6) {
   const businessId = useAuthStore(s => s.user?.businessId)

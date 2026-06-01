@@ -10,10 +10,46 @@
  */
 import { memo, useMemo } from 'react'
 import {
-  Activity, TrendingUp, DollarSign, Shield, Scale,
-  AlertTriangle, CheckCircle2, Zap,
+  Activity, TrendingUp, TrendingDown, DollarSign, Shield, Scale,
+  AlertTriangle, CheckCircle2, Zap, Minus,
 } from 'lucide-react'
-import { useHealthScore } from '@/hooks/useAI'
+import { useHealthScore, useHealthHistory } from '@/hooks/useAI'
+
+/* ── Tiny trend sparkline ──────────────────────────────────────────── */
+function Sparkline({ data = [], color = '#34d399', w = 96, h = 26 }) {
+  if (data.length < 2) return null
+  const min = Math.min(...data)
+  const max = Math.max(...data)
+  const range = max - min || 1
+  const step = w / (data.length - 1)
+  const pts = data
+    .map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * (h - 6) + 3).toFixed(1)}`)
+    .join(' ')
+  return (
+    <svg width={w} height={h} className="overflow-visible flex-shrink-0">
+      <polyline fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" points={pts} opacity="0.75" />
+      <circle
+        cx={((data.length - 1) * step).toFixed(1)}
+        cy={(h - ((data[data.length - 1] - min) / range) * (h - 6) + 3).toFixed(1)}
+        r="2.5" fill={color}
+      />
+    </svg>
+  )
+}
+
+/* ── "vs last month" delta chip ────────────────────────────────────── */
+function DeltaChip({ value }) {
+  const up = value > 0
+  const flat = value === 0
+  const color = flat ? '#94a3b8' : up ? '#34d399' : '#f87171'
+  const Icon = flat ? Minus : up ? TrendingUp : TrendingDown
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color }}>
+      <Icon className="h-3 w-3" />
+      {up ? '+' : ''}{value} <span className="text-text-muted font-medium">vs last mo</span>
+    </span>
+  )
+}
 
 /* Server category → ring presentation. Order = display order. */
 const CATEGORY_META = {
@@ -228,11 +264,15 @@ function buildView(server, kpis) {
 
 const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loading }) {
   const { data: server, isLoading: healthLoading } = useHealthScore()
+  const { data: history } = useHealthHistory(90)
   const view = useMemo(() => buildView(server, kpis), [server, kpis])
   const overallColor = scoreColor(view.overall)
   const isLoading = loading || healthLoading
   const insufficient = server && server.insufficient
   const conf = view.confidenceKey ? CONFIDENCE_META[view.confidenceKey] : null
+
+  const trendData = Array.isArray(history?.points) ? history.points.map(p => p.overall) : []
+  const delta = history?.delta?.value
 
   return (
     <div className="premium-card p-5">
@@ -338,6 +378,17 @@ const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loa
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* ── Trend over time (sparkline + vs last month) ── */}
+          {!view.estimated && trendData.length >= 2 && (
+            <div className="mt-3 pt-3 border-t border-glass flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Trend</span>
+                <Sparkline data={trendData} color={overallColor} />
+              </div>
+              {delta != null && <DeltaChip value={delta} />}
             </div>
           )}
         </>
