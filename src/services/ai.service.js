@@ -39,6 +39,11 @@ const aiService = {
   // efficiency/leverage/tax) with data-sufficiency confidence.
   healthScore: () =>
     api.get('/ai/health-score'),
+
+  // Forward-looking outlook: projected runway / margin / forward health
+  // + proactive signals, derived from the ensemble forecast.
+  healthOutlook: (horizon = 6) =>
+    api.get('/ai/health-outlook', { params: { horizon } }),
 }
 
 export default aiService

@@ -503,7 +503,7 @@ function txToInitialValues(tx, currency) {
   }
 }
 
-export default function TransactionFormModal({ isOpen, onClose, transaction = null }) {
+export default function TransactionFormModal({ isOpen, onClose, onSuccess, transaction = null }) {
   const isEditMode = Boolean(transaction)
 
   const [activeTab,  setActiveTab]  = useState('form')
@@ -520,6 +520,8 @@ export default function TransactionFormModal({ isOpen, onClose, transaction = nu
   }
 
   const handleClose = () => { onClose() }
+  // Called only on a successful save: let the parent refresh, then close.
+  const handleSuccess = () => { onSuccess?.(); onClose() }
 
   /**
    * STEP 5 — Called by NLTab right after Gemini parses the text.
@@ -598,7 +600,7 @@ export default function TransactionFormModal({ isOpen, onClose, transaction = nu
       {isEditMode && (
         <StructuredFormTab
           currency={currency}
-          onSuccess={handleClose}
+          onSuccess={handleSuccess}
           onCancel={handleClose}
           initialValues={editInitialValues}
           editTransactionId={transaction._id}
@@ -607,8 +609,8 @@ export default function TransactionFormModal({ isOpen, onClose, transaction = nu
 
       {/* Create mode: full tab routing */}
       {!isEditMode && activeTab === 'nl'    && <NLTab    currency={currency} onParsed={handleNlParsed} />}
-      {!isEditMode && activeTab === 'form'  && <StructuredFormTab currency={currency} onSuccess={handleClose} onCancel={handleClose} initialValues={nlPrefill} />}
-      {!isEditMode && activeTab === 'excel' && <ExcelTab onSuccess={handleClose} onCancel={handleClose} />}
+      {!isEditMode && activeTab === 'form'  && <StructuredFormTab currency={currency} onSuccess={handleSuccess} onCancel={handleClose} initialValues={nlPrefill} />}
+      {!isEditMode && activeTab === 'excel' && <ExcelTab onSuccess={handleSuccess} onCancel={handleClose} />}
     </Modal>
   )
 }

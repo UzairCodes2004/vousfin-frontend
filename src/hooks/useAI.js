@@ -121,6 +121,21 @@ export function useHealthScore() {
   })
 }
 
+// ── Forward-looking outlook (projected runway / margin / forward health) ──
+export function useHealthOutlook(horizon = 6) {
+  const businessId = useAuthStore(s => s.user?.businessId)
+  return useQuery({
+    queryKey: ['healthOutlook', businessId, horizon],
+    queryFn: async () => {
+      const { data } = await api.get('/ai/health-outlook', { params: { horizon } })
+      return data.data
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!businessId,
+    retry: false,
+  })
+}
+
 // ── AI Financial Insights (unusual spending, tax risk, cash flow warnings) ──
 export function useFinancialInsights() {
   const businessId = useAuthStore(s => s.user?.businessId)

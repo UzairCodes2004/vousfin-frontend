@@ -29,6 +29,7 @@ import { cn } from '@/utils/cn'
 import SmartKPIStrip           from '@/components/dashboard/SmartKPIStrip'
 import AIInsightsPanel         from '@/components/dashboard/AIInsightsPanel'
 import BusinessHealthWidget    from '@/components/dashboard/BusinessHealthWidget'
+import BusinessOutlookWidget   from '@/components/dashboard/BusinessOutlookWidget'
 import ForecastWidget          from '@/components/dashboard/ForecastWidget'
 import RevenueExpensesChart    from '@/components/dashboard/RevenueExpensesChart'
 import CashFlowTrendChart      from '@/components/dashboard/CashFlowTrendChart'
@@ -308,8 +309,13 @@ export default function Dashboard() {
 
   function handleTxSuccess() {
     setShowNewTx(false)
+    // Refresh everything a new transaction can change: ledger views, KPIs, and
+    // the live health/outlook intelligence so the dashboard reflects it at once.
     queryClient.invalidateQueries({ queryKey: ['transactions'] })
     queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    queryClient.invalidateQueries({ queryKey: ['healthScore'] })
+    queryClient.invalidateQueries({ queryKey: ['healthOutlook'] })
+    queryClient.invalidateQueries({ queryKey: ['financialInsights'] })
   }
 
   return (
@@ -349,9 +355,12 @@ export default function Dashboard() {
           />
         </Section>
 
-        {/* ── 3. BUSINESS HEALTH ──────────────────────────────────── */}
+        {/* ── 3. BUSINESS HEALTH + OUTLOOK ────────────────────────── */}
         <Section label="Business Intelligence" collapsible defaultOpen>
-          <BusinessHealthWidget kpis={kpis} loading={loadDash} />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <BusinessHealthWidget kpis={kpis} loading={loadDash} />
+            <BusinessOutlookWidget horizon={6} />
+          </div>
         </Section>
 
         {/* ── 4. ANALYTICS ────────────────────────────────────────── */}
@@ -473,6 +482,7 @@ export default function Dashboard() {
       <TransactionFormModal
         isOpen={showNewTx}
         onClose={() => setShowNewTx(false)}
+        onSuccess={handleTxSuccess}
         transaction={null}
       />
 
