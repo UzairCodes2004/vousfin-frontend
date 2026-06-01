@@ -79,7 +79,9 @@ export default function ForecastWidget() {
               </span>
             </h2>
             <p className="text-[11px] text-text-muted">
-              LSTM neural network · confidence bands included
+              {engineOnline
+                ? 'Global transfer model + ensemble · confidence bands included'
+                : 'Ensemble forecast · confidence bands included'}
             </p>
           </div>
         </div>
