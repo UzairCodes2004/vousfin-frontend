@@ -92,7 +92,7 @@ function ReviewList() {
         <button
           onClick={confirmAll}
           disabled={bulkBusy || readyCount === 0}
-          className="flex items-center gap-1.5 text-xs font-medium bg-emerald-2 hover:bg-emerald disabled:opacity-40 text-white px-3 py-1.5 rounded-lg"
+          className="flex items-center gap-1.5 text-xs font-medium btn-gradient disabled:opacity-40 px-3 py-1.5 rounded-lg"
         >
           {bulkBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCheck className="w-3.5 h-3.5" />}
           Confirm all confident ({readyCount})

@@ -196,7 +196,7 @@ export default function ClassificationCard({ draft, onResolved }) {
         <button
           onClick={handleConfirm}
           disabled={loading || !canPost}
-          className="flex-1 bg-emerald-2 hover:bg-emerald text-white text-xs font-medium py-1.5 rounded-lg disabled:opacity-50"
+          className="flex-1 btn-gradient text-xs font-medium py-1.5 rounded-lg disabled:opacity-50"
         >
           ✓ Confirm &amp; Post
         </button>

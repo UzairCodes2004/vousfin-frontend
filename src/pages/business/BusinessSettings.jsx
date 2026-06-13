@@ -7,7 +7,6 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import TextArea from '@/components/ui/TextArea'
 import Button from '@/components/ui/Button'
-import AppearanceCard from '@/components/settings/AppearanceCard'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getErrorMessage } from '@/utils/errorHandler'
@@ -183,8 +182,6 @@ export default function BusinessSettings() {
         <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Business Settings</h1>
         <p className="text-text-secondary mt-1">Update your business profile, branding and preferences.</p>
       </div>
-
-      <AppearanceCard />
 
       <form onSubmit={save} className="premium-card space-y-6 p-6 sm:p-8">
         {/* ── Logo / profile picture ───────────────────────────────────── */}

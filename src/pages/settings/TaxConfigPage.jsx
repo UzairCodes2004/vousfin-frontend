@@ -185,7 +185,7 @@ export default function TaxConfigPage() {
                   Select a country and click <strong>Enable Tax</strong> to get started.
                 </span>
                 <Button size="sm" icon={Zap} loading={enableMutation.isPending}
-                  onClick={handleEnableTax} className="ml-auto shrink-0 bg-amber hover:bg-amber text-white">
+                  onClick={handleEnableTax} className="ml-auto shrink-0 btn-gradient">
                   Enable Tax
                 </Button></>
           }

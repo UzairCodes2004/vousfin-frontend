@@ -98,7 +98,7 @@ function Queue() {
               {p.status === 'pending' ? (
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => decide(p._id, 'approve')} disabled={busyId === p._id}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-2 hover:bg-emerald text-white text-xs font-medium py-1.5 rounded-lg disabled:opacity-50">
+                    className="flex-1 flex items-center justify-center gap-1.5 btn-gradient text-xs font-medium py-1.5 rounded-lg disabled:opacity-50">
                     {busyId === p._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />} Approve &amp; post
                   </button>
                   <button onClick={() => decide(p._id, 'reject')} disabled={busyId === p._id}

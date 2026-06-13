@@ -18,17 +18,17 @@ export default function AuthLayout() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(640px 460px at 18% -6%, rgba(61,220,151,0.12), transparent 60%),' +
-              'radial-gradient(520px 380px at 92% 8%, rgba(212,169,78,0.07), transparent 55%),' +
-              'radial-gradient(900px 640px at 50% 118%, rgba(26,82,57,0.22), transparent 65%)',
+              'radial-gradient(640px 460px at 18% -6%, rgb(var(--c-accent) / 0.14), transparent 60%),' +
+              'radial-gradient(520px 380px at 92% 8%, rgb(var(--c-highlight) / 0.08), transparent 55%),' +
+              'radial-gradient(900px 640px at 50% 118%, rgb(var(--c-accent2) / 0.20), transparent 65%)',
           }}
         />
-        {/* Ledger rules — faint horizontal hairlines, like a paper ledger at night */}
+        {/* Ledger rules — faint horizontal hairlines */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-[0.35]"
           style={{
-            backgroundImage: 'linear-gradient(rgba(233,239,234,0.045) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(rgb(var(--c-text) / 0.045) 1px, transparent 1px)',
             backgroundSize: '100% 56px',
             maskImage: 'linear-gradient(180deg, transparent 8%, black 38%, black 78%, transparent 100%)',
             WebkitMaskImage: 'linear-gradient(180deg, transparent 8%, black 38%, black 78%, transparent 100%)',
@@ -37,7 +37,7 @@ export default function AuthLayout() {
 
         <div className="relative">
           <Link to="/" className="flex items-center gap-3">
-            <img src={vousFinLogo} alt="VousFin" className="h-10 w-10 object-contain drop-shadow-[0_0_10px_rgba(61,220,151,0.35)]" />
+            <img src={vousFinLogo} alt="VousFin" className="h-10 w-10 object-contain drop-shadow-[0_0_10px_rgb(var(--c-accent)/0.35)]" />
             <span className="font-display text-2xl font-semibold tracking-tight text-text-primary">
               vous<span className="text-gradient">Fin</span>
             </span>
@@ -62,7 +62,7 @@ export default function AuthLayout() {
           <ul className="mt-8 space-y-3 text-[15px] text-text-secondary">
             {['Double-entry, done for you', 'Live statements & forecasts', 'Anomalies caught before they cost you'].map((line) => (
               <li key={line} className="flex items-center gap-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(61,220,151,0.8)]" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--c-accent)/0.8)]" aria-hidden="true" />
                 {line}
               </li>
             ))}
@@ -73,7 +73,7 @@ export default function AuthLayout() {
           <span className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent shadow-[0_0_8px_rgba(61,220,151,0.9)]"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent shadow-[0_0_8px_rgb(var(--c-accent)/0.9)]"></span>
             </span>
             System online
           </span>
@@ -87,7 +87,7 @@ export default function AuthLayout() {
         {/* Mobile logo — shown only when left panel is hidden */}
         <div className="lg:hidden flex justify-center mb-8 relative z-10">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src={vousFinLogo} alt="VousFin" className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(61,220,151,0.35)]" />
+            <img src={vousFinLogo} alt="VousFin" className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgb(var(--c-accent)/0.35)]" />
             <span className="font-display text-2xl font-semibold tracking-tight text-text-primary">
               vous<span className="text-gradient">Fin</span>
             </span>

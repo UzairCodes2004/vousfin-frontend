@@ -245,7 +245,7 @@ function LineRow({ stmtId, line, accounts, onChange }) {
                   <p className="text-xs text-text-muted">{fmtDate(c.date)} · {money(c.amount)} · {c.score}% match</p>
                 </div>
                 <button disabled={busy} onClick={() => act(() => reconApi.match(stmtId, line.lineRef, c.journalEntryId), 'Matched')}
-                  className="shrink-0 text-xs bg-emerald-2 hover:bg-emerald text-white px-2.5 py-1 rounded-lg">Confirm</button>
+                  className="shrink-0 text-xs btn-gradient px-2.5 py-1 rounded-lg">Confirm</button>
               </div>
             ))
           ) : (
@@ -308,7 +308,7 @@ function Workspace({ id, onBack }) {
       <div className="flex items-center justify-between gap-3">
         <button onClick={onBack} className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> All reconciliations</button>
         <button onClick={finish} disabled={stmt.status === 'completed'}
-          className="text-sm bg-emerald-2 hover:bg-emerald disabled:opacity-50 text-white font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1.5">
+          className="text-sm btn-gradient disabled:opacity-50 font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1.5">
           <CheckCircle2 className="w-4 h-4" /> {stmt.status === 'completed' ? 'Completed' : 'Finish reconciliation'}
         </button>
       </div>

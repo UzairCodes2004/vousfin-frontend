@@ -271,7 +271,7 @@ export default function TemplatesPage() {
 
               <div className="flex gap-2 pt-1">
                 <button onClick={() => applyNow(t)} disabled={busyId === t._id}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-2 hover:bg-emerald text-white text-xs font-medium py-1.5 rounded-lg disabled:opacity-50">
+                  className="flex-1 flex items-center justify-center gap-1.5 btn-gradient text-xs font-medium py-1.5 rounded-lg disabled:opacity-50">
                   {busyId === t._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />} Use now
                 </button>
                 <button onClick={() => openEdit(t)} className="px-3 border border-glass-2 hover:bg-glass-hover text-text-secondary rounded-lg"><Pencil className="w-3.5 h-3.5" /></button>

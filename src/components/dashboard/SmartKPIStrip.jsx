@@ -210,8 +210,8 @@ const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses
         </div>
       </div>
 
-      {/* Desktop (md+): 4-column grid */}
-      <div className="hidden md:grid md:grid-cols-4 gap-3">
+      {/* Tablet: 2-up (roomier) · Desktop: 4-up */}
+      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
         {primaryCards.map(({ key, ...card }) => (
           <PrimaryCard key={key} {...card} currency={currency} loading={loading} />
         ))}
@@ -220,7 +220,7 @@ const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses
       {/* ── Secondary chips — 2-col on mobile, 4-col on md+ ──
           No trend badges here: the figure itself is the point, and a badge that
           just repeats the same number is noise. ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         <SecondaryChip title="Profit Margin" subtitle="Kept as profit" value={profitMarginPct} format="percent" icon={Percent}
           color={profitMarginPct >= 0 ? 'var(--chart-revenue)' : 'var(--chart-expenses)'}
           currency={currency} loading={loading} to="/reports/income-statement" />

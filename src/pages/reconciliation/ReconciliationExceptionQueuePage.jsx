@@ -125,7 +125,7 @@ function ExceptionRow({ item, onResolved }) {
                 <button
                   onClick={() => confirmMatch(c)}
                   disabled={loading}
-                  className="w-full text-xs bg-emerald-2 hover:bg-emerald text-white py-1.5 rounded-lg"
+                  className="w-full text-xs btn-gradient py-1.5 rounded-lg"
                 >
                   Confirm this match
                 </button>

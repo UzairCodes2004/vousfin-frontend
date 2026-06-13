@@ -55,6 +55,9 @@
     /* personality */
     --radius-card: 14px;
     --font-display: 'Schibsted Grotesk', system-ui, 'Segoe UI', sans-serif;
+    /* card elevation (dark default; light themes override) */
+    --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 30px -14px rgba(0, 0, 0, 0.55);
+    --shadow-card-hover: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgb(var(--c-accent) / 0.08), 0 18px 44px -16px rgba(0, 0, 0, 0.72);
     /* legacy aliases (recompute when --c-* are overridden) */
     --bg: rgb(var(--c-bg)); --bg2: rgb(var(--c-bg2)); --bg3: rgb(var(--c-bg3));
     --text: rgb(var(--c-text)); --text2: rgb(var(--c-text2)); --text3: rgb(var(--c-text3));
@@ -141,42 +144,45 @@
     --font-display: 'Fraunces', Georgia, serif;
   }
 
-  /* ░░ Daybreak — Stripe/Apple spacious (light) ░░ */
+  /* ░░ Daybreak — soft daylight (light) · calm cool canvas, off-white cards ░░ */
   [data-theme="daybreak"] {
     color-scheme: light;
-    --c-bg: 246 247 251;
-    --c-bg2: 255 255 255;
-    --c-bg3: 250 251 253;
-    --c-text: 26 29 38;
-    --c-text2: 91 99 115;
-    --c-text3: 138 146 163;
+    --c-bg: 233 236 242;        /* soft cool gray canvas (not glaring white) */
+    --c-bg2: 252 253 255;       /* cards float just above the canvas */
+    --c-bg3: 243 245 250;
+    --c-text: 23 26 35;
+    --c-text2: 84 92 108;
+    --c-text3: 128 137 153;
     --c-accent: 99 91 255;
     --c-accent2: 75 69 214;
     --c-on-accent: 255 255 255;
-    --c-positive: 29 154 92;
-    --c-negative: 229 72 77;
-    --c-highlight: 242 169 59;
-    --sec-money-in: 29 154 92;
-    --sec-money-out: 229 72 77;
-    --sec-ledger: 242 169 59;
+    --c-positive: 22 138 84;
+    --c-negative: 216 58 62;
+    --c-highlight: 201 134 32;
+    --sec-money-in: 22 138 84;
+    --sec-money-out: 216 58 62;
+    --sec-ledger: 201 134 32;
     --sec-autopilot: 99 91 255;
     --sec-intelligence: 75 69 214;
-    --sec-settings: 91 99 115;
-    --chart-revenue: 29 154 92;
-    --chart-expenses: 229 72 77;
+    --sec-settings: 84 92 108;
+    --chart-revenue: 22 138 84;
+    --chart-expenses: 216 58 62;
     --chart-profit: 99 91 255;
-    --chart-cash: 242 169 59;
-    --chart-neutral: 138 146 163;
-    --c-border: rgba(26, 29, 38, 0.10);
-    --c-border2: rgba(26, 29, 38, 0.16);
-    --glass-panel: rgba(26, 29, 38, 0.035);
-    --glass-hover: rgba(26, 29, 38, 0.06);
+    --chart-cash: 201 134 32;
+    --chart-neutral: 128 137 153;
+    --c-border: rgba(23, 26, 35, 0.11);
+    --c-border2: rgba(23, 26, 35, 0.20);
+    --glass-panel: rgba(23, 26, 35, 0.04);
+    --glass-hover: rgba(23, 26, 35, 0.07);
     --atmos-1: rgba(99, 91, 255, 0.05);
-    --atmos-2: rgba(242, 169, 59, 0.04);
-    --atmos-3: rgba(99, 91, 255, 0.03);
-    --grain-opacity: 0.14;
+    --atmos-2: rgba(201, 134, 32, 0.045);
+    --atmos-3: rgba(99, 91, 255, 0.035);
+    --grain-opacity: 0.10;
     --radius-card: 18px;
     --font-display: 'Schibsted Grotesk', system-ui, 'Segoe UI', sans-serif;
+    /* crisp light elevation (Stripe-style) instead of the deep dark shadow */
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 26px -14px rgba(16, 24, 40, 0.16);
+    --shadow-card-hover: 0 0 0 1px rgb(var(--c-accent) / 0.20), 0 14px 32px -12px rgba(16, 24, 40, 0.20);
   }
 
   html { scroll-behavior: smooth; }
@@ -263,17 +269,12 @@
       rgb(var(--c-bg2));
     border: 1px solid var(--c-border);
     border-radius: var(--radius-card);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 10px 30px -14px rgba(0, 0, 0, 0.55);
+    box-shadow: var(--shadow-card);
     @apply transition-all duration-200 relative;
   }
   .premium-card:hover {
     border-color: var(--c-border2);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 0 0 1px rgb(var(--c-accent) / 0.07),
-      0 16px 40px -16px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--shadow-card-hover);
   }
 
   /* Highlight hairline along a card's top edge */

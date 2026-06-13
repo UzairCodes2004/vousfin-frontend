@@ -76,7 +76,7 @@ export default function Sidebar({ isCollapsed, toggleCollapse, isMobile = false,
         <span
           className={cn(
             'absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full transition-all duration-200',
-            active ? 'bg-accent shadow-[0_0_10px_rgba(61,220,151,0.9)]' : 'bg-transparent',
+            active ? 'bg-accent shadow-[0_0_10px_rgb(var(--c-accent)/0.9)]' : 'bg-transparent',
           )}
         />
         <span className="relative flex-shrink-0">

@@ -32,7 +32,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="flex h-screen bg-navy overflow-hidden selection:bg-cyan/30 selection:text-white">
+    <div className="flex h-screen bg-navy overflow-hidden">
       {/* Desktop section rail — the "Vault" launcher (hidden < lg) */}
       <SectionRail />
 

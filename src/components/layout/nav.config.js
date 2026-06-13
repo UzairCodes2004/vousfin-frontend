@@ -22,7 +22,7 @@ import {
   Boxes, Bot, Library, Sparkles,
   ArrowDownCircle, ArrowUpCircle,
   FileBarChart2, TrendingUp, Lightbulb,
-  Settings, DollarSign, Percent,
+  Settings, DollarSign, Percent, Palette,
 } from 'lucide-react'
 
 /* Section accents — theme variables (recolor per theme), meaning not decoration */
@@ -98,6 +98,7 @@ export const NAV_SECTIONS = [
     blurb: 'Tune VousFin to your business — company profile, tax rules, and currency rates.',
     items: [
       { name: 'Business',       href: '/business/settings',       icon: Settings,   desc: 'Company profile and preferences' },
+      { name: 'Appearance',     href: '/settings/appearance',     icon: Palette,    activePrefix: '/settings/appearance', desc: 'Theme and look of the app' },
       { name: 'Tax Engine',     href: '/settings/tax',            icon: Percent,    activePrefix: '/settings/tax', desc: 'Tax rates and how tax is applied' },
       { name: 'Exchange Rates', href: '/settings/exchange-rates', icon: DollarSign, activePrefix: '/settings/exchange-rates', desc: 'Currency conversion rates' },
     ],
