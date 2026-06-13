@@ -117,7 +117,7 @@ export default function LineItemRow({
           placeholder="Description (optional)"
         />
         {selectedInv && mode === 'invoice' && (
-          <p className={cn('text-[11px] mt-0.5', overStock ? 'text-red-400' : 'text-text-muted')}>
+          <p className={cn('text-[11px] mt-0.5', overStock ? 'text-negative' : 'text-text-muted')}>
             {overStock
               ? `⚠ Only ${selectedInv.currentStock} ${selectedInv.unit || 'units'} in stock`
               : `${selectedInv.currentStock} ${selectedInv.unit || 'units'} in stock`}
@@ -129,7 +129,7 @@ export default function LineItemRow({
       <td className="w-20 px-1 py-2">
         <input
           type="number"
-          className={cn(numCls, overStock ? 'border-red-500/60' : '')}
+          className={cn(numCls, overStock ? 'border-negative/60' : '')}
           value={item.quantity || ''}
           onChange={e => update('quantity', parseFloat(e.target.value) || 0)}
           min="0"
@@ -198,7 +198,7 @@ export default function LineItemRow({
           <button
             type="button"
             onClick={() => onRemove(index)}
-            className="rounded p-1 text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="rounded p-1 text-text-muted hover:text-negative hover:bg-negative/10 transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>

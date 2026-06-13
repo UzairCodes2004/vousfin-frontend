@@ -27,7 +27,7 @@ function IntegrityBanner() {
   const healthy = data.healthy
   return (
     <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs px-3 py-2 rounded-lg ${
-      healthy ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+      healthy ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
       <span className="font-semibold">{healthy ? '✓ Ledger integrity OK' : '⚠ Ledger integrity issue'}</span>
       <span>{data.entries} entries</span>
       <span>Σ debits {Number(data.total_debits).toLocaleString()}</span>
@@ -74,19 +74,19 @@ export default function ClassificationHealthPanel() {
           label="Auto-Post Rate"
           value={`${Math.round(autoPostRate * 100)}%`}
           sub={`${autoPosted} of ${totalProc} transactions`}
-          color={autoPostRate >= 0.70 ? 'text-emerald-400' : 'text-amber-400'}
+          color={autoPostRate >= 0.70 ? 'text-positive' : 'text-amber'}
         />
         <StatCard
           label="7-Day Accuracy"
           value={`${Math.round(accuracy * 100)}%`}
           sub={accuracy >= 0.94 ? '✓ Meets FR-01.2 target' : 'Below 94% target'}
-          color={accuracy >= 0.94 ? 'text-emerald-400' : 'text-red-400'}
+          color={accuracy >= 0.94 ? 'text-positive' : 'text-negative'}
         />
         <StatCard
           label="Correction Rate"
           value={`${Math.round(corrRate * 100)}%`}
           sub="Lower is better"
-          color={corrRate <= 0.06 ? 'text-emerald-400' : 'text-amber-400'}
+          color={corrRate <= 0.06 ? 'text-positive' : 'text-amber'}
         />
         <StatCard
           label="Model Version"
@@ -98,7 +98,7 @@ export default function ClassificationHealthPanel() {
 
       {/* FR-01.2 acceptance criterion indicator */}
       <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${
-        accuracy >= 0.94 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+        accuracy >= 0.94 ? 'bg-positive/10 text-positive' : 'bg-amber/10 text-amber'
       }`}>
         <span>{accuracy >= 0.94 ? '✓' : '⚠'}</span>
         <span>

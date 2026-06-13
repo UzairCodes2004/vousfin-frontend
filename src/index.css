@@ -3,49 +3,206 @@
 @tailwind utilities;
 
 /*
- * VousFin global styles — "Nocturne Ledger"
- * A private bank vault at midnight: moss-black canvas under a fixed aurora
- * atmosphere, obsidian-gloss cards lit from above, luminous jade interactive
- * accent, champagne-gold foil details, film-grain depth. Utility class NAMES
- * preserved (premium-card, bg-glass, btn-gradient…) so the whole app restyles
- * without call-site edits.
+ * VousFin global styles — themeable engine.
+ *
+ * Single source of truth for color = CSS variables. Tailwind tokens point at
+ * rgb(var(--c-*) / <alpha>); each theme is a [data-theme] block that overrides
+ * the --c-* channels. The whole app (pages, rail, hubs, charts, modals)
+ * retunes from here. Utility/token NAMES never change.
+ *
+ * Default theme = Nocturne (moss-black + jade + champagne gold).
  */
 
 @layer base {
   :root {
-    --bg: #070B09;        /* page canvas — deep moss black */
-    --bg2: #0D1411;       /* card surface */
-    --bg3: #0A100D;       /* elevated: sidebar, modals, sheets */
-    --text: #E9EFEA;
-    --text2: #A3B0A8;
-    --text3: #6C7A71;
-    --border: rgba(233, 239, 234, 0.08);
-    --border2: rgba(233, 239, 234, 0.16);
-    --accent: #3DDC97;    /* luminous jade */
-    --accent2: #2BB67C;
-    --gold: #D4A94E;
-    /* legacy aliases */
-    --cyan: #3DDC97;
-    --cyan2: #2BB67C;
-    --emerald: #3DDC97;
-    --emerald2: #2BB67C;
-    --emerald3: #6FE8B4;
+    color-scheme: dark;
+    /* RGB channels — consumed via rgb(var(--x) / <alpha-value>) */
+    --c-bg: 7 11 9;
+    --c-bg2: 13 20 17;
+    --c-bg3: 10 16 13;
+    --c-text: 233 239 234;
+    --c-text2: 163 176 168;
+    --c-text3: 108 122 113;
+    --c-accent: 61 220 151;
+    --c-accent2: 43 182 124;
+    --c-on-accent: 6 35 26;
+    --c-positive: 61 220 151;
+    --c-negative: 242 112 91;
+    --c-highlight: 212 169 78;
+    --sec-money-in: 61 220 151;
+    --sec-money-out: 242 112 91;
+    --sec-ledger: 212 169 78;
+    --sec-autopilot: 111 232 180;
+    --sec-intelligence: 224 177 75;
+    --sec-settings: 163 176 168;
+    --chart-revenue: 61 220 151;
+    --chart-expenses: 242 112 91;
+    --chart-profit: 111 232 180;
+    --chart-cash: 212 169 78;
+    --chart-neutral: 108 122 113;
+    /* Translucent tokens — used directly */
+    --c-border: rgba(233, 239, 234, 0.08);
+    --c-border2: rgba(233, 239, 234, 0.16);
+    --glass-panel: rgba(233, 239, 234, 0.045);
+    --glass-hover: rgba(233, 239, 234, 0.07);
+    /* Atmosphere */
+    --atmos-1: rgba(61, 220, 151, 0.075);
+    --atmos-2: rgba(212, 169, 78, 0.05);
+    --atmos-3: rgba(26, 82, 57, 0.16);
+    --grain-opacity: 0.5;
+    /* Legacy aliases (recompute when --c-* are overridden) */
+    --bg: rgb(var(--c-bg)); --bg2: rgb(var(--c-bg2)); --bg3: rgb(var(--c-bg3));
+    --text: rgb(var(--c-text)); --text2: rgb(var(--c-text2)); --text3: rgb(var(--c-text3));
+    --border: var(--c-border); --border2: var(--c-border2);
+    --accent: rgb(var(--c-accent)); --accent2: rgb(var(--c-accent2));
+    --gold: rgb(var(--c-highlight));
+    --cyan: rgb(var(--c-accent)); --cyan2: rgb(var(--c-accent2));
+    --emerald: rgb(var(--c-positive)); --emerald2: rgb(var(--c-accent2)); --emerald3: rgb(var(--chart-profit));
+  }
+
+  /* ════════════════ DARK THEMES ════════════════ */
+
+  [data-theme="onyx"] {
+    color-scheme: dark;
+    --c-bg: 11 11 12; --c-bg2: 20 20 22; --c-bg3: 16 16 18;
+    --c-text: 237 234 227; --c-text2: 160 153 140; --c-text3: 110 106 96;
+    --c-accent: 212 175 84; --c-accent2: 184 146 58; --c-on-accent: 26 21 5;
+    --c-positive: 91 208 160; --c-negative: 229 115 107; --c-highlight: 232 214 160;
+    --c-border: rgba(237, 234, 227, 0.09); --c-border2: rgba(237, 234, 227, 0.17);
+    --glass-panel: rgba(237, 234, 227, 0.05); --glass-hover: rgba(237, 234, 227, 0.08);
+    --atmos-1: rgba(212, 175, 84, 0.08); --atmos-2: rgba(232, 214, 160, 0.05); --atmos-3: rgba(60, 50, 20, 0.18);
+    --sec-money-in: 91 208 160; --sec-money-out: 229 115 107; --sec-ledger: 232 214 160;
+    --sec-autopilot: 212 175 84; --sec-intelligence: 184 146 58; --sec-settings: 160 153 140;
+    --chart-revenue: 91 208 160; --chart-expenses: 229 115 107; --chart-profit: 212 175 84; --chart-cash: 232 214 160; --chart-neutral: 110 106 96;
+  }
+
+  [data-theme="sapphire"] {
+    color-scheme: dark;
+    --c-bg: 8 12 22; --c-bg2: 15 22 38; --c-bg3: 11 17 32;
+    --c-text: 230 236 245; --c-text2: 155 168 190; --c-text3: 102 114 138;
+    --c-accent: 77 168 240; --c-accent2: 46 134 214; --c-on-accent: 4 22 43;
+    --c-positive: 63 211 165; --c-negative: 242 112 91; --c-highlight: 124 196 255;
+    --c-border: rgba(230, 236, 245, 0.09); --c-border2: rgba(230, 236, 245, 0.17);
+    --glass-panel: rgba(230, 236, 245, 0.05); --glass-hover: rgba(230, 236, 245, 0.08);
+    --atmos-1: rgba(77, 168, 240, 0.10); --atmos-2: rgba(124, 196, 255, 0.05); --atmos-3: rgba(20, 50, 90, 0.20);
+    --sec-money-in: 63 211 165; --sec-money-out: 242 112 91; --sec-ledger: 124 196 255;
+    --sec-autopilot: 77 168 240; --sec-intelligence: 46 134 214; --sec-settings: 155 168 190;
+    --chart-revenue: 63 211 165; --chart-expenses: 242 112 91; --chart-profit: 77 168 240; --chart-cash: 124 196 255; --chart-neutral: 102 114 138;
+  }
+
+  [data-theme="aubergine"] {
+    color-scheme: dark;
+    --c-bg: 18 13 24; --c-bg2: 27 20 36; --c-bg3: 21 15 29;
+    --c-text: 239 231 242; --c-text2: 173 160 182; --c-text3: 118 105 126;
+    --c-accent: 199 125 255; --c-accent2: 165 90 224; --c-on-accent: 31 10 46;
+    --c-positive: 84 214 160; --c-negative: 242 112 138; --c-highlight: 224 176 255;
+    --c-border: rgba(239, 231, 242, 0.09); --c-border2: rgba(239, 231, 242, 0.17);
+    --glass-panel: rgba(239, 231, 242, 0.05); --glass-hover: rgba(239, 231, 242, 0.08);
+    --atmos-1: rgba(199, 125, 255, 0.10); --atmos-2: rgba(224, 176, 255, 0.05); --atmos-3: rgba(60, 30, 80, 0.20);
+    --sec-money-in: 84 214 160; --sec-money-out: 242 112 138; --sec-ledger: 224 176 255;
+    --sec-autopilot: 199 125 255; --sec-intelligence: 165 90 224; --sec-settings: 173 160 182;
+    --chart-revenue: 84 214 160; --chart-expenses: 242 112 138; --chart-profit: 199 125 255; --chart-cash: 224 176 255; --chart-neutral: 118 105 126;
+  }
+
+  [data-theme="graphite"] {
+    color-scheme: dark;
+    --c-bg: 14 15 17; --c-bg2: 23 25 28; --c-bg3: 18 19 22;
+    --c-text: 236 237 239; --c-text2: 157 161 168; --c-text3: 105 109 116;
+    --c-accent: 224 163 62; --c-accent2: 194 134 42; --c-on-accent: 36 23 2;
+    --c-positive: 87 201 138; --c-negative: 239 111 91; --c-highlight: 240 194 119;
+    --c-border: rgba(236, 237, 239, 0.09); --c-border2: rgba(236, 237, 239, 0.17);
+    --glass-panel: rgba(236, 237, 239, 0.05); --glass-hover: rgba(236, 237, 239, 0.08);
+    --atmos-1: rgba(224, 163, 62, 0.09); --atmos-2: rgba(240, 194, 119, 0.05); --atmos-3: rgba(60, 45, 20, 0.18);
+    --sec-money-in: 87 201 138; --sec-money-out: 239 111 91; --sec-ledger: 240 194 119;
+    --sec-autopilot: 224 163 62; --sec-intelligence: 194 134 42; --sec-settings: 157 161 168;
+    --chart-revenue: 87 201 138; --chart-expenses: 239 111 91; --chart-profit: 224 163 62; --chart-cash: 240 194 119; --chart-neutral: 105 109 116;
+  }
+
+  [data-theme="copper"] {
+    color-scheme: dark;
+    --c-bg: 14 18 22; --c-bg2: 22 28 34; --c-bg3: 17 22 27;
+    --c-text: 233 237 240; --c-text2: 152 164 174; --c-text3: 100 112 121;
+    --c-accent: 208 138 92; --c-accent2: 178 110 66; --c-on-accent: 36 18 8;
+    --c-positive: 87 201 154; --c-negative: 238 115 97; --c-highlight: 227 174 132;
+    --c-border: rgba(233, 237, 240, 0.09); --c-border2: rgba(233, 237, 240, 0.17);
+    --glass-panel: rgba(233, 237, 240, 0.05); --glass-hover: rgba(233, 237, 240, 0.08);
+    --atmos-1: rgba(208, 138, 92, 0.10); --atmos-2: rgba(227, 174, 132, 0.05); --atmos-3: rgba(30, 50, 60, 0.18);
+    --sec-money-in: 87 201 154; --sec-money-out: 238 115 97; --sec-ledger: 227 174 132;
+    --sec-autopilot: 208 138 92; --sec-intelligence: 178 110 66; --sec-settings: 152 164 174;
+    --chart-revenue: 87 201 154; --chart-expenses: 238 115 97; --chart-profit: 208 138 92; --chart-cash: 227 174 132; --chart-neutral: 100 112 121;
+  }
+
+  [data-theme="teal"] {
+    color-scheme: dark;
+    --c-bg: 5 18 26; --c-bg2: 11 30 40; --c-bg3: 8 22 30;
+    --c-text: 228 239 240; --c-text2: 147 170 176; --c-text3: 94 118 124;
+    --c-accent: 45 212 191; --c-accent2: 31 174 156; --c-on-accent: 3 36 32;
+    --c-positive: 61 220 151; --c-negative: 242 112 91; --c-highlight: 111 230 214;
+    --c-border: rgba(228, 239, 240, 0.09); --c-border2: rgba(228, 239, 240, 0.17);
+    --glass-panel: rgba(228, 239, 240, 0.05); --glass-hover: rgba(228, 239, 240, 0.08);
+    --atmos-1: rgba(45, 212, 191, 0.10); --atmos-2: rgba(111, 230, 214, 0.05); --atmos-3: rgba(10, 50, 60, 0.20);
+    --sec-money-in: 61 220 151; --sec-money-out: 242 112 91; --sec-ledger: 111 230 214;
+    --sec-autopilot: 45 212 191; --sec-intelligence: 31 174 156; --sec-settings: 147 170 176;
+    --chart-revenue: 61 220 151; --chart-expenses: 242 112 91; --chart-profit: 45 212 191; --chart-cash: 111 230 214; --chart-neutral: 94 118 124;
+  }
+
+  [data-theme="carbon"] {
+    color-scheme: dark;
+    --c-bg: 11 11 12; --c-bg2: 22 22 24; --c-bg3: 16 16 18;
+    --c-text: 240 240 242; --c-text2: 156 156 160; --c-text3: 106 106 110;
+    --c-accent: 232 232 236; --c-accent2: 191 191 197; --c-on-accent: 11 11 12;
+    --c-positive: 111 208 138; --c-negative: 232 122 114; --c-highlight: 184 184 190;
+    --c-border: rgba(240, 240, 242, 0.10); --c-border2: rgba(240, 240, 242, 0.18);
+    --glass-panel: rgba(240, 240, 242, 0.05); --glass-hover: rgba(240, 240, 242, 0.08);
+    --atmos-1: rgba(232, 232, 236, 0.05); --atmos-2: rgba(184, 184, 190, 0.03); --atmos-3: rgba(40, 40, 44, 0.20);
+    --sec-money-in: 111 208 138; --sec-money-out: 232 122 114; --sec-ledger: 184 184 190;
+    --sec-autopilot: 232 232 236; --sec-intelligence: 156 156 160; --sec-settings: 156 156 160;
+    --chart-revenue: 111 208 138; --chart-expenses: 232 122 114; --chart-profit: 232 232 236; --chart-cash: 184 184 190; --chart-neutral: 106 106 110;
+  }
+
+  /* ════════════════ LIGHT THEMES ════════════════ */
+
+  [data-theme="porcelain"] {
+    color-scheme: light;
+    --c-bg: 245 246 248; --c-bg2: 255 255 255; --c-bg3: 250 251 252;
+    --c-text: 26 34 48; --c-text2: 90 100 115; --c-text3: 138 147 161;
+    --c-accent: 59 91 219; --c-accent2: 42 69 184; --c-on-accent: 255 255 255;
+    --c-positive: 24 121 78; --c-negative: 192 57 43; --c-highlight: 30 79 208;
+    --c-border: rgba(26, 34, 48, 0.10); --c-border2: rgba(26, 34, 48, 0.18);
+    --glass-panel: rgba(26, 34, 48, 0.04); --glass-hover: rgba(26, 34, 48, 0.07);
+    --atmos-1: rgba(59, 91, 219, 0.04); --atmos-2: rgba(30, 79, 208, 0.03); --atmos-3: rgba(59, 91, 219, 0.03);
+    --grain-opacity: 0.18;
+    --sec-money-in: 24 121 78; --sec-money-out: 192 57 43; --sec-ledger: 30 79 208;
+    --sec-autopilot: 59 91 219; --sec-intelligence: 42 69 184; --sec-settings: 90 100 115;
+    --chart-revenue: 24 121 78; --chart-expenses: 192 57 43; --chart-profit: 59 91 219; --chart-cash: 30 79 208; --chart-neutral: 138 147 161;
+  }
+
+  [data-theme="sand"] {
+    color-scheme: light;
+    --c-bg: 243 240 232; --c-bg2: 251 250 245; --c-bg3: 247 245 238;
+    --c-text: 42 38 32; --c-text2: 107 100 87; --c-text3: 150 141 124;
+    --c-accent: 30 106 74; --c-accent2: 22 87 60; --c-on-accent: 251 250 245;
+    --c-positive: 30 122 74; --c-negative: 179 64 42; --c-highlight: 185 138 47;
+    --c-border: rgba(42, 38, 32, 0.10); --c-border2: rgba(42, 38, 32, 0.18);
+    --glass-panel: rgba(42, 38, 32, 0.04); --glass-hover: rgba(42, 38, 32, 0.07);
+    --atmos-1: rgba(30, 106, 74, 0.05); --atmos-2: rgba(185, 138, 47, 0.04); --atmos-3: rgba(30, 106, 74, 0.03);
+    --grain-opacity: 0.16;
+    --sec-money-in: 30 122 74; --sec-money-out: 179 64 42; --sec-ledger: 185 138 47;
+    --sec-autopilot: 30 106 74; --sec-intelligence: 22 87 60; --sec-settings: 107 100 87;
+    --chart-revenue: 30 122 74; --chart-expenses: 179 64 42; --chart-profit: 30 106 74; --chart-cash: 185 138 47; --chart-neutral: 150 141 124;
   }
 
   html { scroll-behavior: smooth; }
 
   body {
     @apply font-sans antialiased;
-    background-color: var(--bg);
-    color: var(--text);
+    background-color: rgb(var(--c-bg));
+    color: rgb(var(--c-text));
     overflow-x: hidden;
     line-height: 1.55;
   }
 
-  /*
-   * The aurora atmosphere — every page breathes on a gradient field instead
-   * of sitting on a flat color. Fixed so it never scrolls, never repaints.
-   */
+  /* Aurora atmosphere — fixed gradient field per theme */
   body::before {
     content: '';
     position: fixed;
@@ -53,25 +210,25 @@
     z-index: -2;
     pointer-events: none;
     background:
-      radial-gradient(900px 620px at 12% -8%, rgba(61, 220, 151, 0.075), transparent 62%),
-      radial-gradient(720px 480px at 88% -6%, rgba(212, 169, 78, 0.05), transparent 58%),
-      radial-gradient(1300px 860px at 50% 116%, rgba(26, 82, 57, 0.16), transparent 64%),
-      var(--bg);
+      radial-gradient(900px 620px at 12% -8%, var(--atmos-1), transparent 62%),
+      radial-gradient(720px 480px at 88% -6%, var(--atmos-2), transparent 58%),
+      radial-gradient(1300px 860px at 50% 116%, var(--atmos-3), transparent 64%),
+      rgb(var(--c-bg));
   }
 
-  /* Film grain — kills banding, adds material depth */
+  /* Film grain — kills banding (lighter on light themes) */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 60;
     pointer-events: none;
-    opacity: 0.5;
+    opacity: var(--grain-opacity);
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   }
 
-  /* Display serif for page titles — the nocturne signature */
+  /* Display serif for page titles */
   h1, h2 {
     font-family: 'Fraunces', Georgia, serif;
     letter-spacing: -0.015em;
@@ -82,11 +239,9 @@
   /* Financial data must not wiggle */
   tbody td, thead th { font-variant-numeric: tabular-nums; }
 
-  ::selection { background: rgba(61, 220, 151, 0.28); color: #F2FBF6; }
+  ::selection { background: rgb(var(--c-accent) / 0.28); color: rgb(var(--c-text)); }
 
-  /* Dark-native form controls (date pickers, checkboxes, selects) */
-  :root { color-scheme: dark; }
-  input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); }
+  input[type='checkbox'], input[type='radio'] { accent-color: rgb(var(--c-accent)); }
 }
 
 @layer utilities {
@@ -95,11 +250,11 @@
   .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
 
-  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: rgba(233, 239, 234, 0.18) transparent; }
+  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--c-border2) transparent; }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(61, 220, 151, 0.35); }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-accent) / 0.35); }
 
   .transition-premium {
     @apply transition-all duration-200;
@@ -110,16 +265,16 @@
 
   /* ═══ CORE SURFACES ═══ */
   .bg-glass {
-    background: rgba(233, 239, 234, 0.04);
-    border: 1px solid var(--border);
+    background: var(--glass-panel);
+    border: 1px solid var(--c-border);
   }
 
-  /* Obsidian gloss — gradient surface lit from above, deep night shadow */
+  /* Obsidian gloss — gradient surface lit from above */
   .premium-card {
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 40%),
-      var(--bg2);
-    border: 1px solid var(--border);
+      rgb(var(--c-bg2));
+    border: 1px solid var(--c-border);
     border-radius: 14px;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -127,30 +282,30 @@
     @apply transition-all duration-200 relative;
   }
   .premium-card:hover {
-    border-color: rgba(233, 239, 234, 0.13);
+    border-color: var(--c-border2);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 0 0 1px rgba(61, 220, 151, 0.07),
+      0 0 0 1px rgb(var(--c-accent) / 0.07),
       0 16px 40px -16px rgba(0, 0, 0, 0.7);
   }
 
-  /* Champagne hairline along a card's top edge — for hero/KPI moments */
+  /* Champagne hairline along a card's top edge */
   .gold-hairline::before {
     content: '';
     position: absolute;
     top: 0; left: 14px; right: 14px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212, 169, 78, 0.55), rgba(212, 169, 78, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--c-highlight) / 0.55), rgb(var(--c-highlight) / 0.1), transparent);
     pointer-events: none;
   }
 
-  /* Jade hairline variant — for the screen's primary figure */
+  /* Accent hairline variant */
   .jade-hairline::before {
     content: '';
     position: absolute;
     top: 0; left: 14px; right: 14px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(61, 220, 151, 0.5), rgba(61, 220, 151, 0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--c-accent) / 0.5), rgb(var(--c-accent) / 0.08), transparent);
     pointer-events: none;
   }
 
@@ -159,50 +314,56 @@
     max-height: calc(100vh - 3rem); overflow-y: auto;
   }
   .sticky-summary::-webkit-scrollbar { width: 4px; }
-  .sticky-summary::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .sticky-summary::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 2px; }
 
   @media (max-width: 640px) {
     table.responsive-rows tbody tr {
       display: flex; flex-direction: column; padding: 0.75rem;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--c-border);
     }
     table.responsive-rows tbody td {
       display: flex; justify-content: space-between; gap: 0.75rem;
       padding: 0.25rem 0; border: 0;
     }
+    table.responsive-rows tbody td::before {
+      content: attr(data-label);
+      color: rgb(var(--c-text3));
+      font-size: 11px; font-weight: 600;
+      margin-right: auto;
+    }
     table.responsive-rows thead { display: none; }
   }
 
   /* ═══ BUTTONS (legacy names) ═══ */
-  /* Luminous jade — ink-dark text on glowing surface, the one loud element */
+  /* Accent fill, readable ink text — the one loud element */
   .btn-gradient {
-    background: linear-gradient(180deg, #4BE6A4, #2BB67C);
-    color: #06231A;
+    background: linear-gradient(180deg, rgb(var(--c-accent)), rgb(var(--c-accent2)));
+    color: rgb(var(--c-on-accent));
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 8px 24px -10px rgba(61, 220, 151, 0.5);
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 8px 24px -10px rgb(var(--c-accent) / 0.5);
   }
   .btn-gradient:hover {
-    background: linear-gradient(180deg, #5FF0B1, #34C98A);
+    filter: brightness(1.07);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.4),
-      0 10px 30px -10px rgba(61, 220, 151, 0.65);
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 10px 30px -10px rgb(var(--c-accent) / 0.65);
   }
 
   .btn-outline {
-    background: rgba(233, 239, 234, 0.03);
-    border: 1px solid var(--border2);
-    color: var(--text2);
+    background: rgb(var(--c-text) / 0.03);
+    border: 1px solid var(--c-border2);
+    color: rgb(var(--c-text2));
   }
   .btn-outline:hover {
-    border-color: rgba(61, 220, 151, 0.45);
-    color: var(--accent);
-    background: rgba(61, 220, 151, 0.07);
+    border-color: rgb(var(--c-accent) / 0.45);
+    color: rgb(var(--c-accent));
+    background: rgb(var(--c-accent) / 0.07);
   }
 
-  /* Champagne foil — wordmark, hero accents */
+  /* Two-tone foil — wordmark, hero accents */
   .text-gradient {
-    background: linear-gradient(115deg, #EFD49A 8%, #D4A94E 42%, #A87F2E 75%, #E3BC66);
+    background: linear-gradient(115deg, rgb(var(--c-highlight)), rgb(var(--c-accent2)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -221,9 +382,9 @@
 .prose-sm ul { @apply mb-2 list-disc pl-5; }
 
 @keyframes skeleton-loading {
-  0% { background-color: rgba(233, 239, 234, 0.05); }
-  50% { background-color: rgba(233, 239, 234, 0.09); }
-  100% { background-color: rgba(233, 239, 234, 0.05); }
+  0% { background-color: rgb(var(--c-text) / 0.05); }
+  50% { background-color: rgb(var(--c-text) / 0.09); }
+  100% { background-color: rgb(var(--c-text) / 0.05); }
 }
 .skeleton-loader { animation: skeleton-loading 1.5s infinite ease-in-out; }
 
@@ -258,14 +419,14 @@
   @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent;
 }
 
-.divider-x { background: var(--border); height: 1px; width: 100%; }
-.divider-y { background: var(--border); width: 1px; height: 100%; }
+.divider-x { background: var(--c-border); height: 1px; width: 100%; }
+.divider-y { background: var(--c-border); width: 1px; height: 100%; }
 
-/* Elevated dark glass (tooltips, drawers, AI widget) */
+/* Elevated glass (tooltips, drawers, AI widget) */
 .glass-panel {
-  background: rgba(13, 20, 17, 0.9);
+  background: rgb(var(--c-bg2) / 0.9);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--border2);
+  border: 1px solid var(--c-border2);
   border-radius: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),

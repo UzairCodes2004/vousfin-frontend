@@ -66,7 +66,7 @@ export default function BalanceSheetPage() {
       {/* Equation badge */}
       {!isLoading && data && (
         <div className={`flex items-center gap-3 px-5 py-3 rounded-xl border ${
-          isBalanced ? 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400' : 'bg-red-400/10 border-red-400/30 text-red-400'
+          isBalanced ? 'bg-positive/10 border-positive/30 text-positive' : 'bg-negative/10 border-negative/30 text-negative'
         }`}>
           {isBalanced ? <CheckCircle className="h-5 w-5 flex-shrink-0" /> : <XCircle className="h-5 w-5 flex-shrink-0" />}
           <div>
@@ -126,10 +126,10 @@ export default function BalanceSheetPage() {
               <BSSection section={data.equity} currency={currency} title="Equity" />
 
               <div className={`flex justify-between items-center py-4 px-5 rounded-xl border-2 ${
-                isBalanced ? 'border-cyan/40 bg-cyan/5' : 'border-red-400/40 bg-red-400/5'
+                isBalanced ? 'border-cyan/40 bg-cyan/5' : 'border-negative/40 bg-negative/5'
               }`}>
                 <span className="text-lg font-black text-text-primary">Total Liabilities &amp; Equity</span>
-                <span className={`text-lg font-black tabular-nums ${isBalanced ? 'text-text-primary' : 'text-red-400'}`}>
+                <span className={`text-lg font-black tabular-nums ${isBalanced ? 'text-text-primary' : 'text-negative'}`}>
                   {formatCurrency(totalLiabEquity, currency)}
                 </span>
               </div>

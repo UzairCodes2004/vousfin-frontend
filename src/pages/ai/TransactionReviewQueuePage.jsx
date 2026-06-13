@@ -178,7 +178,7 @@ function AutoPostFeed() {
                 Dr {d.debit_account_name || '—'} / Cr {d.credit_account_name || '—'}
               </td>
               <td className="px-3 py-2 text-right">
-                <span className="inline-block text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                <span className="inline-block text-xs font-semibold text-positive bg-positive/10 px-2 py-0.5 rounded">
                   A · {Math.round((d.confidence ?? 0) * 100)}%
                 </span>
               </td>
@@ -186,7 +186,7 @@ function AutoPostFeed() {
                 <button
                   onClick={() => disputeOne(d)}
                   disabled={busyId === d.draft_id}
-                  className="text-xs font-medium text-red-400 hover:text-red-400 disabled:opacity-40 border border-red-500/30 hover:border-red-300 px-2.5 py-1 rounded-lg"
+                  className="text-xs font-medium text-negative hover:text-negative disabled:opacity-40 border border-negative/30 hover:border-negative px-2.5 py-1 rounded-lg"
                 >
                   {busyId === d.draft_id ? <Loader2 className="w-3.5 h-3.5 animate-spin inline" /> : 'Dispute & Reverse'}
                 </button>

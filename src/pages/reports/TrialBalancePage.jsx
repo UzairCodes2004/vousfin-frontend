@@ -79,7 +79,7 @@ export default function TrialBalancePage() {
       {/* Balance badge */}
       {!isLoading && data && (
         <div className={`flex items-center gap-3 px-5 py-3 rounded-xl border ${
-          isBalanced ? 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400' : 'bg-red-400/10 border-red-400/30 text-red-400'
+          isBalanced ? 'bg-positive/10 border-positive/30 text-positive' : 'bg-negative/10 border-negative/30 text-negative'
         }`}>
           {isBalanced ? <CheckCircle className="h-5 w-5 flex-shrink-0" /> : <XCircle className="h-5 w-5 flex-shrink-0" />}
           <div>
@@ -152,7 +152,7 @@ export default function TrialBalancePage() {
               <div className="py-3 px-3 text-right font-black text-text-primary text-sm w-28 tabular-nums">{formatCurrency(data?.totals?.period?.credit  || 0, currency)}</div>
             </>}
             <div className="py-3 px-4 text-right font-black text-text-primary text-sm w-36 tabular-nums">{formatCurrency(totalDebits, currency)}</div>
-            <div className={`py-3 px-4 text-right font-black text-sm w-36 tabular-nums ${isBalanced ? 'text-text-primary' : 'text-red-400'}`}>{formatCurrency(totalCredits, currency)}</div>
+            <div className={`py-3 px-4 text-right font-black text-sm w-36 tabular-nums ${isBalanced ? 'text-text-primary' : 'text-negative'}`}>{formatCurrency(totalCredits, currency)}</div>
           </div>
         )}
       </div>

@@ -137,7 +137,7 @@ function AccountLedger({ account, currency, open, onToggle }) {
           </div>
           <div className="text-right">
             <p className="text-xs text-text-muted">Closing</p>
-            <p className={`font-bold tabular-nums ${account.closingBalance >= 0 ? 'text-cyan' : 'text-red-400'}`}>
+            <p className={`font-bold tabular-nums ${account.closingBalance >= 0 ? 'text-cyan' : 'text-negative'}`}>
               {formatCurrency(account.closingBalance, currency)}
             </p>
           </div>
@@ -185,7 +185,7 @@ function AccountLedger({ account, currency, open, onToggle }) {
                   <td className="py-2 px-4 text-right tabular-nums text-text-primary">
                     {entry.credit > 0 ? formatCurrency(entry.credit, currency) : <span className="text-text-muted">—</span>}
                   </td>
-                  <td className={`py-2 px-4 text-right tabular-nums font-medium ${entry.runningBalance >= 0 ? 'text-text-primary' : 'text-red-400'}`}>
+                  <td className={`py-2 px-4 text-right tabular-nums font-medium ${entry.runningBalance >= 0 ? 'text-text-primary' : 'text-negative'}`}>
                     {formatCurrency(entry.runningBalance, currency)}
                   </td>
                 </tr>
@@ -200,7 +200,7 @@ function AccountLedger({ account, currency, open, onToggle }) {
                 <td className="py-2.5 px-4 font-black text-text-primary text-xs uppercase" colSpan={3}>Closing Balance</td>
                 <td className="py-2.5 px-4 text-right tabular-nums font-bold text-text-primary">{formatCurrency(account.periodDebit, currency)}</td>
                 <td className="py-2.5 px-4 text-right tabular-nums font-bold text-text-primary">{formatCurrency(account.periodCredit, currency)}</td>
-                <td className={`py-2.5 px-4 text-right tabular-nums font-black ${account.closingBalance >= 0 ? 'text-cyan' : 'text-red-400'}`}>
+                <td className={`py-2.5 px-4 text-right tabular-nums font-black ${account.closingBalance >= 0 ? 'text-cyan' : 'text-negative'}`}>
                   {formatCurrency(account.closingBalance, currency)}
                 </td>
               </tr>

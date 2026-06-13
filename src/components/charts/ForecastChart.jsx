@@ -72,11 +72,11 @@ function CustomLegend({ color, showScenarios }) {
       {showScenarios && (
         <>
           <span className="flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded inline-block border-t-2 border-dashed border-emerald-400" />
+            <span className="w-4 h-0.5 rounded inline-block border-t-2 border-dashed border-positive" />
             Optimistic
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded inline-block border-t-2 border-dashed border-red-400" />
+            <span className="w-4 h-0.5 rounded inline-block border-t-2 border-dashed border-negative" />
             Pessimistic
           </span>
         </>
@@ -110,14 +110,14 @@ export default function ForecastChart({
   const [showScenarios, setShowScenarios] = useState(!!scenarios)
 
   const COLOR = {
-    revenue:     '#34d399',
-    expenses:    '#f87171',
-    netCashFlow: '#06b6d4',
-  }[metricName] || '#06b6d4'
+    revenue:     'rgb(var(--chart-revenue))',
+    expenses:    'rgb(var(--chart-expenses))',
+    netCashFlow: 'rgb(var(--c-accent))',
+  }[metricName] || 'rgb(var(--c-accent))'
 
-  const RISK_COLOR    = '#f87171'
-  const OPT_COLOR     = '#4ade80'
-  const PESS_COLOR    = '#f87171'
+  const RISK_COLOR    = 'rgb(var(--chart-expenses))'
+  const OPT_COLOR     = 'rgb(var(--chart-revenue))'
+  const PESS_COLOR    = 'rgb(var(--chart-expenses))'
 
   /* ── Build unified chart dataset ── */
   const chartData = useMemo(() => {
@@ -234,18 +234,18 @@ export default function ForecastChart({
               )}
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-text) / 0.08)" vertical={false} />
 
             <XAxis
               dataKey="label"
-              stroke="#475569"
+              stroke="rgb(var(--c-text3))"
               fontSize={11}
               tickLine={false}
               axisLine={false}
               dy={4}
             />
             <YAxis
-              stroke="#475569"
+              stroke="rgb(var(--c-text3))"
               fontSize={11}
               tickLine={false}
               axisLine={false}
@@ -268,12 +268,12 @@ export default function ForecastChart({
             {projectionStart && (
               <ReferenceLine
                 x={projectionStart}
-                stroke="#475569"
+                stroke="rgb(var(--c-text3))"
                 strokeDasharray="5 4"
                 label={{
                   position: 'insideTopRight',
                   value: 'Forecast →',
-                  fill: '#64748B',
+                  fill: 'rgb(var(--c-text3))',
                   fontSize: 10,
                   fontWeight: 600,
                 }}
@@ -346,7 +346,7 @@ export default function ForecastChart({
               fill={`url(#grad-actual-${metricName})`}
               fillOpacity={1}
               dot={{ fill: COLOR, r: 3.5, strokeWidth: 0 }}
-              activeDot={{ r: 5.5, fill: COLOR, strokeWidth: 2, stroke: '#0F172A' }}
+              activeDot={{ r: 5.5, fill: COLOR, strokeWidth: 2, stroke: 'rgb(var(--c-bg2))' }}
               connectNulls
             />
 
@@ -361,7 +361,7 @@ export default function ForecastChart({
               fill={`url(#grad-forecast-${metricName})`}
               fillOpacity={1}
               dot={{ fill: COLOR, r: 3, strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: COLOR, strokeWidth: 2, stroke: '#0F172A' }}
+              activeDot={{ r: 5, fill: COLOR, strokeWidth: 2, stroke: 'rgb(var(--c-bg2))' }}
               connectNulls
             />
           </AreaChart>
@@ -373,8 +373,8 @@ export default function ForecastChart({
 
       {/* Risk zone warning */}
       {showRiskZone && (
-        <p className="text-[10px] text-red-400/80 text-center mt-1.5 flex items-center justify-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-400 inline-block animate-pulse" />
+        <p className="text-[10px] text-negative/80 text-center mt-1.5 flex items-center justify-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-negative inline-block animate-pulse" />
           Anomaly risk {Math.round(anomalyRisk * 100)}% — confidence bands are widened
         </p>
       )}

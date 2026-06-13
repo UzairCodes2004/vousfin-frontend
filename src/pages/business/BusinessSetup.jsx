@@ -266,7 +266,7 @@ export default function BusinessSetup() {
               )}
 
               {errors.type && (
-                <p className="text-sm text-red-400">{errors.type.message}</p>
+                <p className="text-sm text-negative">{errors.type.message}</p>
               )}
             </div>
           )}

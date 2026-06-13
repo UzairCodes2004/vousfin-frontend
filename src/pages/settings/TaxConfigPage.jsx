@@ -169,23 +169,23 @@ export default function TaxConfigPage() {
       {!cfgLoading && (
         <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
           anyEnabled
-            ? 'border-emerald-500/20 bg-emerald-500/5'
-            : 'border-amber-500/20 bg-amber-500/5'
+            ? 'border-positive/20 bg-positive/5'
+            : 'border-amber/20 bg-amber/5'
         }`}>
           {anyEnabled
-            ? <><CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            ? <><CheckCircle2 className="h-4 w-4 text-positive shrink-0" />
                 <span className="text-text-secondary">
-                  Tax engine <strong className="text-emerald-400">active</strong> ·{' '}
+                  Tax engine <strong className="text-positive">active</strong> ·{' '}
                   {profile.countryName} · {taxCfg.filingFrequency} filing
                   {taxCfg.taxRegistrationNumber && <> · Reg: <strong>{taxCfg.taxRegistrationNumber}</strong></>}
                 </span></>
-            : <><AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+            : <><AlertCircle className="h-4 w-4 text-amber shrink-0" />
                 <span className="text-text-muted">
-                  Tax engine is <strong className="text-amber-400">disabled</strong>.
+                  Tax engine is <strong className="text-amber">disabled</strong>.
                   Select a country and click <strong>Enable Tax</strong> to get started.
                 </span>
                 <Button size="sm" icon={Zap} loading={enableMutation.isPending}
-                  onClick={handleEnableTax} className="ml-auto shrink-0 bg-amber-500 hover:bg-amber-400 text-white">
+                  onClick={handleEnableTax} className="ml-auto shrink-0 bg-amber hover:bg-amber text-white">
                   Enable Tax
                 </Button></>
           }
@@ -311,10 +311,10 @@ export default function TaxConfigPage() {
                 <span className="font-mono text-xs text-cyan">{t.rate}%</span>
                 <span className={`text-[9px] rounded px-1 py-px font-semibold border ${
                   t.side === 'output'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    ? 'bg-positive/10 text-positive border-positive/20'
                     : t.side === 'input'
-                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      ? 'bg-cyan/10 text-cyan border-cyan/20'
+                      : 'bg-amber/10 text-amber border-amber/20'
                 }`}>{t.side.toUpperCase()}</span>
               </div>
             ))}
@@ -322,16 +322,16 @@ export default function TaxConfigPage() {
           <div className="flex flex-wrap gap-3 text-xs text-text-muted">
             {profile.hasWht && (
               <span className="flex items-center gap-1">
-                <Shield className="h-3 w-3 text-amber-400" /> WHT available
+                <Shield className="h-3 w-3 text-amber" /> WHT available
               </span>
             )}
             {profile.hasReverseCharge && (
               <span className="flex items-center gap-1">
-                <RefreshCw className="h-3 w-3 text-purple-400" /> Reverse charge supported
+                <RefreshCw className="h-3 w-3 text-accent-2" /> Reverse charge supported
               </span>
             )}
             {profile.eInvoicingRequired && (
-              <span className="flex items-center gap-1 text-amber-400">
+              <span className="flex items-center gap-1 text-amber">
                 <AlertCircle className="h-3 w-3" /> e-Invoicing required ({profile.countryName})
               </span>
             )}
@@ -375,13 +375,13 @@ export default function TaxConfigPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {taxAccounts.map(a => (
               <div key={a._id}
-                className="flex items-center justify-between rounded-lg border border-glass bg-white/[0.05] px-3 py-2">
+                className="flex items-center justify-between rounded-lg border border-glass bg-glass-panel px-3 py-2">
                 <span className="text-xs font-mono text-text-muted w-12 shrink-0">{a.accountCode}</span>
                 <span className="text-xs text-text-secondary flex-1 mx-2">{a.accountName}</span>
                 <span className={`text-[9px] rounded px-1.5 py-px font-semibold border ${
                   a.accountType === 'Asset'
-                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                    : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                    ? 'bg-cyan/10 text-cyan border-cyan/20'
+                    : 'bg-accent-2/10 text-accent-2 border-accent-2/20'
                 }`}>{a.accountType}</span>
               </div>
             ))}
@@ -416,8 +416,8 @@ function TaxReturnCard() {
   const recon = filing?.reconciliation
 
   const statusColor = {
-    payable:    'text-amber-400',
-    refundable: 'text-emerald-400',
+    payable:    'text-amber',
+    refundable: 'text-positive',
     nil:        'text-text-muted',
   }[filing?.status] || 'text-text-primary'
 
@@ -444,15 +444,15 @@ function TaxReturnCard() {
 
           {/* Output / Input / Net tiles */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="rounded-lg border border-glass bg-white/[0.05] px-3 py-2.5">
+            <div className="rounded-lg border border-glass bg-glass-panel px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-widest text-text-muted">Output Tax (sales)</p>
               <p className="text-lg font-black text-text-primary">{formatCurrency(filing.outputTax, currency)}</p>
             </div>
-            <div className="rounded-lg border border-glass bg-white/[0.05] px-3 py-2.5">
+            <div className="rounded-lg border border-glass bg-glass-panel px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-widest text-text-muted">Input Tax (purchases)</p>
               <p className="text-lg font-black text-text-primary">{formatCurrency(filing.inputTax, currency)}</p>
             </div>
-            <div className="rounded-lg border border-glass bg-white/[0.05] px-3 py-2.5">
+            <div className="rounded-lg border border-glass bg-glass-panel px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-widest text-text-muted">
                 Net {filing.status === 'refundable' ? 'Refundable' : 'Payable'}
               </p>
@@ -466,17 +466,17 @@ function TaxReturnCard() {
           {recon && (
             <div className={`flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm ${
               recon.reconciled
-                ? 'border-emerald-500/20 bg-emerald-500/5'
-                : 'border-red-500/20 bg-red-500/5'
+                ? 'border-positive/20 bg-positive/5'
+                : 'border-negative/20 bg-negative/5'
             }`}>
               {recon.reconciled
-                ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                : <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />}
+                ? <CheckCircle2 className="h-4 w-4 text-positive shrink-0 mt-0.5" />
+                : <AlertCircle className="h-4 w-4 text-negative shrink-0 mt-0.5" />}
               <div className="space-y-0.5">
                 {recon.reconciled ? (
-                  <p className="text-emerald-400 font-semibold">Reconciled to the general ledger</p>
+                  <p className="text-positive font-semibold">Reconciled to the general ledger</p>
                 ) : (
-                  <p className="text-red-400 font-semibold">Does not match the general ledger</p>
+                  <p className="text-negative font-semibold">Does not match the general ledger</p>
                 )}
                 <p className="text-[11px] text-text-muted">
                   Ledger net {formatCurrency(recon.glNetPayable, currency)} vs return net {formatCurrency(recon.reportNetPayable, currency)}

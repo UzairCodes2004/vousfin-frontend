@@ -84,7 +84,7 @@ function Queue() {
                   <p className="font-semibold text-text-primary text-sm truncate">{p.description}</p>
                   <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {fmtDate(p.transactionDate)} · by {p.submittedBy?.fullName || 'You'}
-                    {p.source === 'recurring' && <span className="ml-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600">recurring</span>}
+                    {p.source === 'recurring' && <span className="ml-1 px-1.5 py-0.5 rounded bg-accent-2/10 text-accent-2">recurring</span>}
                   </p>
                 </div>
                 <p className="font-bold text-text-primary shrink-0">{Number(p.amount).toLocaleString()}</p>
@@ -102,12 +102,12 @@ function Queue() {
                     {busyId === p._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />} Approve &amp; post
                   </button>
                   <button onClick={() => decide(p._id, 'reject')} disabled={busyId === p._id}
-                    className="px-3 border border-glass-2 hover:bg-red-500/15 hover:border-red-500/40 text-red-500 text-xs font-medium py-1.5 rounded-lg flex items-center gap-1.5">
+                    className="px-3 border border-glass-2 hover:bg-negative/15 hover:border-negative/40 text-negative text-xs font-medium py-1.5 rounded-lg flex items-center gap-1.5">
                     <X className="w-3.5 h-3.5" /> Reject
                   </button>
                 </div>
               ) : (
-                <p className={`text-xs mt-3 font-medium ${p.status === 'approved' ? 'text-emerald-400' : 'text-red-500'}`}>
+                <p className={`text-xs mt-3 font-medium ${p.status === 'approved' ? 'text-positive' : 'text-negative'}`}>
                   {p.status === 'approved' ? '✓ Approved & posted' : '✕ Rejected'}
                   {p.reviewedBy?.fullName ? ` by ${p.reviewedBy.fullName}` : ''}{p.decisionNote ? ` — ${p.decisionNote}` : ''}
                 </p>
@@ -138,7 +138,7 @@ function Settings() {
   if (isLoading || form === null) return <div className="h-40 bg-glass-panel animate-pulse rounded-xl" />
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
-  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200'
+  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-cyan'
 
   const save = async () => {
     setSaving(true)

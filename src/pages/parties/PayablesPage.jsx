@@ -72,7 +72,7 @@ function KpiTile({ label, value, sub, accent }) {
   return (
     <div className={cn(
       'premium-card p-5 flex flex-col gap-1',
-      accent && 'border-amber-500/30 bg-amber-500/5'
+      accent && 'border-amber/30 bg-amber/5'
     )}>
       <span className="text-[11px] text-text-muted font-semibold uppercase tracking-wider">
         {label}
@@ -107,9 +107,9 @@ function PaymentForm({ row, currency, onClose, bankAccounts }) {
   }
 
   return (
-    <div className="bg-navy/80 border border-amber-500/20 rounded-xl p-4 space-y-3 animate-fade-in">
+    <div className="bg-navy/80 border border-amber/20 rounded-xl p-4 space-y-3 animate-fade-in">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-amber-400 flex items-center gap-1.5">
+        <p className="text-sm font-semibold text-amber flex items-center gap-1.5">
           <DollarSign className="h-4 w-4" /> Record Payment to Vendor
         </p>
         <button type="button" onClick={onClose} className="text-text-muted hover:text-text-primary">
@@ -118,7 +118,7 @@ function PaymentForm({ row, currency, onClose, bankAccounts }) {
       </div>
       <p className="text-xs text-text-muted">
         Outstanding: <span className="font-semibold text-text-primary">{formatCurrency(max, currency)}</span>
-        {row._vendorName && <> · <span className="text-amber-400">{row._vendorName}</span></>}
+        {row._vendorName && <> · <span className="text-amber">{row._vendorName}</span></>}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <Input
@@ -224,11 +224,11 @@ export default function PayablesPage() {
       header: 'Date',
       render: (r) => (
         <span
-          className={cn('text-xs', isStaleDate(r._date) ? 'text-red-400 font-semibold' : 'text-text-secondary')}
+          className={cn('text-xs', isStaleDate(r._date) ? 'text-negative font-semibold' : 'text-text-secondary')}
           title={isStaleDate(r._date) ? 'Date may be incorrect' : undefined}
         >
           {formatDate(r._date)}
-          {isStaleDate(r._date) && <AlertTriangle className="inline ml-1 h-3 w-3 text-red-400" />}
+          {isStaleDate(r._date) && <AlertTriangle className="inline ml-1 h-3 w-3 text-negative" />}
         </span>
       ),
     },
@@ -239,7 +239,7 @@ export default function PayablesPage() {
         <Link
           to={`/vendors/${r._vendorId}`}
           onClick={(e) => e.stopPropagation()}
-          className="font-semibold text-text-primary hover:text-amber-400 transition-colors"
+          className="font-semibold text-text-primary hover:text-amber transition-colors"
         >
           {r._vendorName}
         </Link>
@@ -251,7 +251,7 @@ export default function PayablesPage() {
       key: 'bill',
       header: 'Bill #',
       render: (r) => r._bill
-        ? <span className="font-mono text-xs text-amber-400">{r._bill}</span>
+        ? <span className="font-mono text-xs text-amber">{r._bill}</span>
         : <span className="text-text-muted text-xs">—</span>,
     },
     {
@@ -270,7 +270,7 @@ export default function PayablesPage() {
         if (!r._dueDate) return <span className="text-text-muted text-xs">—</span>
         const overdue = daysSince(r._dueDate) > 0
         return (
-          <span className={cn('text-xs', overdue ? 'text-red-400 font-semibold' : 'text-text-secondary')}>
+          <span className={cn('text-xs', overdue ? 'text-negative font-semibold' : 'text-text-secondary')}>
             {formatDate(r._dueDate)}
             {overdue && <AlertTriangle className="inline ml-1 h-3 w-3" />}
           </span>
@@ -324,7 +324,7 @@ export default function PayablesPage() {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setPayingRowId(r._id === payingRowId ? null : r._id) }}
-          className="text-xs text-amber-400 hover:underline font-semibold whitespace-nowrap"
+          className="text-xs text-amber hover:underline font-semibold whitespace-nowrap"
         >
           {r._id === payingRowId ? 'Cancel' : '+ Pay'}
         </button>
@@ -338,7 +338,7 @@ export default function PayablesPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
-            <CreditCard className="h-6 w-6 text-amber-400" />
+            <CreditCard className="h-6 w-6 text-amber" />
             Outstanding Payables
           </h1>
           <p className="text-text-secondary mt-1 text-sm">
@@ -392,7 +392,7 @@ export default function PayablesPage() {
       {aging && (
         <div className="premium-card p-5">
           <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400" /> AP Aging Analysis
+            <AlertTriangle className="h-4 w-4 text-amber" /> AP Aging Analysis
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
@@ -457,7 +457,7 @@ export default function PayablesPage() {
       </div>
 
       {!isLoading && rows.length === 0 && (
-        <div className="premium-card p-6 border-emerald-500/20 bg-emerald-500/5 text-sm text-emerald-300 flex items-center gap-2">
+        <div className="premium-card p-6 border-positive/20 bg-positive/5 text-sm text-positive flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4" />
           No outstanding bills. All vendor payments are up to date!
         </div>

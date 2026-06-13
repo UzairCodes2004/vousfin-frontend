@@ -19,11 +19,11 @@ function ScoreRing({ pct }) {
   const r    = 36
   const circ = 2 * Math.PI * r
   const dash = (pct / 100) * circ
-  const color = pct >= 100 ? '#16a34a' : pct >= 90 ? '#d97706' : '#dc2626'
+  const color = pct >= 100 ? 'rgb(var(--c-positive))' : pct >= 90 ? 'rgb(var(--c-highlight))' : 'rgb(var(--c-negative))'
 
   return (
     <svg width="88" height="88" className="-rotate-90">
-      <circle cx="44" cy="44" r={r} fill="none" stroke="#e5e7eb" strokeWidth="8" />
+      <circle cx="44" cy="44" r={r} fill="none" stroke="rgb(var(--c-text) / 0.10)" strokeWidth="8" />
       <circle
         cx="44" cy="44" r={r} fill="none"
         stroke={color} strokeWidth="8"
@@ -86,7 +86,7 @@ export default function ReconciliationStatusWidget({ bankAccountId, accountName 
           {display.matched ?? 0} / {display.total ?? 0} matched
         </p>
         {stale > 0 && (
-          <p className="text-xs text-red-400 mt-0.5">
+          <p className="text-xs text-negative mt-0.5">
             ⚠ {stale} item{stale > 1 ? 's' : ''} older than 7 days
           </p>
         )}
@@ -95,7 +95,7 @@ export default function ReconciliationStatusWidget({ bankAccountId, accountName 
         )}
         <button
           onClick={() => navigate(`/reconciliation/exceptions?account=${bankAccountId}`)}
-          className="mt-2 text-xs text-sky-400 hover:underline"
+          className="mt-2 text-xs text-cyan hover:underline"
         >
           Review {unmatched} exception{unmatched !== 1 ? 's' : ''} →
         </button>

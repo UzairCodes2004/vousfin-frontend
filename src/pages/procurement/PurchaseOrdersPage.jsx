@@ -28,13 +28,13 @@ const STATE_FILTERS = [
 
 const STATE_COLOR = {
   draft:              'text-text-muted',
-  pending_approval:   'text-amber-400',
-  approved:           'text-sky-400',
-  partially_received: 'text-indigo-400',
+  pending_approval:   'text-amber',
+  approved:           'text-cyan',
+  partially_received: 'text-accent-2',
   fully_received:     'text-cyan',
-  billed:             'text-emerald-400',
-  closed:             'text-emerald-400',
-  cancelled:          'text-red-400',
+  billed:             'text-positive',
+  closed:             'text-positive',
+  cancelled:          'text-negative',
 }
 
 function POStateBadge({ state }) {
@@ -156,7 +156,7 @@ export default function PurchaseOrdersPage() {
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); approvePO.mutate({ id: r._id }) }}
-              className="text-text-muted hover:text-emerald-400 transition-colors"
+              className="text-text-muted hover:text-positive transition-colors"
               title="Approve"
             >
               <CheckCircle className="h-4 w-4" />
@@ -170,7 +170,7 @@ export default function PurchaseOrdersPage() {
                 const reason = window.prompt('Reason for cancellation (optional):')
                 if (reason !== null) cancelPO.mutate({ id: r._id, reason })
               }}
-              className="text-text-muted hover:text-red-400 transition-colors"
+              className="text-text-muted hover:text-negative transition-colors"
               title="Cancel"
             >
               <XCircle className="h-4 w-4" />
@@ -182,7 +182,7 @@ export default function PurchaseOrdersPage() {
               e.stopPropagation()
               if (confirm(`Archive PO ${r.poNumber}?`)) archivePO.mutate({ id: r._id })
             }}
-            className="text-text-muted hover:text-red-400 transition-colors"
+            className="text-text-muted hover:text-negative transition-colors"
             title="Archive"
           >
             <Trash2 className="h-4 w-4" />

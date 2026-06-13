@@ -17,9 +17,9 @@ import ForecastExplanationCard from '@/components/dashboard/ForecastExplanationC
 import { cn } from '@/utils/cn'
 
 const METRICS = [
-  { key: 'revenue',  label: 'Revenue',   Icon: TrendingUp, color: '#34d399', metricName: 'revenue'     },
-  { key: 'cashflow', label: 'Cash Flow',  Icon: DollarSign, color: '#06b6d4', metricName: 'netCashFlow' },
-  { key: 'expenses', label: 'Expenses',   Icon: BarChart2,  color: '#f87171', metricName: 'expenses'    },
+  { key: 'revenue',  label: 'Revenue',   Icon: TrendingUp, color: 'var(--chart-revenue)',  metricName: 'revenue'     },
+  { key: 'cashflow', label: 'Cash Flow',  Icon: DollarSign, color: 'var(--c-accent)',       metricName: 'netCashFlow' },
+  { key: 'expenses', label: 'Expenses',   Icon: BarChart2,  color: 'var(--chart-expenses)', metricName: 'expenses'    },
 ]
 const HORIZONS = [3, 6, 12]
 
@@ -61,19 +61,19 @@ export default function ForecastWidget() {
   const metricCfg   = METRICS.find(m => m.key === activeMetric) || METRICS[0]
 
   return (
-    <div className="premium-card p-5 w-full bg-gradient-to-br from-glass-panel to-violet-500/5 border-violet-500/15">
+    <div className="premium-card p-5 w-full bg-gradient-to-br from-glass-panel to-accent-2/5 border-accent-2/15">
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-violet-500/15">
-            <Cpu className="h-4 w-4 text-violet-400" />
+          <div className="p-1.5 rounded-lg bg-accent-2/15">
+            <Cpu className="h-4 w-4 text-accent-2" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-text-primary flex items-center gap-2">
               AI Forecasting Engine
               <span className={cn(
                 'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
-                engineOnline ? 'bg-emerald-400/15 text-emerald-300' : 'bg-glass-panel text-text-muted',
+                engineOnline ? 'bg-positive/15 text-positive' : 'bg-glass-panel text-text-muted',
               )}>
                 {engineOnline ? '● Online' : '○ Standby'}
               </span>
@@ -88,7 +88,7 @@ export default function ForecastWidget() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Metric tabs */}
-          <div className="flex gap-0.5 bg-white/[0.05] rounded-lg p-0.5">
+          <div className="flex gap-0.5 bg-glass-panel rounded-lg p-0.5">
             {METRICS.map(m => (
               <button
                 key={m.key}
@@ -102,7 +102,7 @@ export default function ForecastWidget() {
                     ? 'shadow-sm'
                     : 'text-text-muted hover:text-text-secondary',
                 )}
-                style={activeMetric === m.key ? { background: m.color + '22', color: m.color } : {}}
+                style={activeMetric === m.key ? { background: `rgb(${m.color} / 0.13)`, color: `rgb(${m.color})` } : {}}
               >
                 <m.Icon className="h-3 w-3" />
                 {m.label}
@@ -111,7 +111,7 @@ export default function ForecastWidget() {
           </div>
 
           {/* Horizon pills */}
-          <div className="flex gap-0.5 bg-white/[0.05] rounded-lg p-0.5">
+          <div className="flex gap-0.5 bg-glass-panel rounded-lg p-0.5">
             {HORIZONS.map(h => (
               <button
                 key={h}
@@ -155,8 +155,8 @@ export default function ForecastWidget() {
       {isLoading ? (
         <div className="h-52 flex flex-col items-center justify-center gap-3">
           <div className="relative h-8 w-8">
-            <Cpu className="h-8 w-8 text-violet-400/20 absolute inset-0" />
-            <Cpu className="h-8 w-8 text-violet-400 animate-ping absolute inset-0 opacity-25" />
+            <Cpu className="h-8 w-8 text-accent-2/20 absolute inset-0" />
+            <Cpu className="h-8 w-8 text-accent-2 animate-ping absolute inset-0 opacity-25" />
           </div>
           <p className="text-xs text-text-muted">
             Generating {metricCfg.label.toLowerCase()} forecast for {horizon} months…

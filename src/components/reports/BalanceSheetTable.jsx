@@ -29,7 +29,7 @@ export default function BalanceSheetTable({ data, loading }) {
 
   return (
     <div>
-      <div className={cn('mb-4 rounded-lg px-4 py-2 text-sm', balanced ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300')}>
+      <div className={cn('mb-4 rounded-lg px-4 py-2 text-sm', balanced ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative')}>
         {balanced ? '? Balance sheet balances (Assets = Liabilities + Equity)' : '? Assets do not equal Liabilities + Equity'}
       </div>
       <div className="grid gap-6 rounded-xl border border-glass bg-navy-2 p-6 shadow-card lg:grid-cols-2">

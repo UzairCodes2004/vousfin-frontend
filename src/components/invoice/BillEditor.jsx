@@ -430,7 +430,7 @@ export default function BillEditor({
               currency={currencyCode}
             />
             {whtAmount > 0 && (
-              <div className="mt-3 pt-3 border-t border-glass/40 flex justify-between text-xs text-amber-400">
+              <div className="mt-3 pt-3 border-t border-glass/40 flex justify-between text-xs text-amber">
                 <span>WHT Deducted</span>
                 <span className="font-mono">- {whtAmount.toFixed(2)}</span>
               </div>

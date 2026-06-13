@@ -268,7 +268,7 @@ export const Select = forwardRef(({
           'px-4 py-3 text-left text-sm transition-premium',
           'focus:outline-none focus:ring-2 focus:ring-cyan/20',
           error
-            ? 'border-red-500/50'
+            ? 'border-negative/50'
             : open
               ? 'border-cyan/50 bg-glass-hover'
               : 'border-glass hover:border-cyan/30 hover:bg-glass-hover focus:border-cyan'
@@ -290,7 +290,7 @@ export const Select = forwardRef(({
       {/* ── Portal: dropdown rendered into document.body ─────────────── */}
       {typeof document !== 'undefined' && panel && createPortal(panel, document.body)}
 
-      {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-negative">{error}</p>}
     </div>
   )
 })

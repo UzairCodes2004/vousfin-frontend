@@ -78,9 +78,9 @@ export default function ActivityTimeline({ timeline = [], loading = false, empty
           const Icon = entry.action === 'approved' ? CheckCircle2
                      : entry.action === 'rejected' ? XCircle
                      : ClipboardCheck
-          const color = entry.action === 'approved' ? 'bg-emerald/10 text-emerald-300 border-emerald/30'
-                      : entry.action === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/30'
-                      : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+          const color = entry.action === 'approved' ? 'bg-emerald/10 text-positive border-emerald/30'
+                      : entry.action === 'rejected' ? 'bg-negative/10 text-negative border-negative/30'
+                      : 'bg-amber/10 text-amber border-amber/30'
           const titleByAction = {
             submitted: 'Submitted for approval',
             approved:  'Approved',

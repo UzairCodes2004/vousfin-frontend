@@ -28,19 +28,19 @@ import ReminderStateBadge    from '@/components/ap/ReminderStateBadge'
 
 const COLUMNS = [
   { key: 'inbox',            label: 'Inbox',            states: ['draft'],               color: 'border-glass', headerBg: 'bg-glass/50' },
-  { key: 'under_review',     label: 'Under Review',     states: ['awaiting_approval'],   color: 'border-amber-500/30',  headerBg: 'bg-amber-500/10'  },
-  { key: 'approved',         label: 'Approved',         states: ['approved'],            color: 'border-emerald-500/30',headerBg: 'bg-emerald-500/10'},
-  { key: 'scheduled',        label: 'Scheduled',        states: ['scheduled'],           color: 'border-sky-500/30',    headerBg: 'bg-sky-500/10'    },
-  { key: 'paid',             label: 'Paid',             states: ['paid'],                color: 'border-emerald-700/30',headerBg: 'bg-emerald-700/10'},
-  { key: 'blocked',          label: 'Blocked',          states: ['overdue', 'cancelled'],color: 'border-red-500/30',    headerBg: 'bg-red-500/10'    },
+  { key: 'under_review',     label: 'Under Review',     states: ['awaiting_approval'],   color: 'border-amber/30',  headerBg: 'bg-amber/10'  },
+  { key: 'approved',         label: 'Approved',         states: ['approved'],            color: 'border-positive/30',headerBg: 'bg-positive/10'},
+  { key: 'scheduled',        label: 'Scheduled',        states: ['scheduled'],           color: 'border-cyan/30',    headerBg: 'bg-cyan/10'    },
+  { key: 'paid',             label: 'Paid',             states: ['paid'],                color: 'border-positive/30',headerBg: 'bg-positive/10'},
+  { key: 'blocked',          label: 'Blocked',          states: ['overdue', 'cancelled'],color: 'border-negative/30',    headerBg: 'bg-negative/10'    },
 ]
 
 const MATCH_STATUS_COLORS = {
-  matched:       'text-emerald-400',
-  over_billed:   'text-amber-400',
-  under_received:'text-amber-400',
-  mismatch:      'text-orange-400',
-  blocked:       'text-red-400',
+  matched:       'text-positive',
+  over_billed:   'text-amber',
+  under_received:'text-amber',
+  mismatch:      'text-amber',
+  blocked:       'text-negative',
 }
 
 const fmt = (n) => n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : n >= 1e3 ? `${(n/1e3).toFixed(0)}K` : String(Math.round(n || 0))
@@ -76,7 +76,7 @@ function BillCard({ bill }) {
       )}
 
       {bill.isRecurring && (
-        <div className="flex items-center gap-1 text-[10px] text-sky-400">
+        <div className="flex items-center gap-1 text-[10px] text-cyan">
           <Repeat className="h-3 w-3" />
           Recurring
         </div>
@@ -122,7 +122,7 @@ function ScheduleRow({ schedule, onDeactivate }) {
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`text-[11px] px-1.5 py-0.5 rounded ${schedule.isActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-glass text-text-muted'}`}>
+        <span className={`text-[11px] px-1.5 py-0.5 rounded ${schedule.isActive ? 'bg-positive/15 text-positive' : 'bg-glass text-text-muted'}`}>
           {schedule.isActive ? 'Active' : 'Inactive'}
         </span>
         {schedule.isActive && (
@@ -130,7 +130,7 @@ function ScheduleRow({ schedule, onDeactivate }) {
             type="button"
             onClick={() => deactivate.mutate(schedule._id)}
             disabled={deactivate.isPending}
-            className="text-[11px] text-red-400 hover:text-red-300 transition-colors"
+            className="text-[11px] text-negative hover:text-negative transition-colors"
           >
             Stop
           </button>
@@ -214,10 +214,10 @@ export default function APWorkflowBoard() {
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { key: 'upcoming', label: 'Upcoming', color: 'text-sky-400' },
-                  { key: 'due_today', label: 'Due Today', color: 'text-amber-300' },
-                  { key: 'overdue', label: 'Overdue', color: 'text-orange-400' },
-                  { key: 'critical_overdue', label: 'Critical', color: 'text-red-400' },
+                  { key: 'upcoming', label: 'Upcoming', color: 'text-cyan' },
+                  { key: 'due_today', label: 'Due Today', color: 'text-amber' },
+                  { key: 'overdue', label: 'Overdue', color: 'text-amber' },
+                  { key: 'critical_overdue', label: 'Critical', color: 'text-negative' },
                 ].map(({ key, label, color }) => (
                   <div key={key} className="text-center">
                     <p className={`text-lg font-bold ${color}`}>{reminderData[key]?.count || 0}</p>
@@ -234,10 +234,10 @@ export default function APWorkflowBoard() {
               <h3 className="text-xs font-bold text-text-primary">Vendor Risk</h3>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { level: 'low',      color: 'text-emerald-400' },
-                  { level: 'medium',   color: 'text-sky-400'     },
-                  { level: 'high',     color: 'text-amber-400'   },
-                  { level: 'critical', color: 'text-red-400'     },
+                  { level: 'low',      color: 'text-positive' },
+                  { level: 'medium',   color: 'text-cyan'     },
+                  { level: 'high',     color: 'text-amber'   },
+                  { level: 'critical', color: 'text-negative'     },
                 ].map(({ level, color }) => riskSummary[level] > 0 && (
                   <div key={level} className="text-center">
                     <p className={`text-base font-bold ${color}`}>{riskSummary[level]}</p>

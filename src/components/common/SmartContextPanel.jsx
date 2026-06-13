@@ -17,10 +17,10 @@ import { deriveEntityContext } from '@/utils/contextualEngine'
 import { cn } from '@/utils/cn'
 
 const ALERT_STYLE = {
-  danger:  { wrap: 'border-red-500/30 bg-red-500/5 text-red-300',       Icon: AlertCircle },
-  warning: { wrap: 'border-amber-500/30 bg-amber-500/5 text-amber-300', Icon: AlertTriangle },
+  danger:  { wrap: 'border-negative/30 bg-negative/5 text-negative',       Icon: AlertCircle },
+  warning: { wrap: 'border-amber/30 bg-amber/5 text-amber', Icon: AlertTriangle },
   info:    { wrap: 'border-cyan/25 bg-cyan/5 text-cyan',                Icon: Info },
-  success: { wrap: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300', Icon: Info },
+  success: { wrap: 'border-positive/30 bg-positive/5 text-positive', Icon: Info },
 }
 
 export default function SmartContextPanel({ kind, entity, onAction, className = '' }) {

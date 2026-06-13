@@ -13,9 +13,9 @@ const CustomTooltip = memo(({ active, payload, label, currency }) => {
     <div className="rounded-xl border border-glass bg-charcoal/95 backdrop-blur-sm p-3 shadow-elevated text-xs">
       <p className="font-bold text-text-primary mb-1">{label}</p>
       <div className="flex items-center gap-2">
-        <div className={`h-2 w-2 rounded-full ${value >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`} />
+        <div className={`h-2 w-2 rounded-full ${value >= 0 ? 'bg-positive' : 'bg-negative'}`} />
         <span className="text-text-secondary">Net Cash:</span>
-        <span className={`font-bold ${value >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+        <span className={`font-bold ${value >= 0 ? 'text-positive' : 'text-negative'}`}>
           {formatCurrency(value, currency)}
         </span>
       </div>

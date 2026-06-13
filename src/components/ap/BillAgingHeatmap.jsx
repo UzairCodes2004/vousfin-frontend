@@ -10,11 +10,11 @@
 import { BarChart2 } from 'lucide-react'
 
 const BUCKETS = [
-  { key: 'current',   label: 'Current',  color: 'bg-emerald-400' },
-  { key: '1_30',      label: '1–30d',    color: 'bg-sky-400'     },
-  { key: '31_60',     label: '31–60d',   color: 'bg-amber-400'   },
-  { key: '61_90',     label: '61–90d',   color: 'bg-orange-400'  },
-  { key: '90_plus',   label: '90+ days', color: 'bg-red-400'     },
+  { key: 'current',   label: 'Current',  color: 'bg-positive' },
+  { key: '1_30',      label: '1–30d',    color: 'bg-cyan'     },
+  { key: '31_60',     label: '31–60d',   color: 'bg-amber'   },
+  { key: '61_90',     label: '61–90d',   color: 'bg-amber'  },
+  { key: '90_plus',   label: '90+ days', color: 'bg-negative'     },
 ]
 
 const fmt = (n) =>

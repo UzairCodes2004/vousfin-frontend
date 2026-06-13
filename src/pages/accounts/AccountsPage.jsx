@@ -95,7 +95,7 @@ export default function AccountsPage() {
         const colorClass = bal === 0
           ? 'text-text-muted'
           : isPositiveGood
-            ? bal > 0 ? 'text-emerald-400' : 'text-red-400'
+            ? bal > 0 ? 'text-positive' : 'text-negative'
             : 'text-text-primary'
         return (
           <span className={`font-bold tracking-tight ${colorClass}`}>

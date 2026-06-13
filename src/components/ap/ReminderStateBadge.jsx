@@ -7,10 +7,10 @@
 import { Clock, AlertCircle, AlertTriangle, Bell } from 'lucide-react'
 
 const STATE_CONFIG = {
-  upcoming:         { label: 'Upcoming',          bg: 'bg-sky-500/15',   text: 'text-sky-400',   Icon: Bell         },
-  due_today:        { label: 'Due Today',          bg: 'bg-amber-500/20', text: 'text-amber-300', Icon: AlertTriangle },
-  overdue:          { label: 'Overdue',            bg: 'bg-orange-500/20',text: 'text-orange-400',Icon: AlertCircle  },
-  critical_overdue: { label: 'Critical Overdue',   bg: 'bg-red-500/20',   text: 'text-red-400',   Icon: AlertCircle  },
+  upcoming:         { label: 'Upcoming',          bg: 'bg-cyan/15',   text: 'text-cyan',   Icon: Bell         },
+  due_today:        { label: 'Due Today',          bg: 'bg-amber/20', text: 'text-amber', Icon: AlertTriangle },
+  overdue:          { label: 'Overdue',            bg: 'bg-amber/20',text: 'text-amber',Icon: AlertCircle  },
+  critical_overdue: { label: 'Critical Overdue',   bg: 'bg-negative/20',   text: 'text-negative',   Icon: AlertCircle  },
 }
 
 export default function ReminderStateBadge({ state }) {

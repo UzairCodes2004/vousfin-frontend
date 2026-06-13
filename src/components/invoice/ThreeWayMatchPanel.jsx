@@ -16,13 +16,13 @@ import Button from '@/components/ui/Button'
 // ── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  matched:        { color: 'text-emerald-400',  bg: 'bg-emerald-400/10 border-emerald-400/30', icon: CheckCircle2, label: 'Matched' },
-  partial_match:  { color: 'text-sky-400',      bg: 'bg-sky-400/10 border-sky-400/30',         icon: Info,         label: 'Partial Match' },
-  over_billed:    { color: 'text-amber-400',    bg: 'bg-amber-400/10 border-amber-400/30',     icon: AlertTriangle,label: 'Over-Billed' },
-  under_received: { color: 'text-amber-400',    bg: 'bg-amber-400/10 border-amber-400/30',     icon: AlertTriangle,label: 'Under-Received' },
-  mismatch:       { color: 'text-orange-400',   bg: 'bg-orange-400/10 border-orange-400/30',   icon: AlertTriangle,label: 'Mismatch' },
-  discrepancy:    { color: 'text-orange-400',   bg: 'bg-orange-400/10 border-orange-400/30',   icon: AlertTriangle,label: 'Discrepancy' },
-  blocked:        { color: 'text-red-400',      bg: 'bg-red-400/10 border-red-400/30',         icon: XCircle,      label: 'Blocked' },
+  matched:        { color: 'text-positive',  bg: 'bg-positive/10 border-positive/30', icon: CheckCircle2, label: 'Matched' },
+  partial_match:  { color: 'text-cyan',      bg: 'bg-cyan/10 border-cyan/30',         icon: Info,         label: 'Partial Match' },
+  over_billed:    { color: 'text-amber',    bg: 'bg-amber/10 border-amber/30',     icon: AlertTriangle,label: 'Over-Billed' },
+  under_received: { color: 'text-amber',    bg: 'bg-amber/10 border-amber/30',     icon: AlertTriangle,label: 'Under-Received' },
+  mismatch:       { color: 'text-amber',   bg: 'bg-amber/10 border-amber/30',   icon: AlertTriangle,label: 'Mismatch' },
+  discrepancy:    { color: 'text-amber',   bg: 'bg-amber/10 border-amber/30',   icon: AlertTriangle,label: 'Discrepancy' },
+  blocked:        { color: 'text-negative',      bg: 'bg-negative/10 border-negative/30',         icon: XCircle,      label: 'Blocked' },
   pending:        { color: 'text-text-muted',   bg: 'bg-glass-panel border-glass',             icon: RefreshCw,    label: 'Pending' },
   none:           { color: 'text-text-muted',   bg: 'bg-glass-panel border-glass',             icon: Info,         label: 'Not Applicable' },
 }
@@ -33,8 +33,8 @@ const pct = (n) => (typeof n === 'number' ? `${n.toFixed(1)}%` : '—')
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function VarianceRow({ label, value, level }) {
-  const color = level === 'block' ? 'text-red-400'
-              : level === 'warn'  ? 'text-amber-400'
+  const color = level === 'block' ? 'text-negative'
+              : level === 'warn'  ? 'text-amber'
               : 'text-text-secondary'
   return (
     <div className="flex items-center justify-between py-1 text-xs border-b border-glass last:border-0">
@@ -92,7 +92,7 @@ export default function ThreeWayMatchPanel({ bill, onRunMatch, isRunning = false
 
       {/* ── Duplicate warning ── */}
       {matchResult?.duplicateCheck?.isDuplicate && (
-        <div className="rounded-lg bg-red-400/10 border border-red-400/30 px-3 py-2 text-xs text-red-400">
+        <div className="rounded-lg bg-negative/10 border border-negative/30 px-3 py-2 text-xs text-negative">
           <span className="font-semibold">Potential duplicate</span> — conflicts with bill{' '}
           <span className="font-mono font-semibold">
             {matchResult.duplicateCheck.conflictingBillNumber || 'unknown'}
@@ -130,13 +130,13 @@ export default function ThreeWayMatchPanel({ bill, onRunMatch, isRunning = false
           <div className="space-y-1">
             {matchResult.poMatch.lineVariances.map((lv, i) => (
               <div key={i} className={`rounded-md px-2 py-1.5 text-xs border ${
-                lv.lineLevel === 'block' ? 'bg-red-400/5 border-red-400/20 text-red-300'
-                : lv.lineLevel === 'warn' ? 'bg-amber-400/5 border-amber-400/20 text-amber-300'
+                lv.lineLevel === 'block' ? 'bg-negative/5 border-negative/20 text-negative'
+                : lv.lineLevel === 'warn' ? 'bg-amber/5 border-amber/20 text-amber'
                 : 'bg-glass-panel border-glass text-text-secondary'
               }`}>
                 <span className="font-medium">{lv.billLineName || lv.poLineName || 'Line'}</span>
                 {lv.matched === false && (
-                  <span className="ml-2 text-red-400">No matching PO line</span>
+                  <span className="ml-2 text-negative">No matching PO line</span>
                 )}
                 {lv.matched && lv.lineLevel !== 'ok' && (
                   <span className="ml-2 opacity-80">{lv.detail}</span>

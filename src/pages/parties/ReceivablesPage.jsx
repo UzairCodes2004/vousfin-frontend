@@ -229,12 +229,12 @@ export default function ReceivablesPage() {
         <span
           className={cn(
             'text-xs',
-            isStaleDate(r._date) ? 'text-red-400 font-semibold' : 'text-text-secondary'
+            isStaleDate(r._date) ? 'text-negative font-semibold' : 'text-text-secondary'
           )}
           title={isStaleDate(r._date) ? 'Date may be incorrect' : undefined}
         >
           {formatDate(r._date)}
-          {isStaleDate(r._date) && <AlertTriangle className="inline ml-1 h-3 w-3 text-red-400" />}
+          {isStaleDate(r._date) && <AlertTriangle className="inline ml-1 h-3 w-3 text-negative" />}
         </span>
       ),
     },
@@ -276,7 +276,7 @@ export default function ReceivablesPage() {
         if (!r._dueDate) return <span className="text-text-muted text-xs">—</span>
         const overdue = daysSince(r._dueDate) > 0
         return (
-          <span className={cn('text-xs', overdue ? 'text-red-400 font-semibold' : 'text-text-secondary')}>
+          <span className={cn('text-xs', overdue ? 'text-negative font-semibold' : 'text-text-secondary')}>
             {formatDate(r._dueDate)}
             {overdue && <AlertTriangle className="inline ml-1 h-3 w-3" />}
           </span>
@@ -402,7 +402,7 @@ export default function ReceivablesPage() {
       {aging && (
         <div className="premium-card p-5">
           <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400" /> AR Aging Analysis
+            <AlertTriangle className="h-4 w-4 text-amber" /> AR Aging Analysis
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
@@ -467,7 +467,7 @@ export default function ReceivablesPage() {
       </div>
 
       {!isLoading && rows.length === 0 && (
-        <div className="premium-card p-6 border-emerald-500/20 bg-emerald-500/5 text-sm text-emerald-300 flex items-center gap-2">
+        <div className="premium-card p-6 border-positive/20 bg-positive/5 text-sm text-positive flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4" />
           You have no unpaid invoices. Cash flow looks healthy!
         </div>

@@ -7,10 +7,10 @@
 import { ShieldAlert, ShieldCheck, Shield } from 'lucide-react'
 
 const LEVEL_CONFIG = {
-  low:      { label: 'Low Risk',      bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30', Icon: ShieldCheck },
-  medium:   { label: 'Medium Risk',   bg: 'bg-sky-500/15',     text: 'text-sky-400',     border: 'border-sky-500/30',     Icon: Shield      },
-  high:     { label: 'High Risk',     bg: 'bg-amber-500/15',   text: 'text-amber-400',   border: 'border-amber-500/30',   Icon: ShieldAlert },
-  critical: { label: 'Critical Risk', bg: 'bg-red-500/15',     text: 'text-red-400',     border: 'border-red-500/30',     Icon: ShieldAlert },
+  low:      { label: 'Low Risk',      bg: 'bg-positive/15', text: 'text-positive', border: 'border-positive/30', Icon: ShieldCheck },
+  medium:   { label: 'Medium Risk',   bg: 'bg-cyan/15',     text: 'text-cyan',     border: 'border-cyan/30',     Icon: Shield      },
+  high:     { label: 'High Risk',     bg: 'bg-amber/15',   text: 'text-amber',   border: 'border-amber/30',   Icon: ShieldAlert },
+  critical: { label: 'Critical Risk', bg: 'bg-negative/15',     text: 'text-negative',     border: 'border-negative/30',     Icon: ShieldAlert },
 }
 
 const FACTOR_LABELS = {
@@ -22,10 +22,10 @@ const FACTOR_LABELS = {
 }
 
 function ScoreBar({ score, level }) {
-  const color = level === 'low' ? 'bg-emerald-400'
-              : level === 'medium' ? 'bg-sky-400'
-              : level === 'high' ? 'bg-amber-400'
-              : 'bg-red-400'
+  const color = level === 'low' ? 'bg-positive'
+              : level === 'medium' ? 'bg-cyan'
+              : level === 'high' ? 'bg-amber'
+              : 'bg-negative'
   return (
     <div className="flex items-center gap-2 mt-1">
       <div className="flex-1 h-1.5 rounded-full bg-glass overflow-hidden">

@@ -50,7 +50,7 @@ function RateForm({ defaultValues, baseCurrency, onSave, onCancel, isPending }) 
   })
   return (
     <form onSubmit={handleSubmit(onSave)}
-      className="grid grid-cols-2 sm:grid-cols-6 gap-3 p-4 bg-white/[0.05] rounded-xl border border-cyan/20">
+      className="grid grid-cols-2 sm:grid-cols-6 gap-3 p-4 bg-glass-panel rounded-xl border border-cyan/20">
       <Input label="From" placeholder="USD" {...register('fromCurrency')}
         error={errors.fromCurrency?.message} className="uppercase" />
       <Input label="To" placeholder="PKR" {...register('toCurrency')}
@@ -205,8 +205,8 @@ export default function CurrencyRatesPage() {
         isSyncing
           ? 'border-cyan/30 bg-cyan/5'
           : lastSynced
-            ? 'border-emerald-500/20 bg-emerald-500/5'
-            : 'border-glass bg-white/[0.04]'
+            ? 'border-positive/20 bg-positive/5'
+            : 'border-glass bg-glass-panel'
       }`}>
         {isSyncing ? (
           <>
@@ -215,7 +215,7 @@ export default function CurrencyRatesPage() {
           </>
         ) : lastSynced ? (
           <>
-            <Zap className="h-4 w-4 text-emerald-400 shrink-0" />
+            <Zap className="h-4 w-4 text-positive shrink-0" />
             <span className="text-text-secondary">
               Last synced <strong className="text-text-primary">{timeAgo(lastSynced)}</strong>
               {syncSource && <span className="text-text-muted"> · {syncSource}</span>}
@@ -254,7 +254,7 @@ export default function CurrencyRatesPage() {
                 <span className={`ml-1 text-[9px] rounded px-1 py-px font-semibold ${
                   r.source === 'imported'
                     ? 'bg-cyan/10 text-cyan border border-cyan/20'
-                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    : 'bg-amber/10 text-amber border border-amber/20'
                 }`}>
                   {r.source === 'imported' ? 'LIVE' : 'MANUAL'}
                 </span>
@@ -363,7 +363,7 @@ export default function CurrencyRatesPage() {
                         <span className={`text-[10px] rounded px-1.5 py-px font-semibold border ${
                           r.source === 'imported'
                             ? 'bg-cyan/10 text-cyan border-cyan/20'
-                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            : 'bg-amber/10 text-amber border-amber/20'
                         }`}>
                           {r.source === 'imported' ? '⚡ LIVE' : '✎ MANUAL'}
                         </span>
@@ -379,7 +379,7 @@ export default function CurrencyRatesPage() {
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
                           <button onClick={() => handleDelete(r._id)}
-                            className="rounded p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            className="rounded p-1.5 text-text-muted hover:text-negative hover:bg-negative/10 transition-colors"
                             title="Delete">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -395,7 +395,7 @@ export default function CurrencyRatesPage() {
       </div>
 
       {/* ── Info footer ──────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-glass bg-white/[0.04] px-4 py-3 space-y-1">
+      <div className="rounded-xl border border-glass bg-glass-panel px-4 py-3 space-y-1">
         <p className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
           <Wifi className="h-3.5 w-3.5 text-cyan" /> How automatic sync works
         </p>

@@ -332,7 +332,7 @@ function PeriodsTable({ fiscalYearId, fyStatus }) {
                           </Button>
                           <Button
                             variant="ghost"
-                            className="!py-1.5 !px-3 !text-xs text-amber-400 hover:text-amber-300"
+                            className="!py-1.5 !px-3 !text-xs text-amber hover:text-amber"
                             icon={RotateCcw}
                             loading={reopenPeriod.isPending}
                             onClick={() => reopenPeriod.mutate({ periodId: p._id })}
@@ -456,9 +456,9 @@ function FiscalYearRow({ fy }) {
       {showCloseConfirm && (
         <div className="mt-4 rounded-lg border border-amber/30 bg-amber/5 p-4 space-y-3">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-amber mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-amber-300">Run Year-End Closing Entries?</p>
+              <p className="text-sm font-semibold text-amber">Run Year-End Closing Entries?</p>
               <p className="text-xs text-text-muted mt-1">
                 This will transfer all Revenue and Expense balances to Retained Earnings.
                 All 12 monthly periods must be closed first. This action cannot be undone.
@@ -483,11 +483,11 @@ function FiscalYearRow({ fy }) {
 
       {/* Lock confirm */}
       {showLockConfirm && (
-        <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/5 p-4 space-y-3">
+        <div className="mt-4 rounded-lg border border-negative/30 bg-negative/5 p-4 space-y-3">
           <div className="flex items-start gap-2">
-            <Lock className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <Lock className="h-4 w-4 text-negative mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-red-300">Permanently Lock This Fiscal Year?</p>
+              <p className="text-sm font-semibold text-negative">Permanently Lock This Fiscal Year?</p>
               <p className="text-xs text-text-muted mt-1">
                 Once locked, no transactions can be posted, edited, or reversed in any period of this
                 fiscal year. This action is irreversible.
@@ -554,15 +554,15 @@ export default function FiscalYearPage() {
       <div className="grid grid-cols-3 gap-4">
         <Card className="text-center">
           <p className="text-xs text-text-muted uppercase tracking-wider">Open Years</p>
-          <p className="mt-1 text-3xl font-black text-emerald-400">{openCount}</p>
+          <p className="mt-1 text-3xl font-black text-positive">{openCount}</p>
         </Card>
         <Card className="text-center">
           <p className="text-xs text-text-muted uppercase tracking-wider">Closed Years</p>
-          <p className="mt-1 text-3xl font-black text-amber-400">{closedCount}</p>
+          <p className="mt-1 text-3xl font-black text-amber">{closedCount}</p>
         </Card>
         <Card className="text-center">
           <p className="text-xs text-text-muted uppercase tracking-wider">Locked Years</p>
-          <p className="mt-1 text-3xl font-black text-red-400">{lockedCount}</p>
+          <p className="mt-1 text-3xl font-black text-negative">{lockedCount}</p>
         </Card>
       </div>
 

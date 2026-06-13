@@ -89,7 +89,7 @@ export default function BillsListPage() {
       render: (r) => {
         const balance = r.remainingBalance ?? (r.totalAmount || 0) - (r.paidAmount || 0)
         return (
-          <span className={`font-mono text-sm ${balance > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+          <span className={`font-mono text-sm ${balance > 0 ? 'text-amber' : 'text-positive'}`}>
             {formatCurrency(balance, r.currencyCode || currency)}
           </span>
         )
@@ -130,7 +130,7 @@ export default function BillsListPage() {
                 archiveBill.mutate({ id: r._id })
               }
             }}
-            className="text-text-muted hover:text-red-400 transition-colors"
+            className="text-text-muted hover:text-negative transition-colors"
             title="Archive"
           >
             <Trash2 className="h-4 w-4" />

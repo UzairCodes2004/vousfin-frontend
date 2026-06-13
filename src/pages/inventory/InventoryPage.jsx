@@ -343,9 +343,9 @@ function AddStockForm({ item, onClose, currency }) {
   ]
 
   return (
-    <div className="bg-navy/80 border border-emerald-500/20 rounded-xl p-4 space-y-4 animate-fade-in">
+    <div className="bg-navy/80 border border-positive/20 rounded-xl p-4 space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+        <p className="text-sm font-semibold text-positive flex items-center gap-1.5">
           <Plus className="h-4 w-4" /> Add Stock — {item.name}
         </p>
         <button type="button" onClick={onClose} className="text-text-muted hover:text-text-primary">
@@ -377,8 +377,8 @@ function AddStockForm({ item, onClose, currency }) {
               className={cn(
                 'rounded-lg border px-2 py-2 text-xs font-semibold transition-all',
                 paymentMode === opt.value
-                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-                  : 'border-glass text-text-muted hover:border-emerald-500/30 hover:text-text-secondary'
+                  ? 'border-positive bg-positive/10 text-positive'
+                  : 'border-glass text-text-muted hover:border-positive/30 hover:text-text-secondary'
               )}
             >
               {opt.label}
@@ -391,10 +391,10 @@ function AddStockForm({ item, onClose, currency }) {
       {isCredit ? (
         <div>
           <label className="block text-xs font-medium text-text-secondary mb-1.5">
-            Vendor <span className="text-red-400">*</span>
+            Vendor <span className="text-negative">*</span>
           </label>
           <select
-            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-emerald-500 focus:outline-none"
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-positive focus:outline-none"
             value={vendorId}
             onChange={e => setVendorId(e.target.value)}
           >
@@ -413,10 +413,10 @@ function AddStockForm({ item, onClose, currency }) {
         <div>
           <label className="block text-xs font-medium text-text-secondary mb-1.5">
             {paymentMode === 'bank' ? 'Bank Account' : 'Cash Account'}
-            <span className="text-red-400"> *</span>
+            <span className="text-negative"> *</span>
           </label>
           <select
-            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-emerald-500 focus:outline-none"
+            className="w-full px-3 py-2 rounded-lg bg-glass-panel border border-glass text-text-primary text-sm focus:border-positive focus:outline-none"
             value={sourceAccountId}
             onChange={e => setSourceAccountId(e.target.value)}
           >
@@ -467,7 +467,7 @@ function MovementBadge({ type }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 rounded px-1.5 py-px text-[10px] font-semibold',
-      isIn ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+      isIn ? 'bg-positive/10 text-positive' : 'bg-amber/10 text-amber'
     )}>
       {isIn ? <ArrowDownLeft className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
       {type}
@@ -490,13 +490,13 @@ function StockLedgerModal({ item, onClose, currency }) {
 
         {/* Summary chips */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+          <div className="rounded-lg border border-positive/20 bg-positive/5 p-3">
             <span className="block text-[10px] text-text-muted uppercase tracking-wider">Total In</span>
-            <span className="text-lg font-black text-emerald-400 tabular-nums">+{summary.totalIn}</span>
+            <span className="text-lg font-black text-positive tabular-nums">+{summary.totalIn}</span>
           </div>
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <div className="rounded-lg border border-amber/20 bg-amber/5 p-3">
             <span className="block text-[10px] text-text-muted uppercase tracking-wider">Total Out</span>
-            <span className="text-lg font-black text-amber-400 tabular-nums">−{summary.totalOut}</span>
+            <span className="text-lg font-black text-amber tabular-nums">−{summary.totalOut}</span>
           </div>
           <div className="rounded-lg border border-glass bg-glass-panel p-3">
             <span className="block text-[10px] text-text-muted uppercase tracking-wider">Current Stock</span>
@@ -527,7 +527,7 @@ function StockLedgerModal({ item, onClose, currency }) {
                 <tr><td colSpan={7} className="px-3 py-8 text-center text-text-muted">Loading movement history…</td></tr>
               )}
               {isError && !isLoading && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-red-400">Could not load the stock ledger.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-negative">Could not load the stock ledger.</td></tr>
               )}
               {!isLoading && !isError && lines.length === 0 && (
                 <tr><td colSpan={7} className="px-3 py-8 text-center text-text-muted">
@@ -541,8 +541,8 @@ function StockLedgerModal({ item, onClose, currency }) {
                   </td>
                   <td className="px-3 py-2 text-text-primary max-w-[16rem] truncate" title={l.description}>{l.description || '—'}</td>
                   <td className="px-3 py-2"><MovementBadge type={l.type} /></td>
-                  <td className="px-3 py-2 text-right tabular-nums text-emerald-400">{l.qtyIn  ? `+${l.qtyIn}`  : '—'}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-amber-400">{l.qtyOut ? `−${l.qtyOut}` : '—'}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-positive">{l.qtyIn  ? `+${l.qtyIn}`  : '—'}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-amber">{l.qtyOut ? `−${l.qtyOut}` : '—'}</td>
                   <td className="px-3 py-2 text-right tabular-nums font-semibold text-text-primary">{l.balance}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-text-secondary">{formatCurrency(l.amount, currency)}</td>
                 </tr>
@@ -618,10 +618,10 @@ export default function InventoryPage() {
         const isLow = r.currentStock <= r.reorderLevel
         return (
           <div className="flex items-center gap-1.5">
-            <span className={cn('font-bold text-sm', isLow ? 'text-red-400' : 'text-text-primary')}>
+            <span className={cn('font-bold text-sm', isLow ? 'text-negative' : 'text-text-primary')}>
               {r.currentStock} {r.unit}
             </span>
-            {isLow && <AlertTriangle className="h-3.5 w-3.5 text-red-400 flex-shrink-0" title="Below reorder level" />}
+            {isLow && <AlertTriangle className="h-3.5 w-3.5 text-negative flex-shrink-0" title="Below reorder level" />}
           </div>
         )
       },
@@ -632,7 +632,7 @@ export default function InventoryPage() {
       render: (r) => (
         <div className="text-xs space-y-0.5">
           <div className="font-mono text-text-primary">{formatCurrency(r.unitCostPrice, currency)}</div>
-          {r.unitSalePrice && <div className="font-mono text-emerald-400">{formatCurrency(r.unitSalePrice, currency)}</div>}
+          {r.unitSalePrice && <div className="font-mono text-positive">{formatCurrency(r.unitSalePrice, currency)}</div>}
         </div>
       ),
     },
@@ -660,7 +660,7 @@ export default function InventoryPage() {
       key: 'tax',
       header: 'Tax %',
       render: (r) => r.taxRate != null
-        ? <span className="text-xs text-amber-400 font-mono">{r.taxRate}%</span>
+        ? <span className="text-xs text-amber font-mono">{r.taxRate}%</span>
         : <span className="text-text-muted text-xs">—</span>,
     },
     {
@@ -676,7 +676,7 @@ export default function InventoryPage() {
       render: (r) => (
         <div className="flex items-center gap-2">
           <button type="button" onClick={e => { e.stopPropagation(); setAddStockId(r._id === addStockId ? null : r._id) }}
-            className="text-[11px] text-emerald-400 hover:underline font-semibold">
+            className="text-[11px] text-positive hover:underline font-semibold">
             + Stock
           </button>
           <button type="button" onClick={e => { e.stopPropagation(); setLedgerId(r._id) }}
@@ -702,7 +702,7 @@ export default function InventoryPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black text-text-primary tracking-tight">
-            <PackageOpen className="h-6 w-6 text-emerald-400" />
+            <PackageOpen className="h-6 w-6 text-positive" />
             Inventory
           </h1>
           <p className="text-text-secondary mt-1 text-sm">
@@ -717,14 +717,14 @@ export default function InventoryPage() {
       {/* ── Valuation KPIs ────────────────────────────────────────── */}
       {valuation && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="premium-card p-5 flex flex-col gap-1 border-emerald-500/30 bg-emerald-500/5">
+          <div className="premium-card p-5 flex flex-col gap-1 border-positive/30 bg-positive/5">
             <span className="text-[11px] text-text-muted font-semibold uppercase tracking-wider">Total Stock Value</span>
             <span className="text-2xl font-black text-text-primary">{formatCurrency(valuation.totalValue, currency)}</span>
             <span className="text-xs text-text-muted">{valuation.itemCount} active items</span>
           </div>
           <div className="premium-card p-5 flex flex-col gap-1">
             <span className="text-[11px] text-text-muted font-semibold uppercase tracking-wider">Low Stock Alerts</span>
-            <span className={cn('text-2xl font-black', valuation.lowStockCount > 0 ? 'text-red-400' : 'text-text-primary')}>
+            <span className={cn('text-2xl font-black', valuation.lowStockCount > 0 ? 'text-negative' : 'text-text-primary')}>
               {valuation.lowStockCount}
             </span>
             <span className="text-xs text-text-muted">Items below reorder level</span>
@@ -739,21 +739,21 @@ export default function InventoryPage() {
 
       {/* ── Low Stock Banner ──────────────────────────────────────── */}
       {lowStockItems?.length > 0 && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 space-y-2">
+        <div className="rounded-xl border border-negative/30 bg-negative/5 p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
-            <p className="text-sm font-semibold text-red-300">
+            <AlertTriangle className="h-4 w-4 text-negative flex-shrink-0" />
+            <p className="text-sm font-semibold text-negative">
               {lowStockItems.length} item{lowStockItems.length !== 1 ? 's' : ''} below reorder level
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {lowStockItems.slice(0, 6).map(item => (
-              <span key={item._id} className="text-xs text-red-400 bg-red-500/10 rounded px-2 py-0.5 border border-red-500/20">
+              <span key={item._id} className="text-xs text-negative bg-negative/10 rounded px-2 py-0.5 border border-negative/20">
                 {item.name} ({item.currentStock} left)
               </span>
             ))}
             {lowStockItems.length > 6 && (
-              <span className="text-xs text-red-400">+{lowStockItems.length - 6} more</span>
+              <span className="text-xs text-negative">+{lowStockItems.length - 6} more</span>
             )}
           </div>
         </div>

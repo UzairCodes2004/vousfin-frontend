@@ -15,14 +15,16 @@
  * app retunes from this file + index.css.
  */
 
+const withAlpha = (v) => `rgb(var(${v}) / <alpha-value>)`
+
 const ACCENT = {
-  DEFAULT: '#3DDC97', // luminous jade — interactive elements
-  2: '#2BB67C',       // pressed / gradient anchor
-  soft: 'rgba(61, 220, 151, 0.12)',
+  DEFAULT: withAlpha('--c-accent'),
+  2: withAlpha('--c-accent2'),
+  soft: 'rgb(var(--c-accent) / 0.12)',
 }
 const GOLD = {
-  DEFAULT: '#D4A94E', // champagne foil
-  2: '#B68A33',
+  DEFAULT: withAlpha('--c-highlight'),
+  2: withAlpha('--c-highlight'),
 }
 
 export default {
@@ -31,13 +33,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* ── Surfaces (legacy names, nocturne values) ── */
+        /* ── Surfaces (names fixed, values from CSS variables) ── */
         navy: {
-          DEFAULT: '#070B09', // page canvas — deep moss black
-          2: '#0D1411',       // card surface
+          DEFAULT: withAlpha('--c-bg'), // page canvas
+          2: withAlpha('--c-bg2'),      // card surface
         },
         charcoal: {
-          DEFAULT: '#0A100D', // elevated: sidebar, modals, sheets
+          DEFAULT: withAlpha('--c-bg3'), // elevated: sidebar, modals, sheets
         },
 
         /* ── Accent (legacy: cyan; semantic: accent) ── */
@@ -45,36 +47,37 @@ export default {
         accent: ACCENT,
         gold: GOLD,
         amber: {
-          DEFAULT: '#E0B14B', // attention = candlelight amber
-          2: '#C99A38',
+          DEFAULT: withAlpha('--c-highlight'), // attention = theme highlight
+          2: withAlpha('--c-highlight'),
         },
 
         /* ── Money semantics ── */
         emerald: {
-          DEFAULT: '#3DDC97',
-          2: '#2BB67C',
-          3: '#6FE8B4',
+          DEFAULT: withAlpha('--c-positive'),
+          2: withAlpha('--c-accent2'),
+          3: withAlpha('--chart-profit'),
         },
-        positive: { DEFAULT: '#3DDC97', muted: 'rgba(61, 220, 151, 0.10)' },
-        negative: { DEFAULT: '#F2705B', muted: 'rgba(242, 112, 91, 0.10)' },
+        positive: { DEFAULT: withAlpha('--c-positive'), muted: 'rgb(var(--c-positive) / 0.10)' },
+        negative: { DEFAULT: withAlpha('--c-negative'), muted: 'rgb(var(--c-negative) / 0.10)' },
 
-        /* ── Text hierarchy — moonlit ivory on moss black ── */
+        /* ── Text hierarchy ── */
         text: {
-          primary: '#E9EFEA',
-          secondary: '#A3B0A8',
-          muted: '#6C7A71',
+          primary: withAlpha('--c-text'),
+          secondary: withAlpha('--c-text2'),
+          muted: withAlpha('--c-text3'),
         },
 
-        /* ── Legacy light tokens (now aligned to nocturne) ── */
+        /* ── Legacy ramp (mapped to accent family) ── */
         brand: {
-          50: '#0a1c14', 100: '#0e2a1d', 200: '#133b29', 300: '#1a5239',
-          400: '#22754f', 500: '#2BB67C', 600: '#3DDC97', 700: '#6FE8B4',
-          800: '#a3f2cf', 900: '#d2f9e7', 950: '#eefcf5',
+          50: withAlpha('--c-accent'), 100: withAlpha('--c-accent'), 200: withAlpha('--c-accent'),
+          300: withAlpha('--c-accent'), 400: withAlpha('--c-accent2'), 500: withAlpha('--c-accent2'),
+          600: withAlpha('--c-accent'), 700: withAlpha('--c-accent2'), 800: withAlpha('--c-accent2'),
+          900: withAlpha('--c-accent2'), 950: withAlpha('--c-bg'),
         },
         surface: {
-          DEFAULT: '#0D1411',
-          muted: '#070B09',
-          border: 'rgba(233, 239, 234, 0.08)',
+          DEFAULT: withAlpha('--c-bg2'),
+          muted: withAlpha('--c-bg'),
+          border: 'var(--c-border)',
         },
       },
 
@@ -92,14 +95,14 @@ export default {
         'glow-em': '0 0 0 1px rgba(61, 220, 151, 0.18), 0 8px 28px -10px rgba(61, 220, 151, 0.35)',
       },
 
-      /* Moonlit hairlines */
+      /* Hairlines — theme variables */
       borderColor: {
-        glass: 'rgba(233, 239, 234, 0.08)',
-        'glass-2': 'rgba(233, 239, 234, 0.16)',
+        glass: 'var(--c-border)',
+        'glass-2': 'var(--c-border2)',
       },
       backgroundColor: {
-        'glass-panel': 'rgba(233, 239, 234, 0.045)',
-        'glass-hover': 'rgba(233, 239, 234, 0.07)',
+        'glass-panel': 'var(--glass-panel)',
+        'glass-hover': 'var(--glass-hover)',
       },
 
       animation: {

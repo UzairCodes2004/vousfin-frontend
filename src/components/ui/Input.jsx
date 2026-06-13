@@ -39,7 +39,7 @@ export const Input = forwardRef(({
             'w-full rounded-lg border bg-glass-panel px-4 py-3 text-sm text-text-primary transition-premium placeholder:text-text-muted focus:border-cyan focus:outline-none focus:ring-2 focus:ring-cyan/20 focus:bg-glass-hover',
             Icon && 'pl-10',
             isPassword && 'pr-10',
-            error ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : 'border-glass',
+            error ? 'border-negative/50 focus:border-negative focus:ring-negative/20' : 'border-glass',
             className
           )}
           {...props}
@@ -55,7 +55,7 @@ export const Input = forwardRef(({
           </button>
         )}
       </div>
-      {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-negative">{error}</p>}
       {!error && helperText && <p className="mt-1.5 text-xs text-text-muted">{helperText}</p>}
     </div>
   )

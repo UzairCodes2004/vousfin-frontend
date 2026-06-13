@@ -152,7 +152,7 @@ export default function DataTable({
                   role={interactive ? 'button' : undefined}
                   className={cn(
                     'transition-colors',
-                    zebra && rowIndex % 2 === 1 && 'bg-white/[0.03]',
+                    zebra && rowIndex % 2 === 1 && 'bg-glass-panel',
                     interactive
                       ? 'cursor-pointer hover:bg-glass-hover focus:bg-glass-hover focus:outline-none focus:ring-2 focus:ring-cyan/30'
                       : 'hover:bg-glass-hover/50'

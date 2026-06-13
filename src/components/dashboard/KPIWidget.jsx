@@ -27,7 +27,7 @@ export default function KPIWidget({ title, value, format = 'currency', trend, lo
         <p
           className={cn(
             'mt-2 flex items-center gap-1 text-xs font-medium',
-            trend >= 0 ? 'text-emerald-400' : 'text-red-400'
+            trend >= 0 ? 'text-positive' : 'text-negative'
           )}
         >
           {trend >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}

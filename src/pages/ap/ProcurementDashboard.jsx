@@ -58,8 +58,8 @@ const KPI_STRIP = memo(function KPIStrip({ forecast, aging, reminder, risk }) {
       value:  fmt(reqs?.overdue?.amount),
       sub:    `${reqs?.overdue?.count ?? 0} bills`,
       icon:   AlertTriangle,
-      color:  'text-red-400',
-      bg:     'bg-red-500/10',
+      color:  'text-negative',
+      bg:     'bg-negative/10',
       alert:  (reqs?.overdue?.count ?? 0) > 0,
     },
     {
@@ -67,31 +67,31 @@ const KPI_STRIP = memo(function KPIStrip({ forecast, aging, reminder, risk }) {
       value:  fmt(reqs?.next30?.amount),
       sub:    `${reqs?.next30?.count ?? 0} bills`,
       icon:   Clock,
-      color:  'text-amber-400',
-      bg:     'bg-amber-500/10',
+      color:  'text-amber',
+      bg:     'bg-amber/10',
     },
     {
       label:  'Pending Approval',
       value:  reminder?.awaiting_approval?.count ?? '—',
       sub:    'bills awaiting',
       icon:   CheckCircle,
-      color:  'text-sky-400',
-      bg:     'bg-sky-500/10',
+      color:  'text-cyan',
+      bg:     'bg-cyan/10',
     },
     {
       label:  'Critical Risk',
       value:  risk?.critical ?? 0,
       sub:    'vendors',
       icon:   Users,
-      color:  (risk?.critical ?? 0) > 0 ? 'text-red-400' : 'text-emerald-400',
-      bg:     (risk?.critical ?? 0) > 0 ? 'bg-red-500/10' : 'bg-emerald-500/10',
+      color:  (risk?.critical ?? 0) > 0 ? 'text-negative' : 'text-positive',
+      bg:     (risk?.critical ?? 0) > 0 ? 'bg-negative/10' : 'bg-positive/10',
     },
   ]
 
   return (
     <div className="grid grid-cols-5 gap-2">
       {tiles.map(({ label, value, sub, icon: Icon, color, bg, alert }) => (
-        <div key={label} className={`premium-card p-3 relative ${alert ? 'border-red-500/30' : ''}`}>
+        <div key={label} className={`premium-card p-3 relative ${alert ? 'border-negative/30' : ''}`}>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[10px] text-text-muted uppercase tracking-wide">{label}</p>
@@ -103,7 +103,7 @@ const KPI_STRIP = memo(function KPIStrip({ forecast, aging, reminder, risk }) {
             </div>
           </div>
           {alert && (
-            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-negative rounded-full animate-pulse" />
           )}
         </div>
       ))}
@@ -116,7 +116,7 @@ const KPI_STRIP = memo(function KPIStrip({ forecast, aging, reminder, risk }) {
 const ObligationsBar = memo(function ObligationsBar({ data }) {
   if (!data?.length) return <p className="text-xs text-text-muted">No data</p>
   const max = Math.max(...data.map(d => d.amount), 1)
-  const colors = ['bg-cyan', 'bg-sky-400', 'bg-amber-400', 'bg-orange-400', 'bg-red-400', 'bg-red-600']
+  const colors = ['bg-cyan', 'bg-cyan', 'bg-amber', 'bg-amber', 'bg-negative', 'bg-negative']
   return (
     <div className="space-y-2">
       {data.map((row, i) => (
@@ -172,17 +172,17 @@ const PaymentBehaviourChart = memo(function PaymentBehaviourChart({ data }) {
         <div key={row.month} className="flex items-center gap-2">
           <span className="text-[10px] text-text-muted w-14 shrink-0">{row.month}</span>
           <div className="flex-1 h-3 bg-glass rounded-full overflow-hidden flex">
-            <div className="h-full bg-emerald-500" style={{ width: `${Math.round((row.early  / Math.max(row.total, 1)) * 100)}%` }} title={`Early: ${row.early}`} />
-            <div className="h-full bg-sky-400"     style={{ width: `${Math.round((row.on_time/ Math.max(row.total, 1)) * 100)}%` }} title={`On-time: ${row.on_time}`} />
-            <div className="h-full bg-red-400"     style={{ width: `${Math.round((row.late   / Math.max(row.total, 1)) * 100)}%` }} title={`Late: ${row.late}`} />
+            <div className="h-full bg-positive" style={{ width: `${Math.round((row.early  / Math.max(row.total, 1)) * 100)}%` }} title={`Early: ${row.early}`} />
+            <div className="h-full bg-cyan"     style={{ width: `${Math.round((row.on_time/ Math.max(row.total, 1)) * 100)}%` }} title={`On-time: ${row.on_time}`} />
+            <div className="h-full bg-negative"     style={{ width: `${Math.round((row.late   / Math.max(row.total, 1)) * 100)}%` }} title={`Late: ${row.late}`} />
           </div>
-          <span className={`text-[10px] font-medium w-10 text-right ${(row.onTimeRate ?? 0) >= 80 ? 'text-emerald-400' : 'text-amber-400'}`}>
+          <span className={`text-[10px] font-medium w-10 text-right ${(row.onTimeRate ?? 0) >= 80 ? 'text-positive' : 'text-amber'}`}>
             {pct(row.onTimeRate)}
           </span>
         </div>
       ))}
       <div className="flex items-center gap-3 pt-1">
-        {[['bg-emerald-500','Early'],['bg-sky-400','On-time'],['bg-red-400','Late']].map(([c,l]) => (
+        {[['bg-positive','Early'],['bg-cyan','On-time'],['bg-negative','Late']].map(([c,l]) => (
           <div key={l} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${c}`} />
             <span className="text-[10px] text-text-muted">{l}</span>
@@ -216,7 +216,7 @@ const UpcomingBillsTable = memo(function UpcomingBillsTable({ bills }) {
                 </Link>
               </td>
               <td className="py-1.5 px-1 text-text-muted max-w-[120px] truncate">{b.vendorSnapshot?.vendorName || '—'}</td>
-              <td className="py-1.5 px-1 text-amber-400">{fmtDate(b.dueDate)}</td>
+              <td className="py-1.5 px-1 text-amber">{fmtDate(b.dueDate)}</td>
               <td className="py-1.5 px-1 text-text-primary font-medium">{fmt(b.remainingBalance)}</td>
               <td className="py-1.5 px-1">
                 {b.reminderState
@@ -235,12 +235,12 @@ const UpcomingBillsTable = memo(function UpcomingBillsTable({ bills }) {
 // ── Activity Feed ──────────────────────────────────────────────────────────────
 
 const ACTION_ICON = {
-  created:    { icon: FileText,  color: 'text-sky-400'     },
-  approved:   { icon: CheckCircle, color: 'text-emerald-400' },
-  rejected:   { icon: AlertTriangle, color: 'text-red-400' },
-  state_changed: { icon: Activity, color: 'text-amber-400' },
-  bill_matched: { icon: CheckCircle, color: 'text-emerald-400' },
-  bill_paid:  { icon: CreditCard, color: 'text-emerald-400' },
+  created:    { icon: FileText,  color: 'text-cyan'     },
+  approved:   { icon: CheckCircle, color: 'text-positive' },
+  rejected:   { icon: AlertTriangle, color: 'text-negative' },
+  state_changed: { icon: Activity, color: 'text-amber' },
+  bill_matched: { icon: CheckCircle, color: 'text-positive' },
+  bill_paid:  { icon: CreditCard, color: 'text-positive' },
   risk_refreshed: { icon: Users, color: 'text-cyan'        },
   default:    { icon: Activity,  color: 'text-text-muted'  },
 }
@@ -300,9 +300,9 @@ const CycleTimeTile = memo(function CycleTimeTile({ data }) {
 
 const EfficiencyTile = memo(function EfficiencyTile({ data }) {
   const rows = [
-    { label: 'PO-backed bills', value: pct(data?.poBackedRate),     color: data?.poBackedRate >= 70 ? 'text-emerald-400' : 'text-amber-400' },
-    { label: '3-way match pass', value: pct(data?.matchPassRate),   color: data?.matchPassRate >= 80 ? 'text-emerald-400' : 'text-amber-400' },
-    { label: 'Match issues',    value: data?.matchIssues ?? 0,      color: data?.matchIssues > 0 ? 'text-red-400' : 'text-emerald-400' },
+    { label: 'PO-backed bills', value: pct(data?.poBackedRate),     color: data?.poBackedRate >= 70 ? 'text-positive' : 'text-amber' },
+    { label: '3-way match pass', value: pct(data?.matchPassRate),   color: data?.matchPassRate >= 80 ? 'text-positive' : 'text-amber' },
+    { label: 'Match issues',    value: data?.matchIssues ?? 0,      color: data?.matchIssues > 0 ? 'text-negative' : 'text-positive' },
     { label: 'Total spend',     value: fmt(data?.totalSpend),       color: 'text-text-primary' },
   ]
   return (
@@ -321,15 +321,15 @@ const EfficiencyTile = memo(function EfficiencyTile({ data }) {
 
 function AlertsStrip({ overdue, matchIssues, criticalVendors }) {
   const alerts = [
-    overdue?.totalOverdueCount    > 0 && { msg: `${overdue.totalOverdueCount} bills overdue (${fmt(overdue.totalOverdueAmount)})`, href: '/purchases/ap-workflow', color: 'bg-red-500/10 text-red-400 border-red-500/20' },
-    (matchIssues ?? 0)            > 0 && { msg: `${matchIssues} 3-way match issues`, href: '/procurement/purchase-orders', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-    (criticalVendors ?? 0)        > 0 && { msg: `${criticalVendors} critical-risk vendors`, href: '/purchases/ap-workflow', color: 'bg-red-500/10 text-red-400 border-red-500/20' },
+    overdue?.totalOverdueCount    > 0 && { msg: `${overdue.totalOverdueCount} bills overdue (${fmt(overdue.totalOverdueAmount)})`, href: '/purchases/ap-workflow', color: 'bg-negative/10 text-negative border-negative/20' },
+    (matchIssues ?? 0)            > 0 && { msg: `${matchIssues} 3-way match issues`, href: '/procurement/purchase-orders', color: 'bg-amber/10 text-amber border-amber/20' },
+    (criticalVendors ?? 0)        > 0 && { msg: `${criticalVendors} critical-risk vendors`, href: '/purchases/ap-workflow', color: 'bg-negative/10 text-negative border-negative/20' },
   ].filter(Boolean)
 
   if (!alerts.length) return (
-    <div className="flex items-center gap-2 premium-card p-2.5 border-emerald-500/20">
-      <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
-      <span className="text-xs text-emerald-400">All clear — no active procurement alerts</span>
+    <div className="flex items-center gap-2 premium-card p-2.5 border-positive/20">
+      <CheckCircle className="h-4 w-4 text-positive shrink-0" />
+      <span className="text-xs text-positive">All clear — no active procurement alerts</span>
     </div>
   )
 
@@ -350,9 +350,9 @@ function AlertsStrip({ overdue, matchIssues, criticalVendors }) {
 
 const QUICK_ACTIONS = [
   { label: 'New Bill',           to: '/purchases/bills/new',                    icon: FileText,      color: 'text-cyan'       },
-  { label: 'New PO',             to: '/procurement/purchase-orders/new',        icon: ShoppingCart,  color: 'text-sky-400'    },
-  { label: 'AP Workflow',        to: '/purchases/ap-workflow',                  icon: BarChart2,     color: 'text-amber-400'  },
-  { label: 'Vendor List',        to: '/vendors',                                icon: Users,         color: 'text-emerald-400'},
+  { label: 'New PO',             to: '/procurement/purchase-orders/new',        icon: ShoppingCart,  color: 'text-cyan'    },
+  { label: 'AP Workflow',        to: '/purchases/ap-workflow',                  icon: BarChart2,     color: 'text-amber'  },
+  { label: 'Vendor List',        to: '/vendors',                                icon: Users,         color: 'text-positive'},
 ]
 
 // ── Main Component ─────────────────────────────────────────────────────────────
@@ -429,9 +429,9 @@ export default function ProcurementDashboard() {
           {forecastLoading ? <SkeletonLoader count={3} /> : (
             <div className="space-y-2">
               {[
-                { label: 'Overdue',  data: forecast?.requirements?.overdue,  color: 'text-red-400'     },
-                { label: 'Next 30d', data: forecast?.requirements?.next30,   color: 'text-amber-400'   },
-                { label: 'Next 60d', data: forecast?.requirements?.next60,   color: 'text-sky-400'     },
+                { label: 'Overdue',  data: forecast?.requirements?.overdue,  color: 'text-negative'     },
+                { label: 'Next 30d', data: forecast?.requirements?.next30,   color: 'text-amber'   },
+                { label: 'Next 60d', data: forecast?.requirements?.next60,   color: 'text-cyan'     },
                 { label: 'Next 90d', data: forecast?.requirements?.next90,   color: 'text-text-primary'},
               ].map(({ label, data, color }) => (
                 <div key={label} className="flex justify-between items-baseline py-1 border-b border-glass last:border-0">
@@ -472,7 +472,7 @@ export default function ProcurementDashboard() {
         </div>
         <div className="col-span-2 premium-card p-4 space-y-2">
           <h3 className="text-xs font-bold text-text-primary flex items-center gap-1">
-            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <Zap className="h-3.5 w-3.5 text-amber" />
             Cycle Times
           </h3>
           {analyticsLoading ? <SkeletonLoader count={4} /> : (

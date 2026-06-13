@@ -53,10 +53,10 @@ export default function DatePicker({
         onChange={(e) => onChange?.(e.target.value)}
         className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20',
-          error ? 'border-red-500' : 'border-glass-2'
+          error ? 'border-negative' : 'border-glass-2'
         )}
       />
-      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-xs text-negative">{error}</p>}
     </div>
   )
 }

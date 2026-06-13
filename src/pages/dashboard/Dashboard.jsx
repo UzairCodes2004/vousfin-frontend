@@ -70,7 +70,7 @@ function Section({ label, to, children, collapsible = false, defaultOpen = true 
           <button
             type="button"
             onClick={() => setOpen(o => !o)}
-            className="flex-shrink-0 p-1 rounded-md hover:bg-white/[0.06] transition-colors"
+            className="flex-shrink-0 p-1 rounded-md hover:bg-glass-hover transition-colors"
             aria-label={open ? 'Collapse section' : 'Expand section'}
           >
             <ChevronDown className={cn(
@@ -384,7 +384,7 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-center gap-1.5 mt-1.5">
               <div className="h-1 w-5 bg-cyan rounded-full" />
-              <div className="h-1 w-2 bg-white/[0.15] rounded-full" />
+              <div className="h-1 w-2 bg-glass-panel rounded-full" />
             </div>
           </div>
           {/* Desktop: side-by-side grid */}
@@ -476,7 +476,7 @@ export default function Dashboard() {
                     {recentTxs.length > 3 && (
                       <button
                         onClick={() => setShowTxDrawer(true)}
-                        className="lg:hidden w-full mt-1.5 text-xs text-text-muted hover:text-cyan font-medium py-2 hover:bg-white/[0.04] rounded-lg transition-colors"
+                        className="lg:hidden w-full mt-1.5 text-xs text-text-muted hover:text-cyan font-medium py-2 hover:bg-glass-hover rounded-lg transition-colors"
                       >
                         + {recentTxs.length - 3} more transactions
                       </button>
@@ -515,7 +515,7 @@ export default function Dashboard() {
           >
             {/* Handle + header */}
             <div className="flex-shrink-0 pt-3 pb-0">
-              <div className="mx-auto h-1 w-10 rounded-full bg-white/[0.15] mb-3" />
+              <div className="mx-auto h-1 w-10 rounded-full bg-glass-panel mb-3" />
               <div className="flex items-center justify-between px-4 pb-3 border-b border-glass">
                 <div>
                   <h3 className="text-sm font-bold text-text-primary">All Transactions</h3>
@@ -523,7 +523,7 @@ export default function Dashboard() {
                 </div>
                 <button
                   onClick={() => setShowTxDrawer(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-glass-hover transition-colors"
                 >
                   <X className="h-4 w-4 text-text-muted" />
                 </button>

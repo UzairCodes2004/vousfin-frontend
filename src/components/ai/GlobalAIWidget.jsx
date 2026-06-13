@@ -211,7 +211,7 @@ export default function GlobalAIWidget() {
           {/* Clear */}
           <button
             onClick={clearChat}
-            className="p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-negative hover:bg-negative/10 transition-colors"
             title="Clear conversation"
           >
             <Trash2 className="h-3.5 w-3.5" />

@@ -8,17 +8,17 @@ import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
 const BUCKET_ORDER  = ['current', 'days_1_30', 'days_31_60', 'days_61_90', 'days_over_90']
 const BUCKET_COLORS = {
-  current:      'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-  days_1_30:    'text-yellow-400  bg-yellow-400/10  border-yellow-400/20',
-  days_31_60:   'text-orange-400  bg-orange-400/10  border-orange-400/20',
-  days_61_90:   'text-red-400     bg-red-400/10     border-red-400/20',
-  days_over_90: 'text-red-400     bg-red-600/10     border-red-600/20',
+  current:      'text-positive bg-positive/10 border-positive/20',
+  days_1_30:    'text-amber  bg-amber/10  border-amber/20',
+  days_31_60:   'text-amber  bg-amber/10  border-amber/20',
+  days_61_90:   'text-negative     bg-negative/10     border-negative/20',
+  days_over_90: 'text-negative     bg-negative/10     border-negative/20',
 }
 const SEVERITY_ROW = {
   current:  '',
-  warning:  'bg-yellow-400/5',
-  medium:   'bg-orange-400/5',
-  critical: 'bg-red-400/5',
+  warning:  'bg-amber/5',
+  medium:   'bg-amber/5',
+  critical: 'bg-negative/5',
 }
 
 export default function AgingReportPage() {
@@ -104,7 +104,7 @@ export default function AgingReportPage() {
             <div>
               <span className="text-sm text-text-secondary">Total {label}</span>
               {data.overdueTotal > 0 && (
-                <span className="ml-3 inline-flex items-center gap-1 text-xs text-red-400">
+                <span className="ml-3 inline-flex items-center gap-1 text-xs text-negative">
                   <AlertTriangle className="h-3 w-3" />
                   {formatCurrency(data.overdueTotal, currency)} overdue
                 </span>
@@ -146,16 +146,16 @@ export default function AgingReportPage() {
                     <td className="py-2.5 px-4 text-text-primary text-xs">
                       {item.dueDate ? new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '—'}
                     </td>
-                    <td className={`py-2.5 px-4 text-right font-bold text-xs tabular-nums ${item.isOverdue ? 'text-red-400' : 'text-emerald-400'}`}>
+                    <td className={`py-2.5 px-4 text-right font-bold text-xs tabular-nums ${item.isOverdue ? 'text-negative' : 'text-positive'}`}>
                       {item.isOverdue ? `+${item.daysOverdue}d` : 'current'}
                     </td>
                     <td className="py-2.5 px-4 text-right tabular-nums text-text-primary">{formatCurrency(item.originalAmount, currency)}</td>
                     <td className="py-2.5 px-4 text-right tabular-nums font-bold text-text-primary">{formatCurrency(item.remainingBalance, currency)}</td>
                     <td className="py-2.5 px-4 text-center">
-                      {item.severity === 'current'  && <CheckCircle   className="h-4 w-4 text-emerald-400 mx-auto" />}
-                      {item.severity === 'warning'  && <Clock         className="h-4 w-4 text-yellow-400  mx-auto" />}
-                      {item.severity === 'medium'   && <AlertTriangle className="h-4 w-4 text-orange-400  mx-auto" />}
-                      {item.severity === 'critical' && <AlertTriangle className="h-4 w-4 text-red-400     mx-auto" />}
+                      {item.severity === 'current'  && <CheckCircle   className="h-4 w-4 text-positive mx-auto" />}
+                      {item.severity === 'warning'  && <Clock         className="h-4 w-4 text-amber  mx-auto" />}
+                      {item.severity === 'medium'   && <AlertTriangle className="h-4 w-4 text-amber  mx-auto" />}
+                      {item.severity === 'critical' && <AlertTriangle className="h-4 w-4 text-negative     mx-auto" />}
                     </td>
                   </tr>
                 ))}

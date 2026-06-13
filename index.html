@@ -27,6 +27,18 @@
       content="Enterprise-grade AI accounting for modern businesses."
     />
 
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('vf-theme');
+          var key = raw ? (JSON.parse(raw).state || {}).theme : null;
+          var valid = ['nocturne','onyx','sapphire','aubergine','graphite','copper','teal','carbon','porcelain','sand'];
+          if (key && valid.indexOf(key) !== -1 && key !== 'nocturne') {
+            document.documentElement.setAttribute('data-theme', key);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

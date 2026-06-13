@@ -10,17 +10,17 @@ import Badge from '@/components/ui/Badge'
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 const SEVERITY = {
-  critical: { border: 'border-red-500/40',    bg: 'bg-red-500/5',    icon: 'text-red-400',    scoreBg: 'bg-red-500/20 text-red-300',    badge: 'danger'  },
-  high:     { border: 'border-orange-400/40', bg: 'bg-orange-400/5', icon: 'text-orange-400', scoreBg: 'bg-orange-400/20 text-orange-300', badge: 'warning' },
-  medium:   { border: 'border-yellow-400/40', bg: 'bg-yellow-400/5', icon: 'text-yellow-400', scoreBg: 'bg-yellow-400/20 text-yellow-300', badge: 'warning' },
-  low:      { border: 'border-glass',         bg: 'bg-glass-panel',  icon: 'text-text-muted', scoreBg: 'bg-white/5 text-text-muted',       badge: 'default' },
+  critical: { border: 'border-negative/40',    bg: 'bg-negative/5',    icon: 'text-negative',    scoreBg: 'bg-negative/20 text-negative',    badge: 'danger'  },
+  high:     { border: 'border-amber/40', bg: 'bg-amber/5', icon: 'text-amber', scoreBg: 'bg-amber/20 text-amber', badge: 'warning' },
+  medium:   { border: 'border-amber/40', bg: 'bg-amber/5', icon: 'text-amber', scoreBg: 'bg-amber/20 text-amber', badge: 'warning' },
+  low:      { border: 'border-glass',         bg: 'bg-glass-panel',  icon: 'text-text-muted', scoreBg: 'bg-glass-panel text-text-muted',       badge: 'default' },
 }
 
 const RISK_COLOR = {
-  critical: 'text-red-400',
-  high:     'text-orange-400',
-  medium:   'text-yellow-400',
-  low:      'text-emerald-400',
+  critical: 'text-negative',
+  high:     'text-amber',
+  medium:   'text-amber',
+  low:      'text-positive',
 }
 
 const STATUS_LABEL = {
@@ -52,7 +52,7 @@ const RULE_LABELS = {
 // ─── Score breakdown bar (visualises the 6 ensemble components) ──────────────
 function BreakdownBar({ label, value, max = 1 }) {
   const pct = Math.round((value / max) * 100)
-  const color = pct >= 60 ? 'bg-red-400' : pct >= 30 ? 'bg-amber-400' : 'bg-cyan/60'
+  const color = pct >= 60 ? 'bg-negative' : pct >= 30 ? 'bg-amber' : 'bg-cyan/60'
   return (
     <div className="flex items-center gap-2 text-[10px]">
       <span className="w-20 text-text-muted truncate">{label}</span>
@@ -183,7 +183,7 @@ export default function AnomalyAlerts({ anomalies = [], onClassify }) {
                   variant="ghost"
                   icon={CheckCircle}
                   onClick={() => onClassify?.(a, 'legitimate')}
-                  className="text-emerald-400 hover:bg-emerald-400/10 border border-emerald-400/30 !py-1.5 !px-3 text-xs"
+                  className="text-positive hover:bg-positive/10 border border-positive/30 !py-1.5 !px-3 text-xs"
                 >
                   Legitimate
                 </Button>
@@ -191,7 +191,7 @@ export default function AnomalyAlerts({ anomalies = [], onClassify }) {
                   variant="ghost"
                   icon={Flag}
                   onClick={() => onClassify?.(a, 'fraud')}
-                  className="text-red-400 hover:bg-red-400/10 border border-red-400/30 !py-1.5 !px-3 text-xs"
+                  className="text-negative hover:bg-negative/10 border border-negative/30 !py-1.5 !px-3 text-xs"
                 >
                   Flag as Fraud
                 </Button>

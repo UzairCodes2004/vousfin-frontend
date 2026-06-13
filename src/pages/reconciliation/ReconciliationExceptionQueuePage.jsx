@@ -21,7 +21,7 @@ function BreakdownBar({ label, pts, max }) {
       <span className="w-16 text-text-muted shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-glass-panel rounded-full overflow-hidden">
         <div
-          className="h-full bg-blue-400 rounded-full"
+          className="h-full bg-cyan rounded-full"
           style={{ width: `${(pts / max) * 100}%` }}
         />
       </div>
@@ -79,14 +79,14 @@ function ExceptionRow({ item, onResolved }) {
         </div>
         <div className="text-right shrink-0">
           <p className="text-sm font-bold text-text-primary">PKR {Number(bl.amount).toLocaleString()}</p>
-          <p className={`text-xs font-medium ${isStale ? 'text-red-400' : 'text-text-muted'}`}>
+          <p className={`text-xs font-medium ${isStale ? 'text-negative' : 'text-text-muted'}`}>
             {bl.days_old}d old {isStale ? '⚠' : ''}
           </p>
         </div>
         {top && (
           <div className="text-right shrink-0 hidden md:block">
             <p className="text-xs text-text-muted">Best match</p>
-            <p className="text-xs font-mono text-sky-400">{top.gl_narration?.slice(0, 24)}</p>
+            <p className="text-xs font-mono text-cyan">{top.gl_narration?.slice(0, 24)}</p>
             <p className="text-xs text-text-muted">{Math.round(top.probability * 100)}% prob</p>
           </div>
         )}
@@ -109,7 +109,7 @@ function ExceptionRow({ item, onResolved }) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-sky-400">{Math.round(c.probability * 100)}%</p>
+                    <p className="text-sm font-bold text-cyan">{Math.round(c.probability * 100)}%</p>
                     <p className="text-xs text-text-muted">score {c.raw_score}/100</p>
                   </div>
                 </div>

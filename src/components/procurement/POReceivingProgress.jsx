@@ -33,8 +33,8 @@ export default function POReceivingProgress({ po }) {
   const totalReceived = lines.reduce((s, li) => s + (li.quantityReceived || 0), 0)
   const overallPct    = totalOrdered > 0 ? Math.min(100, (totalReceived / totalOrdered) * 100) : 0
 
-  const overallColor = overallPct >= 100 ? 'text-emerald-400'
-                     : overallPct > 0    ? 'text-sky-400'
+  const overallColor = overallPct >= 100 ? 'text-positive'
+                     : overallPct > 0    ? 'text-cyan'
                      : 'text-text-muted'
 
   return (
@@ -54,7 +54,7 @@ export default function POReceivingProgress({ po }) {
         <ProgressBar
           value={totalReceived}
           max={totalOrdered}
-          colorClass={overallPct >= 100 ? 'bg-emerald-400' : 'bg-cyan'}
+          colorClass={overallPct >= 100 ? 'bg-positive' : 'bg-cyan'}
         />
         <div className="flex justify-between text-[10px] text-text-muted">
           <span>{fmt(totalReceived)} received</span>
@@ -69,8 +69,8 @@ export default function POReceivingProgress({ po }) {
             const qo = li.quantityOrdered  || 0
             const qr = li.quantityReceived || 0
             const linePct = qo > 0 ? Math.min(100, (qr / qo) * 100) : 0
-            const lineColor = linePct >= 100 ? 'bg-emerald-400'
-                            : linePct > 0    ? 'bg-sky-400'
+            const lineColor = linePct >= 100 ? 'bg-positive'
+                            : linePct > 0    ? 'bg-cyan'
                             : 'bg-glass'
             return (
               <div key={i} className="space-y-1">

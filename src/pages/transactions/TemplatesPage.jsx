@@ -89,7 +89,7 @@ function TemplateModal({ open, onClose, onSaved, editing }) {
     } finally { setSaving(false) }
   }
 
-  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200'
+  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-cyan'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
@@ -149,7 +149,7 @@ function TemplateModal({ open, onClose, onSaved, editing }) {
           <div className="rounded-lg border border-glass p-3 space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-text-primary cursor-pointer">
               <input type="checkbox" checked={form.isRecurring} onChange={(e) => set('isRecurring', e.target.checked)} className="rounded" />
-              <Repeat className="w-4 h-4 text-sky-400" /> Repeat automatically
+              <Repeat className="w-4 h-4 text-cyan" /> Repeat automatically
             </label>
             {form.isRecurring && (
               <div className="grid grid-cols-3 gap-3">
@@ -258,14 +258,14 @@ export default function TemplatesPage() {
               <div className="bg-glass-panel rounded-lg p-2.5 text-xs space-y-1">
                 <div className="flex justify-between"><span className="text-text-muted">Debit</span><span className="font-medium text-text-primary truncate ml-2">{accName(t.debitAccountId)}</span></div>
                 <div className="flex justify-between"><span className="text-text-muted">Credit</span><span className="font-medium text-text-primary truncate ml-2">{accName(t.creditAccountId)}</span></div>
-                {t.partyName && <div className="flex justify-between"><span className="text-text-muted">{t.partyType === 'vendor' ? 'Vendor' : 'Customer'}</span><span className="font-medium text-sky-400 truncate ml-2">{t.partyName}</span></div>}
+                {t.partyName && <div className="flex justify-between"><span className="text-text-muted">{t.partyType === 'vendor' ? 'Vendor' : 'Customer'}</span><span className="font-medium text-cyan truncate ml-2">{t.partyName}</span></div>}
               </div>
 
               {t.isRecurring && (
-                <div className="flex items-center gap-1.5 text-xs text-sky-400 bg-sky-500/10 rounded-lg px-2.5 py-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-cyan bg-cyan/10 rounded-lg px-2.5 py-1.5">
                   <Clock className="w-3.5 h-3.5" />
                   {patternLabel(t.recurrencePattern)} · next {fmtDate(t.nextRunDate)}
-                  {t.runCount > 0 && <span className="text-blue-400">· run {t.runCount}×</span>}
+                  {t.runCount > 0 && <span className="text-cyan">· run {t.runCount}×</span>}
                 </div>
               )}
 
@@ -275,7 +275,7 @@ export default function TemplatesPage() {
                   {busyId === t._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />} Use now
                 </button>
                 <button onClick={() => openEdit(t)} className="px-3 border border-glass-2 hover:bg-glass-hover text-text-secondary rounded-lg"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => del(t)} className="px-3 border border-glass-2 hover:bg-red-500/15 hover:border-red-500/40 text-red-500 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => del(t)} className="px-3 border border-glass-2 hover:bg-negative/15 hover:border-negative/40 text-negative rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}

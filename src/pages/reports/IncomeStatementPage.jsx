@@ -71,8 +71,8 @@ export default function IncomeStatementPage() {
             <div key={label} className="premium-card px-4 py-3 flex flex-col gap-1">
               <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">{label}</span>
               <div className="flex items-center gap-2">
-                {positive ? <TrendingUp className="h-4 w-4 text-emerald-400 flex-shrink-0" /> : <TrendingDown className="h-4 w-4 text-red-400 flex-shrink-0" />}
-                <span className={`font-black text-lg ${positive ? 'text-emerald-400' : 'text-red-400'}`}>
+                {positive ? <TrendingUp className="h-4 w-4 text-positive flex-shrink-0" /> : <TrendingDown className="h-4 w-4 text-negative flex-shrink-0" />}
+                <span className={`font-black text-lg ${positive ? 'text-positive' : 'text-negative'}`}>
                   {formatCurrency(val, currency)}
                 </span>
               </div>
@@ -113,7 +113,7 @@ export default function IncomeStatementPage() {
             {/* EBITDA callout */}
             <div className="flex items-center justify-between px-4 py-2 rounded-lg bg-glass border border-glass">
               <span className="text-sm text-text-secondary">EBITDA <span className="text-xs">(Operating Profit + D&A)</span></span>
-              <span className={`font-bold text-sm ${data.ebitda >= 0 ? 'text-cyan' : 'text-red-400'}`}>
+              <span className={`font-bold text-sm ${data.ebitda >= 0 ? 'text-cyan' : 'text-negative'}`}>
                 {formatCurrency(data.ebitda, currency)}
               </span>
             </div>
@@ -125,11 +125,11 @@ export default function IncomeStatementPage() {
             {/* Net Profit */}
             <div className={`flex justify-between items-center py-4 px-5 rounded-xl border-2 ${
               (data.netIncome ?? data.netProfit) >= 0
-                ? 'border-emerald-400/40 bg-emerald-400/5'
-                : 'border-red-400/40 bg-red-400/5'
+                ? 'border-positive/40 bg-positive/5'
+                : 'border-negative/40 bg-negative/5'
             }`}>
               <span className="text-lg font-black text-text-primary">Net Profit / (Loss)</span>
-              <span className={`text-xl font-black ${(data.netIncome ?? data.netProfit) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xl font-black ${(data.netIncome ?? data.netProfit) >= 0 ? 'text-positive' : 'text-negative'}`}>
                 {formatCurrency(data.netIncome ?? data.netProfit, currency)}
               </span>
             </div>
@@ -176,10 +176,10 @@ function PLSection({ title, section, currency, negate = false }) {
 function SubtotalRow({ label, value, currency }) {
   return (
     <div className={`flex justify-between items-center px-4 py-3 rounded-lg border ${
-      value >= 0 ? 'border-cyan/20 bg-cyan/5' : 'border-red-400/20 bg-red-400/5'
+      value >= 0 ? 'border-cyan/20 bg-cyan/5' : 'border-negative/20 bg-negative/5'
     }`}>
       <span className="font-bold text-text-primary">{label}</span>
-      <span className={`font-bold tabular-nums ${value >= 0 ? 'text-text-primary' : 'text-red-400'}`}>
+      <span className={`font-bold tabular-nums ${value >= 0 ? 'text-text-primary' : 'text-negative'}`}>
         {formatCurrency(value, currency)}
       </span>
     </div>

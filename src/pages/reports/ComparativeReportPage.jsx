@@ -156,9 +156,9 @@ export default function ComparativeReportPage() {
                   <p className="text-base font-black text-text-primary mt-1 tabular-nums">{formatCurrency(m.current, currency)}</p>
                   <div className="flex items-center gap-1 mt-1">
                     {m.changePct !== null
-                      ? (m.changePct > 0 ? <TrendingUp className="h-3 w-3 text-emerald-400" /> : m.changePct < 0 ? <TrendingDown className="h-3 w-3 text-red-400" /> : <Minus className="h-3 w-3 text-text-muted" />)
+                      ? (m.changePct > 0 ? <TrendingUp className="h-3 w-3 text-positive" /> : m.changePct < 0 ? <TrendingDown className="h-3 w-3 text-negative" /> : <Minus className="h-3 w-3 text-text-muted" />)
                       : <Minus className="h-3 w-3 text-text-muted" />}
-                    <span className={`text-xs font-bold ${up ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className={`text-xs font-bold ${up ? 'text-positive' : 'text-negative'}`}>
                       {m.changePct !== null ? `${m.changePct > 0 ? '+' : ''}${m.changePct}%` : 'N/A'}
                     </span>
                     <span className="text-xs text-text-muted">vs prior</span>
@@ -207,10 +207,10 @@ export default function ComparativeReportPage() {
                         {formatCurrency(m.current, currency)}
                       </td>
                       <td className="py-3 px-4 text-right tabular-nums text-text-secondary">{formatCurrency(m.prior, currency)}</td>
-                      <td className={`py-3 px-4 text-right tabular-nums font-bold ${up ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className={`py-3 px-4 text-right tabular-nums font-bold ${up ? 'text-positive' : 'text-negative'}`}>
                         {m.change >= 0 ? '+' : ''}{formatCurrency(m.change, currency)}
                       </td>
-                      <td className={`py-3 px-4 text-right font-bold ${up ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className={`py-3 px-4 text-right font-bold ${up ? 'text-positive' : 'text-negative'}`}>
                         {m.changePct !== null
                           ? `${m.changePct > 0 ? '+' : ''}${m.changePct}%`
                           : <span className="text-text-muted">N/A</span>}

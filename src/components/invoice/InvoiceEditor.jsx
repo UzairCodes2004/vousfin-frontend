@@ -395,7 +395,7 @@ export default function InvoiceEditor({
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-muted">#{i + 1}</span>
                     {lineItems.length > 1 && (
-                      <button type="button" onClick={() => removeLine(i)} className="text-text-muted hover:text-red-400 text-xs">
+                      <button type="button" onClick={() => removeLine(i)} className="text-text-muted hover:text-negative text-xs">
                         Remove
                       </button>
                     )}
@@ -426,7 +426,7 @@ export default function InvoiceEditor({
                     placeholder="Item name"
                   />
                   {selInv && (
-                    <p className={`text-[11px] ${overStk ? 'text-red-400' : 'text-text-muted'}`}>
+                    <p className={`text-[11px] ${overStk ? 'text-negative' : 'text-text-muted'}`}>
                       {overStk ? `⚠ Only ${selInv.currentStock} ${selInv.unit || 'units'} in stock` : `${selInv.currentStock} ${selInv.unit || 'units'} in stock`}
                     </p>
                   )}

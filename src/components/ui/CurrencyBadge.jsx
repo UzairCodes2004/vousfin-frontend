@@ -29,7 +29,7 @@ export default function CurrencyBadge({ code, baseCurrency, rate, size = 'xs' })
         inline-flex items-center rounded font-mono font-semibold tracking-wide
         ${sizeClass}
         ${isForeign
-          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+          ? 'bg-amber/15 text-amber border border-amber/25'
           : 'bg-glass-panel text-text-muted border border-glass'}
       `}
     >

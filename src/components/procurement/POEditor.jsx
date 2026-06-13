@@ -96,13 +96,13 @@ function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }
 function POStateBadge({ state }) {
   const MAP = {
     draft:              { label: 'Draft',              color: 'text-text-muted border-text-muted/30' },
-    pending_approval:   { label: 'Pending Approval',   color: 'text-amber-400  border-amber-400/30'  },
-    approved:           { label: 'Approved',           color: 'text-sky-400    border-sky-400/30'    },
-    partially_received: { label: 'Partially Received', color: 'text-indigo-400 border-indigo-400/30' },
+    pending_approval:   { label: 'Pending Approval',   color: 'text-amber  border-amber/30'  },
+    approved:           { label: 'Approved',           color: 'text-cyan    border-cyan/30'    },
+    partially_received: { label: 'Partially Received', color: 'text-accent-2 border-accent-2/30' },
     fully_received:     { label: 'Fully Received',     color: 'text-cyan       border-cyan/30'       },
-    billed:             { label: 'Billed',             color: 'text-emerald-400 border-emerald-400/30' },
-    closed:             { label: 'Closed',             color: 'text-emerald-400 border-emerald-600/30' },
-    cancelled:          { label: 'Cancelled',          color: 'text-red-400    border-red-400/30'    },
+    billed:             { label: 'Billed',             color: 'text-positive border-positive/30' },
+    closed:             { label: 'Closed',             color: 'text-positive border-positive/30' },
+    cancelled:          { label: 'Cancelled',          color: 'text-negative    border-negative/30'    },
   }
   const { label, color } = MAP[state] || { label: state, color: 'text-text-muted border-glass' }
   return (
@@ -199,7 +199,7 @@ function NextStepsCard({ state }) {
         </div>
       )}
       {state === 'cancelled' && (
-        <p className="text-xs text-red-400">This PO is cancelled and cannot be re-opened.</p>
+        <p className="text-xs text-negative">This PO is cancelled and cannot be re-opened.</p>
       )}
     </div>
   )
@@ -285,7 +285,7 @@ function POLineRow({ item, readOnly, onChange, onRemove }) {
           <button
             type="button"
             onClick={onRemove}
-            className="text-text-muted hover:text-red-400 transition-colors text-xs"
+            className="text-text-muted hover:text-negative transition-colors text-xs"
           >
             ✕
           </button>
@@ -430,7 +430,7 @@ export default function POEditor({
                   size="sm"
                   icon={CheckCircle}
                   disabled={saving}
-                  className="bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border-emerald-500/30"
+                  className="bg-positive/20 text-positive hover:bg-positive/30 border-positive/30"
                   onClick={() => onApprove(po._id)}
                 >
                   Approve
@@ -454,7 +454,7 @@ export default function POEditor({
                   size="sm"
                   icon={CheckCircle}
                   disabled={saving}
-                  className="bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border-sky-500/30"
+                  className="bg-cyan/20 text-cyan hover:bg-cyan/30 border-cyan/30"
                   onClick={() => onClose(po._id)}
                 >
                   Close PO
@@ -466,7 +466,7 @@ export default function POEditor({
                   size="sm"
                   icon={XCircle}
                   disabled={saving}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-negative hover:text-negative"
                   onClick={() => {
                     const reason = window.prompt('Reason for cancellation (optional):')
                     if (reason !== null) onCancel(po._id, reason)
@@ -605,7 +605,7 @@ export default function POEditor({
                 <span className="font-mono">{fmt(totals.subtotal)}</span>
               </div>
               {totals.totalDisc > 0 && (
-                <div className="flex justify-between text-amber-400">
+                <div className="flex justify-between text-amber">
                   <span>Discounts</span>
                   <span className="font-mono">−{fmt(totals.totalDisc)}</span>
                 </div>

@@ -38,7 +38,7 @@ export default function ForgotPassword() {
     return (
       <div className="w-full text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald/10">
-          <Mail className="h-8 w-8 text-emerald-300" />
+          <Mail className="h-8 w-8 text-positive" />
         </div>
         <h2 className="mb-2 text-2xl font-black text-text-primary">Check your email</h2>
         <p className="mb-8 text-text-secondary">We've sent password reset instructions to your email address.</p>

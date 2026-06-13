@@ -128,23 +128,23 @@ function build(forecastData, metric, horizon) {
   if (histTrendPct != null && Math.abs(histTrendPct) >= 2) {
     drivers.push({
       Icon: histTrendPct > 0 ? TrendingUp : TrendingDown,
-      color: histTrendPct > 0 ? '#34d399' : '#f87171',
+      color: histTrendPct > 0 ? 'rgb(var(--chart-revenue))' : 'rgb(var(--chart-expenses))',
       text: `Recent ${noun} ${histTrendPct > 0 ? 'up' : 'down'} ${Math.abs(histTrendPct).toFixed(0)}% over ${recent.length} months`,
     })
   } else {
-    drivers.push({ Icon: Activity, color: '#94a3b8', text: `${noun[0].toUpperCase() + noun.slice(1)} has been ${volWord} recently` })
+    drivers.push({ Icon: Activity, color: 'rgb(var(--c-text3))', text: `${noun[0].toUpperCase() + noun.slice(1)} has been ${volWord} recently` })
   }
   if (Math.abs(fcastPct) >= 5 && pred.length > 1) {
     drivers.push({
       Icon: fcastPct > 0 ? TrendingUp : TrendingDown,
-      color: fcastPct > 0 ? '#06b6d4' : '#fbbf24',
+      color: fcastPct > 0 ? 'rgb(var(--c-accent))' : 'rgb(var(--c-highlight))',
       text: `${horizon}-month projection: ${fcastPct > 0 ? '+' : ''}${fcastPct.toFixed(0)}% vs first forecast month`,
     })
   }
   if (conf != null) {
     drivers.push({
       Icon: conf >= 70 ? Lightbulb : AlertCircle,
-      color: conf >= 70 ? '#a78bfa' : '#fbbf24',
+      color: conf >= 70 ? 'rgb(var(--c-accent2))' : 'rgb(var(--c-highlight))',
       text: `Model confidence ${conf}% — ${conf >= 75 ? 'strong signal' : conf >= 55 ? 'moderate signal' : 'limited data, treat as directional'}`,
     })
   }
@@ -158,12 +158,12 @@ const ForecastExplanationCard = memo(function ForecastExplanationCard({ forecast
   if (!data) return null
 
   return (
-    <div className="mt-3 rounded-xl border border-violet-500/20 bg-violet-500/5 p-3.5">
+    <div className="mt-3 rounded-xl border border-accent-2/20 bg-accent-2/5 p-3.5">
       <div className="flex items-center gap-2 mb-2.5">
-        <div className="p-1 rounded-md bg-violet-500/15">
-          <Lightbulb className="h-3.5 w-3.5 text-violet-400" />
+        <div className="p-1 rounded-md bg-accent-2/15">
+          <Lightbulb className="h-3.5 w-3.5 text-accent-2" />
         </div>
-        <p className="text-[11px] font-bold text-violet-300 uppercase tracking-wider">
+        <p className="text-[11px] font-bold text-accent-2 uppercase tracking-wider">
           What this means for your business
         </p>
       </div>

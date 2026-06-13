@@ -19,7 +19,7 @@ export default function ReconciliationBanner({ type }) {
   return (
     <div className={cn(
       'premium-card p-4 flex flex-wrap items-center gap-x-6 gap-y-2',
-      r.inSync ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/30 bg-amber-500/5'
+      r.inSync ? 'border-positive/20 bg-positive/5' : 'border-amber/30 bg-amber/5'
     )}>
       <div className="flex items-center gap-2">
         <BookOpen className="h-4 w-4 text-cyan shrink-0" />
@@ -33,11 +33,11 @@ export default function ReconciliationBanner({ type }) {
         <span className="font-mono text-text-secondary">{formatCurrency(r.ledgerControl, currency)}</span>
       </div>
       {r.inSync ? (
-        <span className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+        <span className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-positive">
           <ShieldCheck className="h-4 w-4" /> Reconciled with the ledger
         </span>
       ) : (
-        <span className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400" title="Document outstanding differs from the ledger — run reconciliation">
+        <span className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-amber" title="Document outstanding differs from the ledger — run reconciliation">
           <AlertTriangle className="h-4 w-4" /> Ledger discrepancy {formatCurrency(Math.abs(r.discrepancyVsEntries), currency)}
         </span>
       )}

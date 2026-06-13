@@ -137,7 +137,7 @@ export default function TransactionReversalModal({ isOpen, onClose, transaction,
                   <td className="px-4 py-3 text-text-primary font-medium">
                     {line.accountName}
                   </td>
-                  <td className="px-4 py-3 text-right text-emerald-400 font-mono">
+                  <td className="px-4 py-3 text-right text-positive font-mono">
                     {line.type === 'debit' ? formatCurrency(line.amount, currency) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right text-text-secondary font-mono">

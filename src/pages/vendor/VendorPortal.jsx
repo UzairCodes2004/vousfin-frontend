@@ -29,12 +29,12 @@ const TABS = [
 
 const STATE_COLORS = {
   draft:             'bg-glass text-text-muted',
-  awaiting_approval: 'bg-amber-500/15 text-amber-400',
-  approved:          'bg-emerald-500/15 text-emerald-400',
-  scheduled:         'bg-sky-500/15 text-sky-400',
-  partially_paid:    'bg-sky-500/15 text-sky-400',
-  paid:              'bg-emerald-600/20 text-emerald-500',
-  overdue:           'bg-red-500/15 text-red-400',
+  awaiting_approval: 'bg-amber/15 text-amber',
+  approved:          'bg-positive/15 text-positive',
+  scheduled:         'bg-cyan/15 text-cyan',
+  partially_paid:    'bg-cyan/15 text-cyan',
+  paid:              'bg-positive/20 text-positive',
+  overdue:           'bg-negative/15 text-negative',
   cancelled:         'bg-glass text-text-muted line-through',
 }
 
@@ -137,7 +137,7 @@ export default function VendorPortal() {
         </div>
         <div className="premium-card p-4">
           <p className="text-xs text-text-muted">Overdue</p>
-          <p className={`text-xl font-bold mt-1 ${overdueAmt > 0 ? 'text-red-400' : 'text-text-primary'}`}>
+          <p className={`text-xl font-bold mt-1 ${overdueAmt > 0 ? 'text-negative' : 'text-text-primary'}`}>
             {fmt(overdueAmt)}
           </p>
           <p className="text-[11px] text-text-muted mt-0.5">
@@ -235,7 +235,7 @@ export default function VendorPortal() {
                           <td className="px-4 py-3 text-sm text-cyan font-mono">{b.billNumber}</td>
                           <td className="px-4 py-3 text-sm text-text-secondary">{fmtDate(b.dueDate)}</td>
                           <td className="px-4 py-3 text-sm text-right">{fmt(b.totalAmount, b.currencyCode)}</td>
-                          <td className="px-4 py-3 text-sm text-right font-semibold text-amber-400">{fmt(b.remainingBalance, b.currencyCode)}</td>
+                          <td className="px-4 py-3 text-sm text-right font-semibold text-amber">{fmt(b.remainingBalance, b.currencyCode)}</td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-0.5 rounded-full text-[11px] capitalize ${STATE_COLORS[b.state] || ''}`}>
                               {b.state?.replace(/_/g, ' ')}
@@ -272,7 +272,7 @@ export default function VendorPortal() {
                           <td className="px-4 py-3 text-sm text-text-secondary">{fmtDate(b.issueDate)}</td>
                           <td className="px-4 py-3 text-sm text-right">{fmt(b.totalAmount, b.currencyCode)}</td>
                           <td className="px-4 py-3">
-                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-emerald-500/15 text-emerald-400">Paid</span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-positive/15 text-positive">Paid</span>
                           </td>
                         </tr>
                       ))

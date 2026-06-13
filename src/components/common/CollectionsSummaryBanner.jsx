@@ -10,11 +10,11 @@ import { useBusinessStore } from '@/stores/useBusinessStore'
 import { formatCurrency } from '@/utils/formatters'
 
 const LEVEL_STYLES = {
-  reminder:      'text-sky-400 border-sky-500/30 bg-sky-500/5',
-  first_notice:  'text-amber-400 border-amber-500/30 bg-amber-500/5',
-  second_notice: 'text-orange-400 border-orange-500/30 bg-orange-500/5',
-  final_notice:  'text-red-400 border-red-500/30 bg-red-500/5',
-  collections:   'text-rose-400 border-rose-500/40 bg-rose-500/10',
+  reminder:      'text-cyan border-cyan/30 bg-cyan/5',
+  first_notice:  'text-amber border-amber/30 bg-amber/5',
+  second_notice: 'text-amber border-amber/30 bg-amber/5',
+  final_notice:  'text-negative border-negative/30 bg-negative/5',
+  collections:   'text-negative border-negative/40 bg-negative/10',
 }
 
 export default function CollectionsSummaryBanner() {

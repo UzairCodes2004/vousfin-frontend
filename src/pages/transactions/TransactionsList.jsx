@@ -75,9 +75,9 @@ const HistoryPanel = memo(function HistoryPanel({ history }) {
         <History className="h-3 w-3" /> Audit Trail
       </p>
       {reversal && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-2 text-xs">
-          <RotateCcw className="h-3 w-3 text-red-400 shrink-0" />
-          <span className="font-semibold text-red-400">Reversed</span>
+        <div className="flex items-center gap-2 rounded-lg bg-negative/10 border border-negative/20 p-2 text-xs">
+          <RotateCcw className="h-3 w-3 text-negative shrink-0" />
+          <span className="font-semibold text-negative">Reversed</span>
           <span className="text-text-secondary truncate">{formatDate(reversal.transactionDate)} — {reversal.description}</span>
         </div>
       )}
@@ -85,8 +85,8 @@ const HistoryPanel = memo(function HistoryPanel({ history }) {
         <div key={i} className="flex items-center gap-2 text-xs">
           <span className="text-cyan font-mono shrink-0 text-[10px]">{formatDate(e.timestamp || e.createdAt)}</span>
           <span className={`shrink-0 rounded-full px-1.5 py-px font-semibold text-[10px] ${
-            e.action === 'Reversed' ? 'bg-red-500/15 text-red-400' :
-            e.action === 'Created'  ? 'bg-emerald-500/15 text-emerald-400' :
+            e.action === 'Reversed' ? 'bg-negative/15 text-negative' :
+            e.action === 'Created'  ? 'bg-positive/15 text-positive' :
             e.action === 'Edited'   ? 'bg-amber/15 text-amber-2' :
             'bg-glass-panel text-text-muted'
           }`}>{e.action}</span>
@@ -118,7 +118,7 @@ const MobileCard = memo(function MobileCard({
           {row.description}
         </p>
         <div className="flex flex-col items-end shrink-0 gap-0.5">
-          <span className={`text-sm font-bold tabular-nums ${isReversed ? 'line-through text-text-muted' : isInflow ? 'text-emerald-400' : 'text-text-primary'}`}>
+          <span className={`text-sm font-bold tabular-nums ${isReversed ? 'line-through text-text-muted' : isInflow ? 'text-positive' : 'text-text-primary'}`}>
             {isInflow ? '+' : '−'}{formatCurrency(row.baseCurrencyAmount ?? row.amount, currency)}
           </span>
           {row.currencyCode && row.currencyCode !== currency && (
@@ -170,7 +170,7 @@ const MobileCard = memo(function MobileCard({
           </button>
           {canReverse(row) && (
             <button onClick={() => onReverse(row)} title="Reverse this transaction"
-              className="rounded p-1 text-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+              className="rounded p-1 text-text-muted hover:text-amber hover:bg-amber/10 transition-colors">
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
@@ -400,7 +400,7 @@ export default function TransactionsList() {
                           {/* Amount */}
                           <td className="px-4 py-2.5 text-right">
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className={`text-sm font-bold tabular-nums ${isReversed ? 'line-through text-text-muted' : isInflow ? 'text-emerald-400' : 'text-text-primary'}`}>
+                              <span className={`text-sm font-bold tabular-nums ${isReversed ? 'line-through text-text-muted' : isInflow ? 'text-positive' : 'text-text-primary'}`}>
                                 {isInflow ? '+' : '−'}{formatCurrency(row.baseCurrencyAmount ?? row.amount, currency)}
                               </span>
                               {row.currencyCode && row.currencyCode !== currency && (
@@ -440,7 +440,7 @@ export default function TransactionsList() {
                               </button>
                               {canReverse(row) && (
                                 <button onClick={() => setReversalTarget(row)} title="Reverse this transaction"
-                                  className="rounded p-1.5 text-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                                  className="rounded p-1.5 text-text-muted hover:text-amber hover:bg-amber/10 transition-colors">
                                   <RotateCcw className="h-3.5 w-3.5" />
                                 </button>
                               )}
@@ -450,7 +450,7 @@ export default function TransactionsList() {
 
                         {/* Expanded history */}
                         {expandedRows[row._id] && (
-                          <tr className="bg-white/[0.04]">
+                          <tr className="bg-glass-panel">
                             <td colSpan={6} className="px-4 py-3">
                               {expandedRows[row._id].loading
                                 ? <p className="text-xs text-text-muted">Loading history…</p>

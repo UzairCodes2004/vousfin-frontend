@@ -160,7 +160,7 @@ export default function EditorActionBar({
                     if (reason !== null) onCancel(id, reason)
                   }}
                   disabled={saving}
-                  className="flex items-center gap-1.5 rounded-lg border border-red-500/40 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                  className="flex items-center gap-1.5 rounded-lg border border-negative/40 px-3 py-2 text-xs font-semibold text-negative hover:bg-negative/10 transition-colors disabled:opacity-40"
                 >
                   <XCircle className="h-3.5 w-3.5" />
                   Cancel

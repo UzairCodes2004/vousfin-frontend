@@ -31,7 +31,7 @@ function LedgerLine({ side, account, code, amount, currency }) {
       <span className="flex items-center gap-2 min-w-0">
         <span className={cn(
           'inline-flex h-5 w-7 flex-shrink-0 items-center justify-center rounded text-[10px] font-black',
-          isDebit ? 'bg-cyan/15 text-cyan' : 'bg-amber-400/15 text-amber-400'
+          isDebit ? 'bg-cyan/15 text-cyan' : 'bg-amber/15 text-amber'
         )}>
           {side}
         </span>
@@ -79,7 +79,7 @@ export default function AccountingImpactPanel({ kind, entity, currency }) {
       <div className="flex items-center gap-2">
         <BookOpen className="h-4 w-4 text-cyan" />
         <h3 className="text-sm font-bold text-text-primary">Accounting Impact</h3>
-        <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold text-emerald-400/90 flex items-center gap-1">
+        <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold text-positive/90 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3" /> Ledger-synced
         </span>
       </div>
@@ -113,7 +113,7 @@ export default function AccountingImpactPanel({ kind, entity, currency }) {
           </div>
           <div className={cn(
             'flex items-center gap-2 text-xs rounded-lg px-3 py-2',
-            isBill ? 'bg-amber-400/5 text-amber-300' : 'bg-cyan/5 text-cyan'
+            isBill ? 'bg-amber/5 text-amber' : 'bg-cyan/5 text-cyan'
           )}>
             {isBill ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingUp className="h-3.5 w-3.5" />}
             Increases <span className="font-semibold">{partyName}</span>’s
@@ -126,7 +126,7 @@ export default function AccountingImpactPanel({ kind, entity, currency }) {
       {stage === 'recognized' && (
         <>
           <div className="flex items-center gap-2 text-xs text-text-secondary">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-positive" />
             Recognized in the general ledger.
             <span className="font-semibold text-text-primary">{partyName}</span> currently
             {isBill ? ' is owed' : ' owes'}
@@ -152,7 +152,7 @@ export default function AccountingImpactPanel({ kind, entity, currency }) {
       )}
 
       {stage === 'paid' && (
-        <div className="flex items-center gap-2 text-sm text-emerald-300">
+        <div className="flex items-center gap-2 text-sm text-positive">
           <CheckCircle2 className="h-4 w-4" />
           Settled — payment posted{' '}
           <span className="inline-flex items-center gap-1 text-xs text-text-muted">
@@ -161,7 +161,7 @@ export default function AccountingImpactPanel({ kind, entity, currency }) {
             {isBill ? 'CR Cash / Bank' : 'CR Accounts Receivable'})
           </span>
           . {partyName}’s balance cleared
-          <TrendingDown className="h-3.5 w-3.5 text-emerald-400" />.
+          <TrendingDown className="h-3.5 w-3.5 text-positive" />.
         </div>
       )}
     </div>

@@ -26,9 +26,9 @@ const TODAY = new Date().toISOString().slice(0, 10)
 
 function Pill({ label, value, tone = 'muted' }) {
   const tones = {
-    ok:    'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
-    warn:  'text-amber-400 border-amber-500/30 bg-amber-500/10',
-    bad:   'text-red-400 border-red-500/30 bg-red-500/10',
+    ok:    'text-positive border-positive/30 bg-positive/10',
+    warn:  'text-amber border-amber/30 bg-amber/10',
+    bad:   'text-negative border-negative/30 bg-negative/10',
     muted: 'text-text-secondary border-glass bg-glass-panel',
   }
   return (
@@ -180,7 +180,7 @@ export default function AIClassifyPanel({ onClose }) {
           <div className="mt-3 bg-glass-panel border border-glass rounded-lg p-3 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-text-secondary">{nlResult.payee}</span>
-              <span className={`font-bold ${nlResult.tx_type === 'DEBIT' ? 'text-red-400' : 'text-emerald-400'}`}>
+              <span className={`font-bold ${nlResult.tx_type === 'DEBIT' ? 'text-negative' : 'text-positive'}`}>
                 {nlResult.tx_type === 'DEBIT' ? '-' : '+'}PKR {Number(nlResult.amount).toLocaleString()}
               </span>
             </div>
@@ -254,7 +254,7 @@ export default function AIClassifyPanel({ onClose }) {
 
         {phase === 'done' && result && (
           <div>
-            <div className="flex items-center gap-2 mb-3 text-emerald-400">
+            <div className="flex items-center gap-2 mb-3 text-positive">
               <CheckCircle2 className="w-5 h-5" />
               <p className="text-sm font-medium">{result.total_rows} rows processed</p>
             </div>

@@ -12,9 +12,9 @@ import { formatCurrency } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
 const LABEL_STYLE = {
-  High:         { cls: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/5', Icon: ShieldCheck },
-  Medium:       { cls: 'text-amber-400 border-amber-500/30 bg-amber-500/5',       Icon: ShieldCheck },
-  Low:          { cls: 'text-rose-400 border-rose-500/30 bg-rose-500/5',          Icon: AlertTriangle },
+  High:         { cls: 'text-positive border-positive/30 bg-positive/5', Icon: ShieldCheck },
+  Medium:       { cls: 'text-amber border-amber/30 bg-amber/5',       Icon: ShieldCheck },
+  Low:          { cls: 'text-negative border-negative/30 bg-negative/5',          Icon: AlertTriangle },
   Insufficient: { cls: 'text-text-muted border-border bg-bg-subtle',              Icon: Info },
 }
 
@@ -56,7 +56,7 @@ export default function ForecastCard({ target = 'Revenue', horizon = 6 }) {
         <div>
           <div className="text-xs uppercase tracking-wide text-text-muted">Next period {target.toLowerCase()}</div>
           <div className="mt-1 flex items-center gap-2">
-            <TrendIcon className={cn('h-5 w-5', up ? 'text-emerald-400' : 'text-rose-400')} />
+            <TrendIcon className={cn('h-5 w-5', up ? 'text-positive' : 'text-negative')} />
             <span className="text-2xl font-bold text-text-primary font-mono">{formatCurrency(next, currency)}</span>
           </div>
           {lo != null && hi != null && (

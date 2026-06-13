@@ -61,8 +61,8 @@ function KpiTile({ icon: Icon, label, value, sub, accent, accentColor = 'cyan' }
     <div className={cn(
       'premium-card p-5 flex flex-col gap-1.5',
       accent && accentColor === 'cyan'  && 'border-cyan/30 bg-cyan/5',
-      accent && accentColor === 'red'   && 'border-red-500/30 bg-red-500/5',
-      accent && accentColor === 'amber' && 'border-amber-400/30 bg-amber-400/5',
+      accent && accentColor === 'red'   && 'border-negative/30 bg-negative/5',
+      accent && accentColor === 'amber' && 'border-amber/30 bg-amber/5',
     )}>
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-text-muted font-semibold uppercase tracking-wider">{label}</span>
@@ -222,7 +222,7 @@ export default function CustomerDetail() {
       cellClassName: 'text-right font-bold',
       render: (row) => (
         <span className={cn(
-          (row.transactionType || row.type) === 'Income' ? 'text-emerald-300' : 'text-text-primary'
+          (row.transactionType || row.type) === 'Income' ? 'text-positive' : 'text-text-primary'
         )}>
           {formatCurrency(row.amount, currency)}
         </span>
@@ -281,7 +281,7 @@ export default function CustomerDetail() {
       className: 'text-right',
       cellClassName: 'text-right',
       render: (row) => row.credit > 0
-        ? <span className="text-emerald-400 font-semibold">{formatCurrency(row.credit, currency)}</span>
+        ? <span className="text-positive font-semibold">{formatCurrency(row.credit, currency)}</span>
         : <span className="text-text-muted">—</span>,
     },
     {
@@ -315,8 +315,8 @@ export default function CustomerDetail() {
       cellClassName: 'text-right',
       render: (row) => {
         if (!row.daysOverdue && row.daysOverdue !== 0) return null
-        if (row.daysOverdue <= 0) return <span className="text-xs text-emerald-400">Current</span>
-        return <span className="text-xs text-red-400">{row.daysOverdue}d</span>
+        if (row.daysOverdue <= 0) return <span className="text-xs text-positive">Current</span>
+        return <span className="text-xs text-negative">{row.daysOverdue}d</span>
       },
     },
   ]
@@ -501,9 +501,9 @@ export default function CustomerDetail() {
               <div className="px-6 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: 'Total Invoiced', value: formatCurrency(stmt.summary.totalInvoiced || 0, currency), color: 'text-text-primary' },
-                  { label: 'Total Paid',     value: formatCurrency(stmt.summary.totalPaid     || 0, currency), color: 'text-emerald-400' },
+                  { label: 'Total Paid',     value: formatCurrency(stmt.summary.totalPaid     || 0, currency), color: 'text-positive' },
                   { label: 'Outstanding',    value: formatCurrency(stmt.summary.outstanding   || 0, currency), color: 'text-cyan'        },
-                  { label: 'Overdue',        value: formatCurrency(stmt.summary.overdueAmount || 0, currency), color: 'text-red-400'     },
+                  { label: 'Overdue',        value: formatCurrency(stmt.summary.overdueAmount || 0, currency), color: 'text-negative'     },
                 ].map(c => (
                   <div key={c.label} className="bg-glass/30 rounded-lg px-4 py-3">
                     <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">{c.label}</p>

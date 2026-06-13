@@ -6,7 +6,7 @@ import { useAIStore } from '@/stores/useAIStore'
 function RecommendationItem({ item }) {
   const iconMap = {
     warning: <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />,
-    positive: <TrendingUp className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" />,
+    positive: <TrendingUp className="h-4 w-4 text-positive flex-shrink-0 mt-0.5" />,
     info: <Lightbulb className="h-4 w-4 text-cyan flex-shrink-0 mt-0.5" />,
   }
   const icon = iconMap[item.type] || iconMap.info

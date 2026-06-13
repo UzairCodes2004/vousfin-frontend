@@ -171,7 +171,7 @@ export default function ExpenseAllocationForm({ bill, existing, onSave, onCancel
               type="button"
               onClick={() => removeLine(i)}
               disabled={lines.length <= 1}
-              className="col-span-1 flex items-center justify-center text-text-muted hover:text-red-400 disabled:opacity-30 transition-colors"
+              className="col-span-1 flex items-center justify-center text-text-muted hover:text-negative disabled:opacity-30 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -182,7 +182,7 @@ export default function ExpenseAllocationForm({ bill, existing, onSave, onCancel
       {/* Balance indicator */}
       {method !== 'equal' && (
         <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded ${
-          balanced ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+          balanced ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'
         }`}>
           {balanced
             ? <><CheckCircle2 className="h-3.5 w-3.5" /> Allocation is balanced</>

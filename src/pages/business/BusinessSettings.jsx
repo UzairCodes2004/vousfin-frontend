@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import TextArea from '@/components/ui/TextArea'
 import Button from '@/components/ui/Button'
+import AppearanceCard from '@/components/settings/AppearanceCard'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getErrorMessage } from '@/utils/errorHandler'
@@ -179,9 +180,11 @@ export default function BusinessSettings() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-black text-text-primary tracking-tight">Business Settings</h1>
+        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Business Settings</h1>
         <p className="text-text-secondary mt-1">Update your business profile, branding and preferences.</p>
       </div>
+
+      <AppearanceCard />
 
       <form onSubmit={save} className="premium-card space-y-6 p-6 sm:p-8">
         {/* ── Logo / profile picture ───────────────────────────────────── */}
@@ -327,10 +330,10 @@ export default function BusinessSettings() {
       </div>
 
       {/* ── Danger Zone ───────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6 sm:p-8 space-y-5">
+      <div className="rounded-2xl border border-negative/30 bg-negative/5 p-6 sm:p-8 space-y-5">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-400" />
-          <h2 className="text-base font-bold text-red-300">Danger Zone</h2>
+          <AlertTriangle className="h-5 w-5 text-negative" />
+          <h2 className="text-base font-bold text-negative">Danger Zone</h2>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -346,7 +349,7 @@ export default function BusinessSettings() {
           </Button>
         </div>
 
-        <div className="border-t border-red-500/20" />
+        <div className="border-t border-negative/20" />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -410,7 +413,7 @@ function DangerConfirm({ mode, businessName, onClose, onConfirm }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={busy ? undefined : onClose} />
-      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-navy p-6 shadow-2xl animate-fade-in">
+      <div className="relative w-full max-w-md rounded-2xl border border-negative/30 bg-navy p-6 shadow-2xl animate-fade-in">
         <button
           type="button"
           onClick={busy ? undefined : onClose}
@@ -420,7 +423,7 @@ function DangerConfirm({ mode, businessName, onClose, onConfirm }) {
         </button>
 
         <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="h-5 w-5 text-red-400" />
+          <AlertTriangle className="h-5 w-5 text-negative" />
           <h3 className="text-lg font-black text-text-primary">
             {isDelete ? 'Delete business?' : 'Reset all data?'}
           </h3>

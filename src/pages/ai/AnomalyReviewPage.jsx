@@ -167,25 +167,25 @@ export default function AnomalyReviewPage() {
           icon={AlertTriangle}
           label="Flagged in Last Scan"
           value={scanFound}
-          colorClass="bg-orange-400/10 text-orange-400"
+          colorClass="bg-amber/10 text-amber"
         />
         <StatCard
           icon={Activity}
           label="Pending Review"
           value={pending}
-          colorClass="bg-yellow-400/10 text-yellow-400"
+          colorClass="bg-amber/10 text-amber"
         />
         <StatCard
           icon={Flag}
           label="Confirmed Fraud"
           value={confirmed}
-          colorClass="bg-red-400/10 text-red-400"
+          colorClass="bg-negative/10 text-negative"
         />
       </div>
 
       {/* ── Active anomaly alert banner ───────────────────────────────────── */}
       {!loading && Array.isArray(anomalies) && anomalies.length > 0 && (
-        <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-red-400/30 bg-red-400/10 text-red-400">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-negative/30 bg-negative/10 text-negative">
           <ShieldAlert className="h-5 w-5 flex-shrink-0" />
           <p className="font-bold text-sm">
             {anomalies.length} anomal{anomalies.length === 1 ? 'y' : 'ies'} detected — review and classify below
@@ -195,7 +195,7 @@ export default function AnomalyReviewPage() {
 
       {/* ── All-clear banner ─────────────────────────────────────────────── */}
       {!loading && Array.isArray(anomalies) && anomalies.length === 0 && activeTab === 'scan' && lastScanResult && (
-        <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-emerald-400/30 bg-emerald-400/10 text-emerald-400">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-positive/30 bg-positive/10 text-positive">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
           <p className="font-bold text-sm">
             {lastScanResult.message || 'No anomalies detected. All transactions look normal.'}
@@ -230,9 +230,9 @@ export default function AnomalyReviewPage() {
                   'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
                   activeTab === tab.key
                     ? 'bg-navy/20 text-navy'
-                    : tab.key === 'pending' ? 'bg-yellow-400/20 text-yellow-400'
-                    : tab.key === 'fraud'   ? 'bg-red-400/20 text-red-400'
-                    : tab.key === 'legit'   ? 'bg-emerald-400/20 text-emerald-400'
+                    : tab.key === 'pending' ? 'bg-amber/20 text-amber'
+                    : tab.key === 'fraud'   ? 'bg-negative/20 text-negative'
+                    : tab.key === 'legit'   ? 'bg-positive/20 text-positive'
                     :                          'bg-glass-panel text-text-muted'
                 )}>
                   {tabCount}

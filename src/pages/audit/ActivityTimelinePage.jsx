@@ -25,9 +25,9 @@ const SOURCE_FILTERS = [
 /* Colour a row by its action/event semantics. */
 function toneFor(action = '') {
   const a = action.toLowerCase()
-  if (/(delete|cancel|revers|reject|fail)/.test(a)) return 'text-red-400 bg-red-500/10 border-red-500/20'
-  if (/(paid|approve|match|received|created|recorded)/.test(a)) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-  if (/(balance_changed|valuation|low_stock|reduced|overdue)/.test(a)) return 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+  if (/(delete|cancel|revers|reject|fail)/.test(a)) return 'text-negative bg-negative/10 border-negative/20'
+  if (/(paid|approve|match|received|created|recorded)/.test(a)) return 'text-positive bg-positive/10 border-positive/20'
+  if (/(balance_changed|valuation|low_stock|reduced|overdue)/.test(a)) return 'text-amber bg-amber/10 border-amber/20'
   return 'text-cyan bg-cyan/10 border-cyan/20'
 }
 
@@ -104,7 +104,7 @@ export default function ActivityTimelinePage() {
             <UserCog className="inline h-3.5 w-3.5 mr-1 text-cyan" /> {data.auditCount} audit entries
           </span>
           <span className="rounded-lg border border-glass bg-glass-panel px-3 py-1.5 text-text-secondary">
-            <Zap className="inline h-3.5 w-3.5 mr-1 text-amber-400" /> {data.eventCount} system events
+            <Zap className="inline h-3.5 w-3.5 mr-1 text-amber" /> {data.eventCount} system events
           </span>
         </div>
       )}
@@ -133,7 +133,7 @@ export default function ActivityTimelinePage() {
               <li key={i} className="ml-4">
                 <span className={cn(
                   'absolute -left-[7px] flex h-3.5 w-3.5 items-center justify-center rounded-full border',
-                  it.source === 'event' ? 'bg-amber-400/20 border-amber-400/40' : 'bg-cyan/20 border-cyan/40'
+                  it.source === 'event' ? 'bg-amber/20 border-amber/40' : 'bg-cyan/20 border-cyan/40'
                 )} />
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

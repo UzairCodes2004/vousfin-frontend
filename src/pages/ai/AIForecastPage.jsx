@@ -100,7 +100,7 @@ function KpiCard({ label, value, sub, isPositive, isCurrency = true, isPercent =
         {isPositive !== null && isPositive !== undefined && (
           <span className={cn(
             'flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full',
-            up ? 'text-emerald-400 bg-emerald-400/10' : 'text-red-400 bg-red-400/10'
+            up ? 'text-positive bg-positive/10' : 'text-negative bg-negative/10'
           )}>
             {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
           </span>
@@ -113,8 +113,8 @@ function KpiCard({ label, value, sub, isPositive, isCurrency = true, isPercent =
 
 /** Confidence badge */
 function ConfBadge({ label, score }) {
-  const color = label === 'High'   ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30'
-    : label === 'Medium' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30'
+  const color = label === 'High'   ? 'text-positive bg-positive/10 border-positive/30'
+    : label === 'Medium' ? 'text-amber bg-amber/10 border-amber/30'
     : 'text-text-muted bg-glass border-glass'
   return (
     <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border', color)}>
@@ -155,9 +155,9 @@ function ModelBadge({ dataSource, modelType }) {
 function AnomalyRiskChip({ score, count }) {
   if (score == null || score === 0) return null
   const pct   = Math.round(score * 100)
-  const color = pct >= 60 ? 'text-red-400 bg-red-400/10 border-red-400/30'
-    : pct >= 30 ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30'
-    : 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30'
+  const color = pct >= 60 ? 'text-negative bg-negative/10 border-negative/30'
+    : pct >= 30 ? 'text-amber bg-amber/10 border-amber/30'
+    : 'text-positive bg-positive/10 border-positive/30'
   return (
     <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border', color)}>
       <AlertTriangle className="h-3 w-3" />
@@ -178,8 +178,8 @@ function MomentumBadge({ momentum }) {
     <span className={cn(
       'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border',
       isPos
-        ? 'text-emerald-400 bg-emerald-400/8 border-emerald-400/20'
-        : 'text-red-400 bg-red-400/8 border-red-400/20'
+        ? 'text-positive bg-positive/8 border-positive/20'
+        : 'text-negative bg-negative/8 border-negative/20'
     )}>
       {isPos ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       {short >= 0 ? '+' : ''}{short.toFixed(1)}% MoM
@@ -202,7 +202,7 @@ function InsightItem({ insight }) {
   const isRec    = insight.type === 'recommendation'
   return (
     <div className="flex gap-3 py-2.5 border-b border-glass/40 last:border-0">
-      <div className={cn('mt-0.5 shrink-0', isWarn ? 'text-yellow-400' : isRec ? 'text-emerald-400' : 'text-cyan')}>
+      <div className={cn('mt-0.5 shrink-0', isWarn ? 'text-amber' : isRec ? 'text-positive' : 'text-cyan')}>
         <Icon className="h-3.5 w-3.5" />
       </div>
       <p className="text-xs text-text-secondary leading-relaxed">{insight.text}</p>
@@ -221,7 +221,7 @@ function DataSufficiencyBanner({ ds }) {
   const cfg = {
     insufficient: {
       icon: AlertTriangle,
-      color: 'border-yellow-400/40 bg-yellow-400/5 text-yellow-400',
+      color: 'border-amber/40 bg-amber/5 text-amber',
       title: 'No Transaction Data',
     },
     sparse: {
@@ -231,12 +231,12 @@ function DataSufficiencyBanner({ ds }) {
     },
     adequate: {
       icon: ShieldCheck,
-      color: 'border-emerald-400/30 bg-emerald-400/5 text-emerald-400',
+      color: 'border-positive/30 bg-positive/5 text-positive',
       title: 'Moderate History',
     },
     rich: {
       icon: ShieldCheck,
-      color: 'border-emerald-400/30 bg-emerald-400/5 text-emerald-400',
+      color: 'border-positive/30 bg-positive/5 text-positive',
       title: 'Rich History',
     },
   }[ds.tier] || { icon: Info, color: 'border-glass bg-glass text-text-muted', title: 'Data Quality' }
@@ -259,8 +259,8 @@ function DataSufficiencyBanner({ ds }) {
 
 /** Risk indicator card */
 const RISK_LEVEL_STYLE = {
-  critical: 'border-red-400/40 bg-red-400/5 text-red-400',
-  warning:  'border-yellow-400/40 bg-yellow-400/5 text-yellow-400',
+  critical: 'border-negative/40 bg-negative/5 text-negative',
+  warning:  'border-amber/40 bg-amber/5 text-amber',
   info:     'border-cyan/30 bg-cyan/5 text-cyan',
 }
 function RiskIndicatorCard({ indicator }) {
@@ -281,9 +281,9 @@ function RiskIndicatorCard({ indicator }) {
 
 /** Feature importance horizontal bar */
 function FeatureBar({ name, pct, description }) {
-  const color = pct >= 30 ? '#06b6d4'
-    : pct >= 20 ? '#34d399'
-    : '#64748b'
+  const color = pct >= 30 ? 'rgb(var(--c-accent))'
+    : pct >= 20 ? 'rgb(var(--chart-revenue))'
+    : 'rgb(var(--c-text3))'
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-1">
@@ -391,7 +391,7 @@ function ExplainabilityPanel({ featureImportance = [], riskIndicators = [], mome
       {hasRisks && (
         <div className="premium-card p-5">
           <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
-            <AlertTriangle className="h-4 w-4 text-yellow-400" />
+            <AlertTriangle className="h-4 w-4 text-amber" />
             Risk Indicators
           </h3>
           <div className="space-y-2">
@@ -434,7 +434,7 @@ function ExplainabilityPanel({ featureImportance = [], riskIndicators = [], mome
 function CategoryBreakdown({ businessCategories }) {
   if (!businessCategories?.length) return null
 
-  const CAT_COLORS = ['#06b6d4', '#34d399', '#f59e0b', '#8b5cf6', '#f87171', '#6366f1', '#ec4899', '#10b981']
+  const CAT_COLORS = ['rgb(var(--c-accent))', 'rgb(var(--chart-revenue))', 'rgb(var(--c-highlight))', 'rgb(var(--c-accent2))', 'rgb(var(--chart-expenses))', 'rgb(var(--c-accent))', 'rgb(var(--c-accent2))', 'rgb(var(--c-positive))']
 
   return (
     <div className="premium-card p-5">
@@ -450,9 +450,9 @@ function CategoryBreakdown({ businessCategories }) {
             layout="vertical"
             margin={{ top: 0, right: 50, left: 4, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="2 2" stroke="#1E293B" horizontal={false} />
-            <XAxis type="number" stroke="#475569" fontSize={10} tickFormatter={formatCompact} tickLine={false} axisLine={false} />
-            <YAxis type="category" dataKey="name" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} width={80} />
+            <CartesianGrid strokeDasharray="2 2" stroke="rgb(var(--c-text) / 0.08)" horizontal={false} />
+            <XAxis type="number" stroke="rgb(var(--c-text3))" fontSize={10} tickFormatter={formatCompact} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" stroke="rgb(var(--c-text3))" fontSize={10} tickLine={false} axisLine={false} width={80} />
             <Tooltip content={<CatTooltip />} />
             <Bar dataKey="total" radius={[0, 4, 4, 0]}>
               {businessCategories.slice(0, 6).map((_, i) => (
@@ -569,7 +569,7 @@ function UnifiedTab() {
               {mutation.isPending && <LoadingOverlay />}
               {result?.dataSufficiency?.isInsufficient ? (
                 <div className="h-[380px] flex flex-col items-center justify-center gap-4 text-center px-8">
-                  <AlertTriangle className="h-10 w-10 text-yellow-400/60" />
+                  <AlertTriangle className="h-10 w-10 text-amber/60" />
                   <div>
                     <p className="text-text-primary font-semibold text-sm">No Forecast Available</p>
                     <p className="text-text-muted text-xs mt-1.5 leading-relaxed max-w-sm">
@@ -695,7 +695,7 @@ function MetricForecastTab({ useHook, label, metricKey }) {
               {mutation.isPending && <LoadingOverlay />}
               {result?.dataSufficiency?.isInsufficient ? (
                 <div className="h-[380px] flex flex-col items-center justify-center gap-4 text-center px-8">
-                  <AlertTriangle className="h-10 w-10 text-yellow-400/60" />
+                  <AlertTriangle className="h-10 w-10 text-amber/60" />
                   <div>
                     <p className="text-text-primary font-semibold text-sm">No Forecast Available</p>
                     <p className="text-text-muted text-xs mt-1.5 leading-relaxed max-w-sm">
@@ -763,10 +763,10 @@ function ScenarioTab() {
   const result = mutation.data
 
   const PRESETS = [
-    { label: 'Optimistic +20%',   rev: 1.20, exp: 0.95, color: 'text-emerald-400' },
-    { label: 'Revenue drop −15%', rev: 0.85, exp: 1.00, color: 'text-red-400'     },
-    { label: 'Cost spike +25%',   rev: 1.00, exp: 1.25, color: 'text-yellow-400'  },
-    { label: 'Worst case',        rev: 0.75, exp: 1.30, color: 'text-red-500'      },
+    { label: 'Optimistic +20%',   rev: 1.20, exp: 0.95, color: 'text-positive' },
+    { label: 'Revenue drop −15%', rev: 0.85, exp: 1.00, color: 'text-negative'     },
+    { label: 'Cost spike +25%',   rev: 1.00, exp: 1.25, color: 'text-amber'  },
+    { label: 'Worst case',        rev: 0.75, exp: 1.30, color: 'text-negative'      },
   ]
 
   const pctLabel = v => {
@@ -804,7 +804,7 @@ function ScenarioTab() {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-medium text-text-secondary">Revenue Factor</label>
-                  <span className={cn('text-xs font-bold', revenueMulti >= 1 ? 'text-emerald-400' : 'text-red-400')}>
+                  <span className={cn('text-xs font-bold', revenueMulti >= 1 ? 'text-positive' : 'text-negative')}>
                     {pctLabel(revenueMulti)}
                   </span>
                 </div>
@@ -824,7 +824,7 @@ function ScenarioTab() {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-medium text-text-secondary">Expense Factor</label>
-                  <span className={cn('text-xs font-bold', expenseMulti <= 1 ? 'text-emerald-400' : 'text-red-400')}>
+                  <span className={cn('text-xs font-bold', expenseMulti <= 1 ? 'text-positive' : 'text-negative')}>
                     {pctLabel(expenseMulti)}
                   </span>
                 </div>
@@ -952,7 +952,7 @@ function ScenarioTab() {
           {result?.riskIndicators?.length > 0 && (
             <div className="premium-card p-5">
               <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary mb-3 border-b border-glass pb-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-400" /> Scenario Risk Analysis
+                <AlertTriangle className="h-4 w-4 text-amber" /> Scenario Risk Analysis
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {result.riskIndicators.map((r, i) => <RiskIndicatorCard key={i} indicator={r} />)}
@@ -1007,7 +1007,7 @@ export default function AIForecastPage() {
             <div className="flex items-center gap-2 text-xs bg-glass border border-glass rounded-lg px-3 py-2">
               <span className={cn(
                 'h-2 w-2 rounded-full',
-                healthData.lstmReady ? 'bg-cyan animate-pulse' : 'bg-emerald-400 animate-pulse'
+                healthData.lstmReady ? 'bg-cyan animate-pulse' : 'bg-positive animate-pulse'
               )} />
               <span className="text-text-muted whitespace-nowrap">
                 {healthData.lstmReady
@@ -1038,7 +1038,7 @@ export default function AIForecastPage() {
                 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150',
                 active
                   ? tab.id === 'scenario'
-                    ? 'bg-violet-500 text-white shadow-md'
+                    ? 'bg-accent-2 text-white shadow-md'
                     : 'bg-cyan text-navy shadow-glow-cyan'
                   : 'text-text-secondary hover:text-text-primary hover:bg-glass'
               )}

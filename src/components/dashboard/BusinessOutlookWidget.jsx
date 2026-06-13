@@ -19,19 +19,19 @@ import {
 import { useHealthOutlook } from '@/hooks/useAI'
 
 const CONFIDENCE_META = {
-  high:   { label: 'High confidence',   color: '#34d399' },
-  medium: { label: 'Medium confidence', color: '#fbbf24' },
-  low:    { label: 'Low confidence',    color: '#fb923c' },
+  high:   { label: 'High confidence',   color: 'var(--c-positive)' },
+  medium: { label: 'Medium confidence', color: 'var(--c-highlight)' },
+  low:    { label: 'Low confidence',    color: 'var(--c-highlight)' },
 }
 
 const SIGNAL_META = {
-  critical: { color: '#f87171', Icon: Zap },
-  warning:  { color: '#fbbf24', Icon: AlertTriangle },
-  info:     { color: '#60a5fa', Icon: Info },
+  critical: { color: 'rgb(var(--c-negative))', Icon: Zap },
+  warning:  { color: 'rgb(var(--c-highlight))', Icon: AlertTriangle },
+  info:     { color: 'rgb(var(--c-accent))', Icon: Info },
 }
 
 function scoreColor(s) {
-  return s >= 75 ? '#34d399' : s >= 55 ? '#fbbf24' : '#f87171'
+  return s >= 75 ? 'rgb(var(--c-positive))' : s >= 55 ? 'rgb(var(--c-highlight))' : 'rgb(var(--c-negative))'
 }
 
 function Stat({ label, children, hint }) {
@@ -55,8 +55,8 @@ const BusinessOutlookWidget = memo(function BusinessOutlookWidget({ horizon = 6 
       {/* header */}
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-cyan-400/15">
-            <Telescope className="h-4 w-4 text-cyan-400" />
+          <div className="p-1.5 rounded-lg bg-cyan/15">
+            <Telescope className="h-4 w-4 text-cyan" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-text-primary">Forward Outlook</h3>
@@ -68,7 +68,7 @@ const BusinessOutlookWidget = memo(function BusinessOutlookWidget({ horizon = 6 
         {!isLoading && !insufficient && conf && (
           <span
             className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide flex-shrink-0"
-            style={{ backgroundColor: `${conf.color}22`, color: conf.color }}
+            style={{ backgroundColor: `rgb(${conf.color} / 0.13)`, color: `rgb(${conf.color})` }}
           >
             {conf.label}
           </span>
@@ -77,7 +77,7 @@ const BusinessOutlookWidget = memo(function BusinessOutlookWidget({ horizon = 6 
 
       {isLoading ? (
         <div className="grid grid-cols-3 gap-3">
-          {[0, 1, 2].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-white/[0.04]" />)}
+          {[0, 1, 2].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-glass-panel" />)}
         </div>
       ) : insufficient ? (
         <div className="flex items-center gap-3 py-4 px-2 text-text-muted">
@@ -103,7 +103,7 @@ const BusinessOutlookWidget = memo(function BusinessOutlookWidget({ horizon = 6 
               <div className="flex items-baseline gap-1">
                 <span
                   className="text-2xl font-black leading-none"
-                  style={{ color: data.runway.survivesHorizon ? '#34d399' : data.runway.months <= 2 ? '#f87171' : '#fbbf24' }}
+                  style={{ color: data.runway.survivesHorizon ? 'rgb(var(--c-positive))' : data.runway.months <= 2 ? 'rgb(var(--c-negative))' : 'rgb(var(--c-highlight))' }}
                 >
                   {data.runway.survivesHorizon ? `${data.horizonMonths}+` : data.runway.months}
                 </span>
@@ -167,8 +167,8 @@ const BusinessOutlookWidget = memo(function BusinessOutlookWidget({ horizon = 6 
 function MarginArrow({ delta }) {
   if (delta == null || Math.abs(delta) < 0.1) return <Minus className="h-4 w-4 text-text-muted" />
   return delta > 0
-    ? <TrendingUp className="h-4 w-4 text-emerald-400" />
-    : <TrendingDown className="h-4 w-4 text-red-400" />
+    ? <TrendingUp className="h-4 w-4 text-positive" />
+    : <TrendingDown className="h-4 w-4 text-negative" />
 }
 
 export default BusinessOutlookWidget

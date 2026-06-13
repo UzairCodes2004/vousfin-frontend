@@ -51,7 +51,7 @@ export default function AIAssistantChat() {
         <button
           type="button"
           onClick={clearChat}
-          className="flex items-center gap-1.5 text-xs text-text-muted hover:text-red-400 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-text-muted hover:text-negative transition-colors"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Clear

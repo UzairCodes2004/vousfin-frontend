@@ -16,7 +16,7 @@ import {
 import { useHealthScore, useHealthHistory } from '@/hooks/useAI'
 
 /* ── Tiny trend sparkline ──────────────────────────────────────────── */
-function Sparkline({ data = [], color = '#34d399', w = 96, h = 26 }) {
+function Sparkline({ data = [], color = 'rgb(var(--c-positive))', w = 96, h = 26 }) {
   if (data.length < 2) return null
   const min = Math.min(...data)
   const max = Math.max(...data)
@@ -41,7 +41,7 @@ function Sparkline({ data = [], color = '#34d399', w = 96, h = 26 }) {
 function DeltaChip({ value }) {
   const up = value > 0
   const flat = value === 0
-  const color = flat ? '#94a3b8' : up ? '#34d399' : '#f87171'
+  const color = flat ? 'rgb(var(--c-text3))' : up ? 'rgb(var(--c-positive))' : 'rgb(var(--c-negative))'
   const Icon = flat ? Minus : up ? TrendingUp : TrendingDown
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color }}>
@@ -53,17 +53,17 @@ function DeltaChip({ value }) {
 
 /* Server category → ring presentation. Order = display order. */
 const CATEGORY_META = {
-  liquidity:     { label: 'Liquidity',  icon: DollarSign, color: '#06b6d4' },
-  profitability: { label: 'Profit',     icon: TrendingUp, color: '#34d399' },
-  efficiency:    { label: 'Operations', icon: Activity,   color: '#a78bfa' },
-  leverage:      { label: 'Leverage',   icon: Scale,      color: '#f472b6' },
-  tax:           { label: 'Tax',        icon: Shield,     color: '#fbbf24' },
+  liquidity:     { label: 'Liquidity',  icon: DollarSign, color: 'rgb(var(--c-accent))' },
+  profitability: { label: 'Profit',     icon: TrendingUp, color: 'rgb(var(--c-positive))' },
+  efficiency:    { label: 'Operations', icon: Activity,   color: 'rgb(var(--c-accent2))' },
+  leverage:      { label: 'Leverage',   icon: Scale,      color: 'rgb(var(--c-accent2))' },
+  tax:           { label: 'Tax',        icon: Shield,     color: 'rgb(var(--c-highlight))' },
 }
 
 const CONFIDENCE_META = {
-  high:   { label: 'High confidence',   color: '#34d399' },
-  medium: { label: 'Medium confidence', color: '#fbbf24' },
-  low:    { label: 'Low confidence',    color: '#fb923c' },
+  high:   { label: 'High confidence',   color: 'var(--c-positive)' },
+  medium: { label: 'Medium confidence', color: 'var(--c-highlight)' },
+  low:    { label: 'Low confidence',    color: 'var(--c-highlight)' },
 }
 
 /* ── Score computation ─────────────────────────────────────────────── */
@@ -121,7 +121,7 @@ function computeScores(kpis) {
 
 /* ── Colour helpers ────────────────────────────────────────────────── */
 function scoreColor(s) {
-  return s >= 75 ? '#34d399' : s >= 55 ? '#fbbf24' : '#f87171'
+  return s >= 75 ? 'rgb(var(--c-positive))' : s >= 55 ? 'rgb(var(--c-highlight))' : 'rgb(var(--c-negative))'
 }
 
 /* ── SVG ring ──────────────────────────────────────────────────────── */
@@ -159,9 +159,9 @@ function ScoreRing({ score, label, icon: Icon, ringColor }) {
 
 /* ── Cash Risk Meter ───────────────────────────────────────────────── */
 const RISK = {
-  safe:     { color: '#34d399', label: 'Safe',     hint: 'Cash runway is healthy',   Icon: CheckCircle2 },
-  warning:  { color: '#fbbf24', label: 'Warning',  hint: 'Monitor cash closely',     Icon: AlertTriangle },
-  critical: { color: '#f87171', label: 'Critical', hint: 'Immediate action required',Icon: Zap },
+  safe:     { color: 'rgb(var(--c-positive))', label: 'Safe',     hint: 'Cash runway is healthy',   Icon: CheckCircle2 },
+  warning:  { color: 'rgb(var(--c-highlight))', label: 'Warning',  hint: 'Monitor cash closely',     Icon: AlertTriangle },
+  critical: { color: 'rgb(var(--c-negative))', label: 'Critical', hint: 'Immediate action required',Icon: Zap },
 }
 
 function RiskMeter({ riskLevel, riskPct, runway }) {
@@ -179,21 +179,21 @@ function RiskMeter({ riskLevel, riskPct, runway }) {
         </div>
       </div>
       {/* bar */}
-      <div className="relative h-2.5 rounded-full overflow-hidden bg-white/[0.06]">
+      <div className="relative h-2.5 rounded-full overflow-hidden bg-glass-panel">
         <div
           className="h-full rounded-full"
           style={{
             width: `${riskPct}%`,
             background:
-              riskLevel === 'critical' ? 'linear-gradient(to right,#f87171,#fbbf24)' :
-              riskLevel === 'warning'  ? 'linear-gradient(to right,#fbbf24,#34d399)' :
-                                         'linear-gradient(to right,#06b6d4,#34d399)',
+              riskLevel === 'critical' ? 'linear-gradient(to right,rgb(var(--c-negative)),rgb(var(--c-highlight)))' :
+              riskLevel === 'warning'  ? 'linear-gradient(to right,rgb(var(--c-highlight)),rgb(var(--c-positive)))' :
+                                         'linear-gradient(to right,rgb(var(--c-accent)),rgb(var(--c-positive)))',
             transition: 'width 0.7s ease',
           }}
         />
         {/* scale ticks */}
         {[33, 66].map(p => (
-          <div key={p} className="absolute top-0 h-full w-px bg-white/[0.12]" style={{ left: `${p}%` }} />
+          <div key={p} className="absolute top-0 h-full w-px bg-glass-panel" style={{ left: `${p}%` }} />
         ))}
       </div>
       {/* labels */}
@@ -250,10 +250,10 @@ function buildView(server, kpis) {
     estimated: true,
     overall: s.overall,
     rings: [
-      { key: 'liquidity',     label: 'Liquidity',  icon: DollarSign, color: '#06b6d4', score: s.liquidity,                 drivers: [] },
-      { key: 'profitability', label: 'Profit',     icon: TrendingUp, color: '#34d399', score: Math.round(s.profitability), drivers: [] },
-      { key: 'operational',   label: 'Operations', icon: Activity,   color: '#a78bfa', score: s.operational,               drivers: [] },
-      { key: 'tax',           label: 'Tax',        icon: Shield,     color: '#fbbf24', score: s.tax,                       drivers: [] },
+      { key: 'liquidity',     label: 'Liquidity',  icon: DollarSign, color: 'rgb(var(--c-accent))', score: s.liquidity,                 drivers: [] },
+      { key: 'profitability', label: 'Profit',     icon: TrendingUp, color: 'rgb(var(--c-positive))', score: Math.round(s.profitability), drivers: [] },
+      { key: 'operational',   label: 'Operations', icon: Activity,   color: 'rgb(var(--c-accent2))', score: s.operational,               drivers: [] },
+      { key: 'tax',           label: 'Tax',        icon: Shield,     color: 'rgb(var(--c-highlight))', score: s.tax,                       drivers: [] },
     ],
     risk: { riskLevel: s.riskLevel, riskPct: s.riskPct, runway: s.runway },
     confidenceKey: null,
@@ -279,8 +279,8 @@ const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loa
       {/* ── header row ── */}
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-emerald-400/15">
-            <Activity className="h-4 w-4 text-emerald-400" />
+          <div className="p-1.5 rounded-lg bg-positive/15">
+            <Activity className="h-4 w-4 text-positive" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-text-primary">Business Health Score</h3>
@@ -297,14 +297,14 @@ const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loa
             {conf && (
               <span
                 className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide"
-                style={{ backgroundColor: `${conf.color}22`, color: conf.color }}
+                style={{ backgroundColor: `rgb(${conf.color} / 0.13)`, color: `rgb(${conf.color})` }}
                 title={view.monthsOfData != null ? `${view.monthsOfData} months of data` : undefined}
               >
                 {conf.label}{view.monthsOfData != null ? ` · ${view.monthsOfData}mo` : ''}
               </span>
             )}
             {view.estimated && (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-white/[0.06] text-text-muted">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-glass-panel text-text-muted">
                 Estimated
               </span>
             )}
@@ -314,9 +314,9 @@ const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loa
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4">
-          <div className="h-20 animate-pulse rounded-xl bg-white/[0.04]" />
+          <div className="h-20 animate-pulse rounded-xl bg-glass-panel" />
           <div className="hidden md:block w-px bg-glass" />
-          <div className="h-20 animate-pulse rounded-xl bg-white/[0.04]" />
+          <div className="h-20 animate-pulse rounded-xl bg-glass-panel" />
         </div>
       ) : insufficient ? (
         <div className="flex items-center gap-3 py-4 px-2 text-text-muted">

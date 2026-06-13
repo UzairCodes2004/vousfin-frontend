@@ -23,9 +23,9 @@ const STATE_FILTERS = [
 const STATE_COLOR = {
   draft:                'text-text-muted',
   confirmed:            'text-cyan',
-  discrepancy_reported: 'text-amber-400',
-  reconciled:           'text-emerald-400',
-  cancelled:            'text-red-400',
+  discrepancy_reported: 'text-amber',
+  reconciled:           'text-positive',
+  cancelled:            'text-negative',
 }
 
 function GRNStateBadge({ state }) {
@@ -101,11 +101,11 @@ export default function GoodsReceiptsPage() {
       key: 'discrepancies',
       header: 'Issues',
       render: (r) => r.hasDiscrepancies ? (
-        <span className="flex items-center gap-1 text-xs text-amber-400">
+        <span className="flex items-center gap-1 text-xs text-amber">
           <AlertTriangle className="h-3.5 w-3.5" />
           {r.discrepancies?.length || ''}
         </span>
-      ) : <span className="text-xs text-emerald-400">—</span>,
+      ) : <span className="text-xs text-positive">—</span>,
     },
     {
       key: 'total',
@@ -127,7 +127,7 @@ export default function GoodsReceiptsPage() {
       key: 'inventory',
       header: 'In Stock',
       render: (r) => r.inventoryApplied ? (
-        <span className="flex items-center gap-1 text-xs text-emerald-400" title="Items added to inventory at landed cost">
+        <span className="flex items-center gap-1 text-xs text-positive" title="Items added to inventory at landed cost">
           <PackageCheck className="h-3.5 w-3.5" /> Added
         </span>
       ) : r.state === 'draft' ? (
@@ -150,7 +150,7 @@ export default function GoodsReceiptsPage() {
                   confirmGRN.mutate({ id: r._id })
                 }
               }}
-              className="text-text-muted hover:text-emerald-400 transition-colors"
+              className="text-text-muted hover:text-positive transition-colors"
               title="Confirm receipt → adds items to inventory stock"
             >
               <CheckCircle className="h-4 w-4" />
@@ -162,7 +162,7 @@ export default function GoodsReceiptsPage() {
               e.stopPropagation()
               if (confirm(`Archive GRN ${r.grnNumber}?`)) archiveGRN.mutate({ id: r._id })
             }}
-            className="text-text-muted hover:text-red-400 transition-colors"
+            className="text-text-muted hover:text-negative transition-colors"
             title="Archive"
           >
             <Trash2 className="h-4 w-4" />

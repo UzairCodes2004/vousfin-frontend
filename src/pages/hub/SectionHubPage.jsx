@@ -38,20 +38,20 @@ function ModuleCard({ item, accent, stat, index }) {
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${accent}88, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, rgb(${accent} / 0.53), transparent)` }}
       />
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{ background: `radial-gradient(420px 160px at 50% -40%, ${accent}14, transparent 70%)` }}
+        style={{ background: `radial-gradient(420px 160px at 50% -40%, rgb(${accent} / 0.08), transparent 70%)` }}
       />
 
       <div className="relative flex items-start justify-between mb-3.5">
         <span
           className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105"
-          style={{ background: `${accent}1A`, boxShadow: `inset 0 0 0 1px ${accent}33` }}
+          style={{ background: `rgb(${accent} / 0.10)`, boxShadow: `inset 0 0 0 1px rgb(${accent} / 0.20)` }}
         >
-          <item.icon className="h-[21px] w-[21px]" style={{ color: accent }} />
+          <item.icon className="h-[21px] w-[21px]" style={{ color: `rgb(${accent})` }} />
         </span>
         <span className="flex h-7 w-7 items-center justify-center rounded-full border border-glass text-text-muted transition-all duration-200 group-hover:border-glass-2 group-hover:text-text-primary group-hover:translate-x-0.5">
           <ArrowRight className="h-3.5 w-3.5" />
@@ -107,15 +107,16 @@ export default function SectionHubPage() {
   const accent = section.accent
   const kpis = dashData?.kpis || {}
 
+  const accentColor = `rgb(${accent})`
   const statFor = (item) => {
     switch (item.statKey) {
       case 'receivable':
-        return { value: compactMoney(kpis.accountsReceivable ?? 0, currency), label: 'outstanding', tint: accent }
+        return { value: compactMoney(kpis.accountsReceivable ?? 0, currency), label: 'outstanding', tint: accentColor }
       case 'payable':
-        return { value: compactMoney(kpis.accountsPayable ?? 0, currency), label: 'owed', tint: accent }
+        return { value: compactMoney(kpis.accountsPayable ?? 0, currency), label: 'owed', tint: accentColor }
       case 'approvals':
         return approvalsPending > 0
-          ? { value: String(approvalsPending), label: 'awaiting sign-off', tint: '#E0B14B' }
+          ? { value: String(approvalsPending), label: 'awaiting sign-off', tint: 'rgb(var(--c-highlight))' }
           : { value: '0', label: 'all clear' }
       default:
         return null
@@ -127,17 +128,17 @@ export default function SectionHubPage() {
       {/* ── Hero ── */}
       <div className="mb-7 max-w-2xl">
         <div className="mb-3 flex items-center gap-2.5">
-          <span className="h-px w-7" style={{ background: `${accent}99` }} aria-hidden="true" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: accent }}>
+          <span className="h-px w-7" style={{ background: `rgb(${accent} / 0.60)` }} aria-hidden="true" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: accentColor }}>
             {section.label}
           </span>
         </div>
         <div className="flex items-center gap-3.5">
           <span
             className="flex h-12 w-12 items-center justify-center rounded-2xl"
-            style={{ background: `${accent}1A`, boxShadow: `inset 0 0 0 1px ${accent}33` }}
+            style={{ background: `rgb(${accent} / 0.10)`, boxShadow: `inset 0 0 0 1px rgb(${accent} / 0.20)` }}
           >
-            <section.icon className="h-6 w-6" style={{ color: accent }} />
+            <section.icon className="h-6 w-6" style={{ color: accentColor }} />
           </span>
           <h1 className="font-display text-[2rem] font-semibold tracking-tight text-text-primary leading-none">
             {section.label}

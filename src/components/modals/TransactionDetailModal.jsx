@@ -54,7 +54,7 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
     <Modal isOpen={isOpen} onClose={onClose} title="Transaction Details" className="sm:max-w-3xl">
       {isLoading && <div className="space-y-3"><SkeletonLoader count={4} /></div>}
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <div className="rounded-lg border border-negative/30 bg-negative/10 p-4 text-sm text-negative">
           Failed to load transaction details.
         </div>
       )}
@@ -79,7 +79,7 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
                 {formatCurrency(tx.amount, currency)}
               </div>
               {tx.status === 'reversed' && (
-                <span className="inline-flex items-center gap-1 text-xs text-red-400 mt-1">
+                <span className="inline-flex items-center gap-1 text-xs text-negative mt-1">
                   <RotateCcw className="h-3 w-3" /> Reversed
                 </span>
               )}
@@ -104,7 +104,7 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
                   <tr key={i} className="border-b border-glass/40">
                     <td className="py-2">
                       <span className={`inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
-                        l.side === 'DR' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
+                        l.side === 'DR' ? 'bg-positive/15 text-positive' : 'bg-amber/15 text-amber'
                       }`}>{l.side}</span>
                     </td>
                     <td className="py-2 text-text-primary">
@@ -120,11 +120,11 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
                   <td className="py-2"></td>
                   <td className="py-2 text-right text-xs text-text-muted">Totals</td>
                   <td className="py-2 text-right">
-                    <span className={`font-mono ${balanced ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className={`font-mono ${balanced ? 'text-positive' : 'text-negative'}`}>
                       DR {formatCurrency(totalDebits, currency)} · CR {formatCurrency(totalCredits, currency)}
                     </span>
                     {!balanced && (
-                      <div className="text-[10px] text-red-400 flex items-center justify-end gap-1 mt-1">
+                      <div className="text-[10px] text-negative flex items-center justify-end gap-1 mt-1">
                         <AlertTriangle className="h-3 w-3" /> Not balanced
                       </div>
                     )}
@@ -189,13 +189,13 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
                 {tx.settlements.map((s, i) => (
                   <div key={i} className="flex items-center justify-between gap-3 rounded bg-glass-panel/40 px-3 py-1.5 text-xs">
                     <span className="text-text-muted">{formatDate(s.date)}</span>
-                    <span className="font-mono text-emerald-400">{formatCurrency(s.amount, currency)}</span>
+                    <span className="font-mono text-positive">{formatCurrency(s.amount, currency)}</span>
                   </div>
                 ))}
                 {(tx.remainingBalance !== null && tx.remainingBalance !== undefined) && (
-                  <div className="flex items-center justify-between gap-3 rounded bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs mt-2">
-                    <span className="font-semibold text-amber-300">Outstanding Balance</span>
-                    <span className="font-mono font-bold text-amber-300">{formatCurrency(tx.remainingBalance, currency)}</span>
+                  <div className="flex items-center justify-between gap-3 rounded bg-amber/10 border border-amber/30 px-3 py-2 text-xs mt-2">
+                    <span className="font-semibold text-amber">Outstanding Balance</span>
+                    <span className="font-mono font-bold text-amber">{formatCurrency(tx.remainingBalance, currency)}</span>
                   </div>
                 )}
               </div>
@@ -204,17 +204,17 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
 
           {/* ── Inventory link ──────────────────────────────────── */}
           {tx.inventoryItemId && tx.inventoryQty && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mb-1">Inventory Movement</p>
+            <div className="rounded-lg border border-positive/20 bg-positive/5 p-3 text-xs">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-positive mb-1">Inventory Movement</p>
               <p className="text-text-primary">{tx.inventoryQty} units of {tx.inventoryItem?.name || 'item'}</p>
             </div>
           )}
 
           {/* ── Reversal ────────────────────────────────────────── */}
           {tx.reversalOf && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 flex items-center gap-2 text-xs">
-              <RotateCcw className="h-4 w-4 text-red-400" />
-              <span className="text-red-300">This entry is a reversal of journal entry <span className="font-mono">{tx.reversalOf}</span></span>
+            <div className="rounded-lg border border-negative/30 bg-negative/5 p-3 flex items-center gap-2 text-xs">
+              <RotateCcw className="h-4 w-4 text-negative" />
+              <span className="text-negative">This entry is a reversal of journal entry <span className="font-mono">{tx.reversalOf}</span></span>
             </div>
           )}
 
@@ -229,9 +229,9 @@ export default function TransactionDetailModal({ isOpen, onClose, transactionId 
                   <div key={i} className="flex items-start gap-2 text-xs">
                     <span className="text-cyan font-mono shrink-0 text-[10px] whitespace-nowrap">{formatDateTime(e.timestamp || e.createdAt)}</span>
                     <span className={`shrink-0 rounded-full px-1.5 py-px font-semibold text-[10px] ${
-                      e.action === 'Reversed' ? 'bg-red-500/15 text-red-400' :
-                      e.action === 'Created'  ? 'bg-emerald-500/15 text-emerald-400' :
-                      e.action === 'Edited'   ? 'bg-amber-500/15 text-amber-300' :
+                      e.action === 'Reversed' ? 'bg-negative/15 text-negative' :
+                      e.action === 'Created'  ? 'bg-positive/15 text-positive' :
+                      e.action === 'Edited'   ? 'bg-amber/15 text-amber' :
                       'bg-glass-panel text-text-muted'
                     }`}>{e.action}</span>
                     <span className="text-text-muted">by {e.performedByName || 'System'}</span>

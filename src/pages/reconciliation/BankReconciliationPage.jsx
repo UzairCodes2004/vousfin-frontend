@@ -60,11 +60,11 @@ function StartReconciliation({ onStarted }) {
     finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200'
+  const inp = 'w-full text-sm border border-glass-2 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-cyan'
 
   return (
     <div className="bg-navy-2 rounded-xl border border-glass p-5 shadow-sm space-y-4 max-w-xl">
-      <h2 className="font-semibold text-text-primary flex items-center gap-2"><Banknote className="w-5 h-5 text-sky-400" /> Start a new reconciliation</h2>
+      <h2 className="font-semibold text-text-primary flex items-center gap-2"><Banknote className="w-5 h-5 text-cyan" /> Start a new reconciliation</h2>
 
       <div>
         <label className="text-xs font-medium text-text-secondary">Bank / cash account</label>
@@ -76,7 +76,7 @@ function StartReconciliation({ onStarted }) {
 
       <div>
         <label className="text-xs font-medium text-text-secondary">Statement file (.csv, .xlsx, .xls)</label>
-        <label className="mt-1 flex items-center justify-center gap-2 border-2 border-dashed border-glass-2 rounded-lg py-6 cursor-pointer hover:border-blue-400 hover:bg-cyan/10 text-sm text-text-muted">
+        <label className="mt-1 flex items-center justify-center gap-2 border-2 border-dashed border-glass-2 rounded-lg py-6 cursor-pointer hover:border-cyan hover:bg-cyan/10 text-sm text-text-muted">
           {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
           {file ? file.name : 'Click to choose a file'}
           <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
@@ -91,7 +91,7 @@ function StartReconciliation({ onStarted }) {
             {parsed.lines.slice(0, 5).map((l, i) => (
               <div key={i} className="flex justify-between text-text-secondary">
                 <span className="truncate mr-2">{fmtDate(l.date)} · {l.description || '—'}</span>
-                <span className={l.direction === 'in' ? 'text-emerald-400' : 'text-red-400'}>
+                <span className={l.direction === 'in' ? 'text-positive' : 'text-negative'}>
                   {l.direction === 'in' ? '+' : '−'}{money(l.amount)}
                 </span>
               </div>
@@ -146,8 +146,8 @@ function SessionList({ onOpen }) {
             <p className="text-xs text-text-muted">{s.bankAccountName} · {fmtDate(s.periodEnd)}</p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${s.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{s.status === 'completed' ? 'Done' : 'In progress'}</span>
-            <button onClick={(e) => del(s._id, e)} className="text-text-muted hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${s.status === 'completed' ? 'bg-positive/10 text-positive' : 'bg-amber/10 text-amber'}`}>{s.status === 'completed' ? 'Done' : 'In progress'}</span>
+            <button onClick={(e) => del(s._id, e)} className="text-text-muted hover:text-negative"><Trash2 className="w-4 h-4" /></button>
           </div>
         </div>
       ))}
@@ -169,14 +169,14 @@ function SummaryBar({ s }) {
   return (
     <div className="bg-navy-2 border border-glass rounded-xl p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-around gap-y-3 divide-x divide-glass">
-        <Stat label="Matched" value={`${s.matched + s.cleared}/${s.totalLines}`} tone="text-sky-400" />
-        <Stat label="Needs review" value={s.unmatched} tone={s.unmatched ? 'text-amber-400' : 'text-emerald-400'} />
-        <Stat label="Money in" value={money(s.inflow)} tone="text-emerald-400" />
-        <Stat label="Money out" value={money(s.outflow)} tone="text-red-400" />
+        <Stat label="Matched" value={`${s.matched + s.cleared}/${s.totalLines}`} tone="text-cyan" />
+        <Stat label="Needs review" value={s.unmatched} tone={s.unmatched ? 'text-amber' : 'text-positive'} />
+        <Stat label="Money in" value={money(s.inflow)} tone="text-positive" />
+        <Stat label="Money out" value={money(s.outflow)} tone="text-negative" />
         <Stat label="In books only" value={s.unmatchedBookCount} />
       </div>
       {s.closing != null && s.expectedClosing != null && (
-        <div className={`mt-3 text-xs text-center rounded-lg py-1.5 ${s.closingMatches ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+        <div className={`mt-3 text-xs text-center rounded-lg py-1.5 ${s.closingMatches ? 'bg-positive/10 text-positive' : 'bg-amber/10 text-amber'}`}>
           {s.closingMatches
             ? <><CheckCircle2 className="w-3.5 h-3.5 inline mr-1" /> Opening + statement activity matches the closing balance</>
             : <><AlertTriangle className="w-3.5 h-3.5 inline mr-1" /> Expected closing {money(s.expectedClosing)} ≠ statement closing {money(s.closing)}</>}
@@ -204,33 +204,33 @@ function LineRow({ stmtId, line, accounts, onChange }) {
   const cleared = line.status === 'cleared'
 
   return (
-    <div className={`border rounded-xl p-3.5 ${matched ? 'border-emerald-500/30 bg-emerald-500/10' : cleared ? 'border-glass bg-glass-panel' : 'border-amber-500/30 bg-navy-2'}`}>
+    <div className={`border rounded-xl p-3.5 ${matched ? 'border-positive/30 bg-positive/10' : cleared ? 'border-glass bg-glass-panel' : 'border-amber/30 bg-navy-2'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2 min-w-0">
-          {inLine ? <ArrowDownLeft className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> : <ArrowUpRight className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
+          {inLine ? <ArrowDownLeft className="w-4 h-4 text-positive mt-0.5 shrink-0" /> : <ArrowUpRight className="w-4 h-4 text-negative mt-0.5 shrink-0" />}
           <div className="min-w-0">
             <p className="text-sm font-medium text-text-primary truncate">{line.description || '—'}</p>
             <p className="text-xs text-text-muted">{fmtDate(line.date)}{line.reference ? ` · ${line.reference}` : ''}</p>
           </div>
         </div>
-        <p className={`text-sm font-bold shrink-0 ${inLine ? 'text-emerald-400' : 'text-red-400'}`}>{inLine ? '+' : '−'}{money(line.amount)}</p>
+        <p className={`text-sm font-bold shrink-0 ${inLine ? 'text-positive' : 'text-negative'}`}>{inLine ? '+' : '−'}{money(line.amount)}</p>
       </div>
 
       {/* Matched / cleared state */}
       {matched && (
-        <div className="mt-2 flex items-center justify-between text-xs bg-navy-2 border border-emerald-500/30 rounded-lg px-2.5 py-1.5">
-          <span className="text-emerald-400 truncate">
+        <div className="mt-2 flex items-center justify-between text-xs bg-navy-2 border border-positive/30 rounded-lg px-2.5 py-1.5">
+          <span className="text-positive truncate">
             <Check className="w-3.5 h-3.5 inline mr-1" />
             {line.status === 'created' ? 'New entry posted' : 'Matched'}{line.matchedEntry ? `: ${line.matchedEntry.description}` : ''}
             {line.autoMatched ? ' (auto)' : ''}
           </span>
-          <button disabled={busy} onClick={() => act(() => reconApi.unmatch(stmtId, line.lineRef), 'Unmatched')} className="text-text-muted hover:text-red-500 shrink-0 ml-2">Undo</button>
+          <button disabled={busy} onClick={() => act(() => reconApi.unmatch(stmtId, line.lineRef), 'Unmatched')} className="text-text-muted hover:text-negative shrink-0 ml-2">Undo</button>
         </div>
       )}
       {cleared && (
         <div className="mt-2 flex items-center justify-between text-xs bg-navy-2 border border-glass rounded-lg px-2.5 py-1.5">
           <span className="text-text-muted">Marked cleared{line.note ? `: ${line.note}` : ''}</span>
-          <button disabled={busy} onClick={() => act(() => reconApi.unmatch(stmtId, line.lineRef), 'Reopened')} className="text-text-muted hover:text-sky-400">Undo</button>
+          <button disabled={busy} onClick={() => act(() => reconApi.unmatch(stmtId, line.lineRef), 'Reopened')} className="text-text-muted hover:text-cyan">Undo</button>
         </div>
       )}
 
@@ -265,7 +265,7 @@ function LineRow({ stmtId, line, accounts, onChange }) {
             </div>
           ) : (
             <div className="flex gap-2 pt-0.5">
-              <button onClick={() => setCreating(true)} className="text-xs text-sky-400 hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Create entry</button>
+              <button onClick={() => setCreating(true)} className="text-xs text-cyan hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Create entry</button>
               <button disabled={busy} onClick={() => act(() => reconApi.clear(stmtId, line.lineRef), 'Cleared')} className="text-xs text-text-muted hover:underline">Mark cleared</button>
             </div>
           )}
@@ -352,7 +352,7 @@ function Workspace({ id, onBack }) {
             : stmt.unmatchedBookEntries.map((e) => (
               <div key={e._id} className="flex items-center justify-between bg-navy-2 border border-glass rounded-lg px-3 py-2 text-sm">
                 <div className="min-w-0"><p className="font-medium text-text-primary truncate">{e.description}</p><p className="text-xs text-text-muted">{fmtDate(e.date)}</p></div>
-                <p className={`font-semibold shrink-0 ${e.direction === 'in' ? 'text-emerald-400' : 'text-red-400'}`}>{e.direction === 'in' ? '+' : '−'}{money(e.amount)}</p>
+                <p className={`font-semibold shrink-0 ${e.direction === 'in' ? 'text-positive' : 'text-negative'}`}>{e.direction === 'in' ? '+' : '−'}{money(e.amount)}</p>
               </div>
             ))}
         </div>

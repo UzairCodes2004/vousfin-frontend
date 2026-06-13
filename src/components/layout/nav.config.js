@@ -25,13 +25,13 @@ import {
   Settings, DollarSign, Percent,
 } from 'lucide-react'
 
-/* Nocturne accents — meaning, not decoration */
-const JADE = '#3DDC97'   // money in / active brand
-const CORAL = '#F2705B'  // money out
-const GOLD = '#D4A94E'   // the record / the book
-const MINT = '#6FE8B4'   // automation / AI
-const CHAMP = '#E0B14B'  // insight
-const MUTE = '#A3B0A8'   // neutral / config
+/* Section accents — theme variables (recolor per theme), meaning not decoration */
+const JADE = 'var(--sec-money-in)'      // money in
+const CORAL = 'var(--sec-money-out)'    // money out
+const GOLD = 'var(--sec-ledger)'        // the record / the book
+const MINT = 'var(--sec-autopilot)'     // automation / AI
+const CHAMP = 'var(--sec-intelligence)' // insight
+const MUTE = 'var(--sec-settings)'      // neutral / config
 
 export const NAV_SECTIONS = [
   {

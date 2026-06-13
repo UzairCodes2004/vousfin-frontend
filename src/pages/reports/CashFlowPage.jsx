@@ -91,7 +91,7 @@ export default function CashFlowPage() {
 
             <div className="flex justify-between items-center py-4 border-t-2 border-cyan bg-cyan/5 px-4 rounded-lg shadow-glow-cyan/10">
               <span className="text-lg font-black text-text-primary">Net Increase (Decrease) in Cash</span>
-              <span className={`text-lg font-black ${data.netCashFlow >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-lg font-black ${data.netCashFlow >= 0 ? 'text-positive' : 'text-negative'}`}>
                 {formatCurrency(data.netCashFlow, currency)}
               </span>
             </div>

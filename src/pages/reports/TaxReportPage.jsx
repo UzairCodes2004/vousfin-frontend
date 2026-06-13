@@ -62,7 +62,7 @@ export default function TaxReportPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="premium-card px-5 py-4">
               <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Output Tax Collected</p>
-              <p className="text-xl font-black text-emerald-400 mt-1">{formatCurrency(data.totalOutputTax, currency)}</p>
+              <p className="text-xl font-black text-positive mt-1">{formatCurrency(data.totalOutputTax, currency)}</p>
               <p className="text-xs text-text-muted mt-0.5">Tax on sales</p>
             </div>
             <div className="premium-card px-5 py-4">
@@ -70,9 +70,9 @@ export default function TaxReportPage() {
               <p className="text-xl font-black text-text-primary mt-1">{formatCurrency(data.totalInputTax, currency)}</p>
               <p className="text-xs text-text-muted mt-0.5">Tax on purchases</p>
             </div>
-            <div className={`premium-card px-5 py-4 border-2 ${netPositive ? 'border-red-400/30 bg-red-400/5' : 'border-emerald-400/30 bg-emerald-400/5'}`}>
+            <div className={`premium-card px-5 py-4 border-2 ${netPositive ? 'border-negative/30 bg-negative/5' : 'border-positive/30 bg-positive/5'}`}>
               <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Net Tax Liability</p>
-              <p className={`text-xl font-black mt-1 ${netPositive ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p className={`text-xl font-black mt-1 ${netPositive ? 'text-negative' : 'text-positive'}`}>
                 {formatCurrency(data.netTaxLiability, currency)}
               </p>
               <p className="text-xs text-text-muted mt-0.5">{netPositive ? 'Amount payable to authority' : 'Refund due'}</p>
@@ -147,7 +147,7 @@ function TaxTable({ title, subtitle, rows, currency, outputStyle }) {
               <td className="py-2.5 px-4 text-text-secondary">{r._id?.transactionType || ''}</td>
               <td className="py-2.5 px-4 text-right text-text-muted tabular-nums">{r.count}</td>
               <td className="py-2.5 px-4 text-right tabular-nums text-text-primary">{formatCurrency(r.totalBaseAmount, currency)}</td>
-              <td className={`py-2.5 px-4 text-right tabular-nums font-bold ${outputStyle ? 'text-emerald-400' : 'text-text-primary'}`}>
+              <td className={`py-2.5 px-4 text-right tabular-nums font-bold ${outputStyle ? 'text-positive' : 'text-text-primary'}`}>
                 {formatCurrency(r.totalTaxAmount, currency)}
               </td>
             </tr>
@@ -156,7 +156,7 @@ function TaxTable({ title, subtitle, rows, currency, outputStyle }) {
         <tfoot>
           <tr className="bg-glass border-t-2 border-glass">
             <td colSpan={4} className="py-2.5 px-4 font-black text-text-primary text-sm uppercase">Total</td>
-            <td className={`py-2.5 px-4 text-right font-black tabular-nums text-sm ${outputStyle ? 'text-emerald-400' : 'text-text-primary'}`}>
+            <td className={`py-2.5 px-4 text-right font-black tabular-nums text-sm ${outputStyle ? 'text-positive' : 'text-text-primary'}`}>
               {formatCurrency(total, currency)}
             </td>
           </tr>

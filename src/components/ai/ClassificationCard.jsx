@@ -14,7 +14,7 @@ import { useAccounts } from '@/hooks/useAccounts'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 import { getErrorMessage } from '@/utils/errorHandler'
 
-const CONF_COLOR = (c) => (c >= 0.85 ? 'bg-green-500' : c >= 0.5 ? 'bg-yellow-400' : 'bg-red-500')
+const CONF_COLOR = (c) => (c >= 0.85 ? 'bg-positive' : c >= 0.5 ? 'bg-amber' : 'bg-negative')
 
 export default function ClassificationCard({ draft, onResolved }) {
   const isExpense = draft.tx_type === 'DEBIT'
@@ -126,7 +126,7 @@ export default function ClassificationCard({ draft, onResolved }) {
           <p className="font-semibold text-text-primary text-sm truncate">{draft.payee_raw}</p>
           <p className="text-xs text-text-muted">{draft.tx_date} · {draft.channel}</p>
         </div>
-        <p className={`font-bold text-base shrink-0 ${isExpense ? 'text-red-400' : 'text-emerald-400'}`}>
+        <p className={`font-bold text-base shrink-0 ${isExpense ? 'text-negative' : 'text-positive'}`}>
           {isExpense ? '-' : '+'}{draft.currency} {Number(draft.amount).toLocaleString()}
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function ClassificationCard({ draft, onResolved }) {
         {onCredit && draft.party_name && (
           <div className="flex justify-between pt-1 border-t border-glass">
             <span className="text-text-muted">{isExpense ? 'Vendor' : 'Customer'}</span>
-            <span className="font-medium text-sky-400">{draft.party_name}</span>
+            <span className="font-medium text-cyan">{draft.party_name}</span>
           </div>
         )}
       </div>
@@ -178,7 +178,7 @@ export default function ClassificationCard({ draft, onResolved }) {
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full text-xs border border-glass-2 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-blue-200"
+          className="w-full text-xs border border-glass-2 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-cyan"
         >
           <option value="">Select account…</option>
           {accounts.map(a => (
@@ -186,7 +186,7 @@ export default function ClassificationCard({ draft, onResolved }) {
           ))}
         </select>
       ) : (
-        <button onClick={() => setEditing(true)} className="text-xs text-sky-400 hover:underline">
+        <button onClick={() => setEditing(true)} className="text-xs text-cyan hover:underline">
           Change {isExpense ? 'expense' : 'income'} account
         </button>
       )}

@@ -21,20 +21,20 @@ const STATE_LABEL = {
 }
 
 const STATE_COLOR = {
-  approved:           'text-emerald-400',
+  approved:           'text-positive',
   fully_received:     'text-cyan',
-  billed:             'text-sky-400',
-  closed:             'text-emerald-400',
-  cancelled:          'text-red-400',
-  rejected:           'text-red-400',
+  billed:             'text-cyan',
+  closed:             'text-positive',
+  cancelled:          'text-negative',
+  rejected:           'text-negative',
 }
 
 function entryIcon(entry) {
-  if (entry.action === 'approved')  return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-  if (entry.action === 'rejected')  return <XCircle className="h-3.5 w-3.5 text-red-400" />
-  if (entry.toState === 'cancelled') return <XCircle className="h-3.5 w-3.5 text-red-400" />
+  if (entry.action === 'approved')  return <CheckCircle2 className="h-3.5 w-3.5 text-positive" />
+  if (entry.action === 'rejected')  return <XCircle className="h-3.5 w-3.5 text-negative" />
+  if (entry.toState === 'cancelled') return <XCircle className="h-3.5 w-3.5 text-negative" />
   if (entry.toState === 'approved' || entry.toState === 'fully_received') {
-    return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+    return <CheckCircle2 className="h-3.5 w-3.5 text-positive" />
   }
   return <Clock className="h-3.5 w-3.5 text-text-muted" />
 }

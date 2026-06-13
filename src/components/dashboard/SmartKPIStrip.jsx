@@ -37,14 +37,15 @@ function Sparkline({ data = [], color, w = 64, h = 24 }) {
   const pts   = data
     .map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * (h - 6) + 3).toFixed(1)}`)
     .join(' ')
+  const stroke = `rgb(${color})`
   return (
     <svg width={w} height={h} className="overflow-visible flex-shrink-0">
-      <polyline fill="none" stroke={color} strokeWidth="1.8"
+      <polyline fill="none" stroke={stroke} strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" points={pts} opacity="0.7" />
       <circle
         cx={(+(data.length - 1) * step).toFixed(1)}
         cy={(h - ((data[data.length - 1] - min) / range) * (h - 6) + 3).toFixed(1)}
-        r="2.5" fill={color} opacity="0.9"
+        r="2.5" fill={stroke} opacity="0.9"
       />
     </svg>
   )
@@ -79,17 +80,17 @@ function PrimaryCard({ title, subtitle, value, format, currency, icon: Icon, col
       <span
         aria-hidden="true"
         className="absolute top-0 left-3.5 right-3.5 h-px pointer-events-none"
-        style={{ background: `linear-gradient(90deg, transparent, ${color}99, ${color}1A, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, rgb(${color} / 0.60), rgb(${color} / 0.10), transparent)` }}
       />
       <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: color + '1C' }}>
-          <Icon className="h-4 w-4" style={{ color }} />
+        <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: `rgb(${color} / 0.11)` }}>
+          <Icon className="h-4 w-4" style={{ color: `rgb(${color})` }} />
         </div>
         <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider leading-tight">{title}</span>
       </div>
 
       {loading ? (
-        <div className="h-8 w-28 animate-pulse rounded-lg bg-white/[0.04]" />
+        <div className="h-8 w-28 animate-pulse rounded-lg bg-glass-panel" />
       ) : (
         <p className="num text-2xl font-semibold tracking-tight text-text-primary leading-none">{display}</p>
       )}
@@ -119,13 +120,13 @@ function SecondaryChip({ title, subtitle, value, format, currency, icon: Icon, c
       'group premium-card px-3 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2.5',
       to && 'cursor-pointer',
     )}>
-      <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: color + '18' }}>
-        <Icon className="h-3.5 w-3.5" style={{ color }} />
+      <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: `rgb(${color} / 0.09)` }}>
+        <Icon className="h-3.5 w-3.5" style={{ color: `rgb(${color})` }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider truncate">{title}</p>
         {loading
-          ? <div className="h-5 w-16 mt-0.5 animate-pulse rounded bg-white/[0.04]" />
+          ? <div className="h-5 w-16 mt-0.5 animate-pulse rounded bg-glass-panel" />
           : <p className="num text-sm font-semibold text-text-primary leading-tight truncate">{display}</p>}
         {subtitle && !loading && <p className="text-[9px] text-text-muted leading-tight truncate">{subtitle}</p>}
       </div>
@@ -157,26 +158,26 @@ const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses
   const primaryCards = [
     {
       key: 'revenue', title: 'Total Revenue', subtitle: 'Money coming in this year',
-      value: revenue, icon: TrendingUp, color: '#3DDC97',
+      value: revenue, icon: TrendingUp, color: 'var(--chart-revenue)',
       trend: revenue > 0 ? 1 : 0, trendLabel: 'YTD', sparkData: revSpark,
       to: '/reports/income-statement',
     },
     {
       key: 'expenses', title: 'Total Expenses', subtitle: 'Money going out this year',
-      value: expenses, icon: TrendingDown, color: '#F2705B',
+      value: expenses, icon: TrendingDown, color: 'var(--chart-expenses)',
       trend: expenses > 0 ? -1 : 0, trendLabel: 'YTD', sparkData: expSpark,
       to: '/reports/income-statement',
     },
     {
       key: 'profit', title: 'Net Profit', subtitle: "What's left after all costs",
-      value: netProfit, icon: DollarSign, color: netProfit >= 0 ? '#3DDC97' : '#F2705B',
+      value: netProfit, icon: DollarSign, color: netProfit >= 0 ? 'var(--chart-revenue)' : 'var(--chart-expenses)',
       trend: netProfit > 0 ? 1 : netProfit < 0 ? -1 : 0,
       trendLabel: netProfit >= 0 ? 'Profit' : 'Loss', sparkData: profitSpark,
       to: '/reports/income-statement',
     },
     {
       key: 'cash', title: 'Cash Balance', subtitle: 'Money available right now',
-      value: cashBalance, icon: Wallet, color: '#D4A94E',
+      value: cashBalance, icon: Wallet, color: 'var(--chart-cash)',
       trend: cashBalance > 0 ? 1 : cashBalance < 0 ? -1 : 0,
       trendLabel: cashBalance > 0 ? 'Positive' : 'Deficit', sparkData: [],
       to: '/reports/balance-sheet',
@@ -204,7 +205,7 @@ const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses
         {/* Scroll hint dots */}
         <div className="flex justify-center gap-1.5 mt-2">
           {primaryCards.map((c, i) => (
-            <div key={c.key} className={cn('h-1 rounded-full transition-all', i === 0 ? 'w-4 bg-cyan' : 'w-1.5 bg-white/[0.15]')} />
+            <div key={c.key} className={cn('h-1 rounded-full transition-all', i === 0 ? 'w-4 bg-cyan' : 'w-1.5 bg-glass-panel')} />
           ))}
         </div>
       </div>
@@ -221,17 +222,17 @@ const SmartKPIStrip = memo(function SmartKPIStrip({ kpis = {}, revenueVsExpenses
           just repeats the same number is noise. ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         <SecondaryChip title="Profit Margin" subtitle="Kept as profit" value={profitMarginPct} format="percent" icon={Percent}
-          color={profitMarginPct >= 0 ? '#3DDC97' : '#F2705B'}
+          color={profitMarginPct >= 0 ? 'var(--chart-revenue)' : 'var(--chart-expenses)'}
           currency={currency} loading={loading} to="/reports/income-statement" />
 
-        <SecondaryChip title="Avg Monthly Spend" subtitle="Typical monthly costs" value={avgMonthlySpend} icon={Flame} color="#E0B14B"
+        <SecondaryChip title="Avg Monthly Spend" subtitle="Typical monthly costs" value={avgMonthlySpend} icon={Flame} color="var(--c-highlight)"
           currency={currency} loading={loading} to="/reports/income-statement" />
 
-        <SecondaryChip title="Avg Monthly Sales" subtitle="Typical monthly income" value={avgMonthlyRev} icon={Activity} color="#6FE8B4"
+        <SecondaryChip title="Avg Monthly Sales" subtitle="Typical monthly income" value={avgMonthlyRev} icon={Activity} color="var(--chart-profit)"
           currency={currency} loading={loading} to="/reports/income-statement" />
 
         <SecondaryChip title="Expense Ratio" subtitle="Of sales spent on costs" value={expenseRatioPct} format="percent" icon={Target}
-          color={expenseRatioPct <= 80 ? '#3DDC97' : '#F2705B'}
+          color={expenseRatioPct <= 80 ? 'var(--chart-revenue)' : 'var(--chart-expenses)'}
           currency={currency} loading={loading} to="/reports/income-statement" />
       </div>
     </div>
