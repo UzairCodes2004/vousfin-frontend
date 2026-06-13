@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import Sidebar from '@/components/layout/Sidebar'
+import SectionRail from '@/components/layout/SectionRail'
 import Header from '@/components/layout/Header'
 import MobileNav from '@/components/layout/MobileNav'
 import Drawer from '@/components/ui/Drawer'
@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useBusinessStore } from '@/stores/useBusinessStore'
 
 export default function DashboardLayout() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
   const { user } = useAuthStore()
   const { activeBusiness, fetchBusiness } = useBusinessStore()
@@ -22,21 +21,18 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-navy overflow-hidden selection:bg-cyan/30 selection:text-white">
-      {/* Desktop Sidebar */}
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-      />
+      {/* Desktop section rail — the "Vault" launcher */}
+      <SectionRail />
 
-      {/* Mobile Drawer Sidebar */}
+      {/* Mobile drawer — same section launchers, labeled */}
       <Drawer
         isOpen={isMobileDrawerOpen}
         onClose={() => setIsMobileDrawerOpen(false)}
         position="left"
         className="w-72 p-0"
-        title="Menu"
+        title="Sections"
       >
-        <Sidebar isMobile closeMobile={() => setIsMobileDrawerOpen(false)} />
+        <SectionRail isMobile closeMobile={() => setIsMobileDrawerOpen(false)} />
       </Drawer>
 
       {/* Main Container */}

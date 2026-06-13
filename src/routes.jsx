@@ -16,6 +16,7 @@ const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'))
 const BusinessSetup = lazy(() => import('@/pages/business/BusinessSetup'))
 const BusinessSettings = lazy(() => import('@/pages/business/BusinessSettings'))
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'))
+const SectionHubPage = lazy(() => import('@/pages/hub/SectionHubPage'))
 const AccountsPage = lazy(() => import('@/pages/accounts/AccountsPage'))
 const TransactionsList = lazy(() => import('@/pages/transactions/TransactionsList'))
 const CustomersList   = lazy(() => import('@/pages/parties/CustomersList'))
@@ -139,6 +140,8 @@ export const routes = [
         element: <DashboardLayout />,
         children: [
           { path: 'dashboard',         element: withSuspense(Dashboard)         },
+          /* ── Vault section hubs (launcher → related modules) ── */
+          { path: 'hub/:sectionKey',   element: withSuspense(SectionHubPage)    },
           { path: 'accounts',          element: withSuspense(AccountsPage)      },
           { path: 'transactions',      element: withSuspense(TransactionsList)  },
           { path: 'transactions/templates', element: withSuspense(TemplatesPage)      }, // #5

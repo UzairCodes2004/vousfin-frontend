@@ -126,14 +126,15 @@ export function useComparativeIncome(params) {
   })
 }
 
-export function useDashboardAll(dateRange) {
+export function useDashboardAll(dateRange, options = {}) {
   const businessId = useAuthStore(s => s.user?.businessId)
+  const { enabled: enabledOpt = true } = options
   return useQuery({
     queryKey: ['dashboard', 'all', businessId, dateRange],
     queryFn: async () => {
       const { data } = await api.get(`/dashboard/all?${buildParams(dateRange)}`)
       return data.data
     },
-    staleTime: STALE, gcTime: GC, enabled: !!businessId,
+    staleTime: STALE, gcTime: GC, enabled: !!businessId && enabledOpt,
   })
 }
