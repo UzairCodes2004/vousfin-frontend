@@ -42,7 +42,11 @@ export default function DataTable({
   dense = false,
   getRowKey,
   loadingRowCount = 5,
+  stackOnMobile = true,
 }) {
+  // On phones, stack each row into a labeled card (responsive-rows CSS renders
+  // the column header before each value via data-label).
+  const labelFor = (col) => (typeof col.header === 'string' ? col.header : (col.key || ''))
   const alignClass = (a) =>
     a === 'right'  ? 'text-right'
     : a === 'center' ? 'text-center'
@@ -67,7 +71,7 @@ export default function DataTable({
 
   return (
     <div className={cn('w-full overflow-x-auto scrollbar-thin', className)}>
-      <table className="min-w-full text-left text-sm text-text-secondary">
+      <table className={cn('min-w-full text-left text-sm text-text-secondary', stackOnMobile && 'responsive-rows')}>
         <thead
           className={cn(
             'bg-glass-panel text-xs uppercase text-text-muted',
@@ -161,6 +165,7 @@ export default function DataTable({
                   {columns.map((col, colIndex) => (
                     <td
                       key={colIndex}
+                      data-label={labelFor(col)}
                       className={cn(cellPad, alignClass(col.align), col.cellClassName)}
                     >
                       {col.render ? col.render(row, rowIndex) : row[col.key]}
