@@ -38,6 +38,7 @@ const AIAnalystPage        = lazy(() => import('@/pages/ai/AIAnalystPage'))
 const FiscalYearPage       = lazy(() => import('@/pages/accounting/FiscalYearPage'))
 const CurrencyRatesPage    = lazy(() => import('@/pages/settings/CurrencyRatesPage'))
 const TaxConfigPage        = lazy(() => import('@/pages/settings/TaxConfigPage'))    // Phase 5.4.8
+const TaxAutopilotPage     = lazy(() => import('@/pages/tax/TaxAutopilotPage'))      // FR-04.1
 const AppearancePage       = lazy(() => import('@/pages/settings/AppearancePage'))
 const InventoryPage        = lazy(() => import('@/pages/inventory/InventoryPage'))    // Phase 5.5 Step 4
 /* Phase 3.1 — Procurement */
@@ -189,6 +190,7 @@ export const routes = [
           { path: 'ai/review-queue',            element: withSuspense(TransactionReviewQueuePage) }, // FR-01.2
           { path: 'reconciliation/exceptions',  element: withSuspense(ReconciliationExceptionQueuePage) }, // FR-01.3
           { path: 'reconciliation/bank',        element: withSuspense(BankReconciliationPage) }, // #7
+          { path: 'tax',                        element: withSuspense(TaxAutopilotPage)       }, // FR-04.1 Tax Autopilot
 
           /* ── Financial Reports hub ─────────────────────────────────────── */
           /* /financial-reports  → default tab */

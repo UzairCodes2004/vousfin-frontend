@@ -33,6 +33,7 @@ import BusinessOutlookWidget   from '@/components/dashboard/BusinessOutlookWidge
 import ForecastWidget          from '@/components/dashboard/ForecastWidget'
 import RevenueExpensesChart    from '@/components/dashboard/RevenueExpensesChart'
 import CashFlowTrendChart      from '@/components/dashboard/CashFlowTrendChart'
+import TaxPositionWidget       from '@/components/dashboard/TaxPositionWidget'
 import SkeletonLoader          from '@/components/ui/SkeletonLoader'
 
 /* ── helpers ──────────────────────────────────────────────────────── */
@@ -351,6 +352,7 @@ export default function Dashboard() {
         <Section label="Business Intelligence" collapsible defaultOpen>
           <div className="space-y-4">
             <NeedsAttentionFeed />
+            <TaxPositionWidget />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <BusinessHealthWidget kpis={kpis} loading={loadDash} />
               <BusinessOutlookWidget horizon={6} />
