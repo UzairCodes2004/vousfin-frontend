@@ -136,7 +136,7 @@ function ScoreRing({ score, label, icon: Icon, ringColor }) {
       {/* ring */}
       <div className="relative h-12 w-12">
         <svg className="h-12 w-12 -rotate-90" viewBox="0 0 44 44">
-          <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
+          <circle cx="22" cy="22" r={r} fill="none" stroke="rgb(var(--c-text) / 0.1)" strokeWidth="3.5" />
           <circle
             cx="22" cy="22" r={r} fill="none"
             stroke={color} strokeWidth="3.5" strokeLinecap="round"
@@ -327,40 +327,38 @@ const BusinessHealthWidget = memo(function BusinessHealthWidget({ kpis = {}, loa
         </div>
       ) : (
         <>
-          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+          {/* Stacked so it never collapses: risk meter full-width on top, then
+              the score rings + overall in a row that wraps under tight widths
+              (this card is only half-width in the xl 2-col dashboard grid, and
+              wider-font themes need the extra room). */}
+          <div className="flex flex-col gap-4">
 
-            {/* Risk Meter — full width on mobile */}
-            <div className="flex-1 min-w-0">
-              <RiskMeter
-                riskLevel={view.risk.riskLevel}
-                riskPct={view.risk.riskPct}
-                runway={view.risk.runway}
-              />
-            </div>
+            {/* Cash Flow Risk — full width */}
+            <RiskMeter
+              riskLevel={view.risk.riskLevel}
+              riskPct={view.risk.riskPct}
+              runway={view.risk.runway}
+            />
 
-            {/* Divider */}
-            <div className="hidden md:block h-16 w-px bg-glass flex-shrink-0" />
+            {/* Scores: rings (wrap if needed) + overall */}
+            <div className="flex items-center justify-between gap-x-6 gap-y-4 flex-wrap pt-4 border-t border-glass">
+              <div className="flex items-center gap-5 sm:gap-6 flex-wrap">
+                {view.rings.map(r => (
+                  <ScoreRing key={r.key} score={r.score} label={r.label} icon={r.icon} ringColor={r.color} />
+                ))}
+              </div>
 
-            {/* Dynamic score rings */}
-            <div className="flex items-center justify-around md:justify-center gap-4 md:gap-5 flex-shrink-0">
-              {view.rings.map(r => (
-                <ScoreRing key={r.key} score={r.score} label={r.label} icon={r.icon} ringColor={r.color} />
-              ))}
-            </div>
-
-            {/* Divider */}
-            <div className="hidden md:block h-16 w-px bg-glass flex-shrink-0" />
-
-            {/* Overall score */}
-            <div className="flex md:flex-col items-center md:justify-center gap-2 md:gap-0.5 flex-shrink-0">
-              <p className="text-3xl font-black leading-none" style={{ color: overallColor }}>
-                {view.overall}
-              </p>
-              <div className="flex md:flex-col items-center gap-1 md:gap-0.5">
-                <p className="text-[12px] text-text-muted font-semibold">/100</p>
-                <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: overallColor }}>
-                  {view.overall >= 80 ? 'Excellent' : view.overall >= 65 ? 'Good' : view.overall >= 50 ? 'Fair' : 'Poor'}
+              {/* Overall score */}
+              <div className="flex items-center gap-2.5 flex-shrink-0">
+                <p className="text-[2rem] font-black leading-none" style={{ color: overallColor }}>
+                  {view.overall}
                 </p>
+                <div className="flex flex-col">
+                  <p className="text-[12px] text-text-muted font-semibold leading-tight">/100</p>
+                  <p className="text-[12px] font-bold uppercase tracking-wide leading-tight" style={{ color: overallColor }}>
+                    {view.overall >= 80 ? 'Excellent' : view.overall >= 65 ? 'Good' : view.overall >= 50 ? 'Fair' : 'Poor'}
+                  </p>
+                </div>
               </div>
             </div>
 
