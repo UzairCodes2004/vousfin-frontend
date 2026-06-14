@@ -32,6 +32,19 @@ export function useTaxPosition() {
   })
 }
 
+/**
+ * Tax-position trend (daily snapshots) for the last `months` — powers the
+ * 6-month sparkline / liability-over-time chart (FR-04.1, Phase 2).
+ * Shares the ['tax'] key, so transaction mutations refresh it too.
+ */
+export function useTaxTrend(months = 6) {
+  return useQuery({
+    queryKey: [...QUERY_KEY, 'position', 'trend', months],
+    queryFn:  () => taxService.getPositionTrend(months).then(r => r.data?.data),
+    staleTime: 5 * 60 * 1000,  // snapshots change at most once a day
+  })
+}
+
 export function useUpdateTaxConfig() {
   const qc = useQueryClient()
   return useMutation({

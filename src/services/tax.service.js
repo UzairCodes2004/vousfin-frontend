@@ -30,7 +30,8 @@ const taxService = {
   updateVendorWht:     (id, data)  => api.put(`/tax/vendor/${id}/wht`, data),
 
   // ── Live position (FR-04.1) ────────────────────────────────────────────────────
-  getPosition:  ()       => api.get('/tax/position'),
+  getPosition:      ()           => api.get('/tax/position'),
+  getPositionTrend: (months = 6) => api.get('/tax/position/trend', { params: { months } }),
 
   // ── Reports ───────────────────────────────────────────────────────────────────
   getLedger:    (params) => api.get('/tax/reports/ledger',  { params }),
