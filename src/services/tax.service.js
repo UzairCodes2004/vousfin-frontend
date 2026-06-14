@@ -29,6 +29,9 @@ const taxService = {
   getWhtSchedules:     ()          => api.get('/tax/wht-schedules'),
   updateVendorWht:     (id, data)  => api.put(`/tax/vendor/${id}/wht`, data),
 
+  // ── Live position (FR-04.1) ────────────────────────────────────────────────────
+  getPosition:  ()       => api.get('/tax/position'),
+
   // ── Reports ───────────────────────────────────────────────────────────────────
   getLedger:    (params) => api.get('/tax/reports/ledger',  { params }),
   getSummary:   (params) => api.get('/tax/reports/summary', { params }),

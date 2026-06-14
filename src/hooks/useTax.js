@@ -18,6 +18,20 @@ export function useTaxConfig() {
   })
 }
 
+// ── Live position (FR-04.1) ────────────────────────────────────────────────────
+
+/**
+ * Always-on tax position. Invalidated by transaction mutations (see
+ * useTransactions) so it refreshes within seconds of a posting.
+ */
+export function useTaxPosition() {
+  return useQuery({
+    queryKey: [...QUERY_KEY, 'position'],
+    queryFn:  () => taxService.getPosition().then(r => r.data?.data),
+    staleTime: 30 * 1000,
+  })
+}
+
 export function useUpdateTaxConfig() {
   const qc = useQueryClient()
   return useMutation({
