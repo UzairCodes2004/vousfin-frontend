@@ -48,12 +48,15 @@ export default function FinancialReportsPage() {
   const { tab }  = useParams()
   const navigate = useNavigate()
 
-  const validTab   = TABS.find(t => t.key === tab)
-  const initialTab = validTab ? tab : 'income-statement'
-  const [mountedTabs, setMountedTabs] = useState(() => ({ [initialTab]: true }))
+  const validTab = TABS.find(t => t.key === tab)
+
+  // Eager-mount every report so they all load on entry and tab switches are
+  // instant (no per-tab "click to load" flash). Each report hook fetches once
+  // and shares its cache; transaction changes invalidate ['reports'] so they
+  // refresh on the spot.
+  const [mountedTabs] = useState(() => Object.fromEntries(TABS.map(t => [t.key, true])))
 
   const handleTabChange = useCallback((key) => {
-    setMountedTabs(prev => prev[key] ? prev : { ...prev, [key]: true })
     navigate(`/financial-reports/${key}`, { replace: true })
   }, [navigate])
 
