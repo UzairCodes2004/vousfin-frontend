@@ -11,9 +11,9 @@ import ReturnFilingWizard from './ReturnFilingWizard'
 import { cn } from '@/utils/cn'
 
 const RETURN_DEFS = [
-  { returnType: 'GST-01',    taxType: 'GST',        label: 'Sales Tax Return (GST-01)' },
-  { returnType: 'WHT-165',   taxType: 'WHT',        label: 'Withholding Statement (165)' },
-  { returnType: 'IT-RETURN', taxType: 'INCOME_TAX', label: 'Income Tax Return' },
+  { returnType: 'GST-01',    taxType: 'GST',        label: 'Sales tax return (GST-01)' },
+  { returnType: 'WHT-165',   taxType: 'WHT',        label: 'Tax withheld from suppliers (165)' },
+  { returnType: 'IT-RETURN', taxType: 'INCOME_TAX', label: 'Income tax return' },
 ]
 
 const STATUS_PILL = {

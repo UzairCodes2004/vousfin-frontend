@@ -8,7 +8,7 @@ import { Lightbulb, ChevronDown, ShieldAlert, Scale } from 'lucide-react'
 import { compactMoney } from './taxFormat'
 import { cn } from '@/utils/cn'
 
-const TAX_LABEL = { GST: 'GST', WHT: 'Withholding', INCOME_TAX: 'Income Tax', EOBI: 'EOBI', SESSI: 'SESSI' }
+const TAX_LABEL = { GST: 'Sales tax', WHT: 'Tax withheld', INCOME_TAX: 'Income tax', EOBI: 'EOBI', SESSI: 'SESSI' }
 
 export default function AdvisoryCard({ advisory, currency = 'PKR' }) {
   const [open, setOpen] = useState(false)

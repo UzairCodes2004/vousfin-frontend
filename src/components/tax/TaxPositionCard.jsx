@@ -10,11 +10,11 @@ import TaxTrendSparkline from './TaxTrendSparkline'
 import { compactMoney } from './taxFormat'
 
 const TAX_META = {
-  GST:        { icon: Percent,     varName: '--chart-revenue', blurb: 'Output tax less input tax' },
-  WHT:        { icon: Scissors,    varName: '--chart-cash',    blurb: 'Withheld from supplier payments' },
-  INCOME_TAX: { icon: Landmark,    varName: '--chart-profit',  blurb: 'Provision', estimate: true },
-  EOBI:       { icon: Users,       varName: '--chart-neutral', blurb: 'Employer social security' },
-  SESSI:      { icon: ShieldCheck, varName: '--chart-neutral', blurb: 'Provincial social security' },
+  GST:        { icon: Percent,     varName: '--chart-revenue', blurb: 'Sales tax collected, minus what you paid' },
+  WHT:        { icon: Scissors,    varName: '--chart-cash',    blurb: 'Tax held back from supplier payments' },
+  INCOME_TAX: { icon: Landmark,    varName: '--chart-profit',  blurb: 'Estimated from your profit', estimate: true },
+  EOBI:       { icon: Users,       varName: '--chart-neutral', blurb: 'Employer social-security (EOBI)' },
+  SESSI:      { icon: ShieldCheck, varName: '--chart-neutral', blurb: 'Provincial social-security' },
 }
 
 export default function TaxPositionCard({ tax, series = [], currency = 'PKR', onAddPayroll }) {
@@ -72,8 +72,8 @@ export default function TaxPositionCard({ tax, series = [], currency = 'PKR', on
               </p>
               <p className="text-[12px] text-text-muted mt-1">
                 {meta.estimate
-                  ? 'Estimated provision · based on profit YTD'
-                  : tax.liability > 0 ? 'Payable this period' : 'Nothing due right now'}
+                  ? 'Estimated from your profit so far this year'
+                  : tax.liability > 0 ? 'To pay this period' : 'Nothing due right now'}
               </p>
             </>
           )
@@ -81,7 +81,7 @@ export default function TaxPositionCard({ tax, series = [], currency = 'PKR', on
           <>
             <p className="num text-[1.55rem] font-semibold text-text-muted/70 leading-none">—</p>
             <p className="text-[12px] text-text-muted mt-1">
-              {isPayroll ? 'Enable payroll to track EOBI/SESSI' : 'Provision unavailable'}
+              {isPayroll ? 'Turn on payroll to track EOBI/SESSI' : 'Estimate not available yet'}
             </p>
           </>
         )}

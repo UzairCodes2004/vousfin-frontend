@@ -22,20 +22,20 @@ const periodLabel = (p) => {
 /* Plain-language one-liner per return type. */
 function headline(ret, currency) {
   const f = ret?.data?.fields || {}
-  if (ret?.returnType === 'GST-01')  return `You'll file ${compactMoney(f.netPayable, currency)} GST for ${periodLabel(ret.period)}.`
-  if (ret?.returnType === 'WHT-165') return `Withholding statement: ${compactMoney(f.totalWithheld, currency)} across ${f.vendorCount || 0} vendor(s) for ${periodLabel(ret.period)}.`
-  if (ret?.returnType === 'IT-RETURN') return `Income tax for ${periodLabel(ret.period)}: ${compactMoney(f.balancePayable, currency)} payable.`
+  if (ret?.returnType === 'GST-01')  return `You'll file ${compactMoney(f.netPayable, currency)} sales tax for ${periodLabel(ret.period)}.`
+  if (ret?.returnType === 'WHT-165') return `Tax held back: ${compactMoney(f.totalWithheld, currency)} from ${f.vendorCount || 0} supplier(s) for ${periodLabel(ret.period)}.`
+  if (ret?.returnType === 'IT-RETURN') return `Income tax for ${periodLabel(ret.period)}: ${compactMoney(f.balancePayable, currency)} to pay.`
   return `${ret?.returnType} for ${periodLabel(ret?.period)}.`
 }
 
 function SummaryRows({ ret, currency }) {
   const f = ret?.data?.fields || {}
   const rows = ret?.returnType === 'GST-01'
-    ? [['Output tax', f.outputTax], ['Input tax', f.inputTax], ['Net payable', f.netPayable]]
+    ? [['Sales tax collected', f.outputTax], ['Sales tax paid', f.inputTax], ['Net to pay', f.netPayable]]
     : ret?.returnType === 'WHT-165'
-    ? [['Vendors', f.vendorCount], ['Total withheld', f.totalWithheld]]
+    ? [['Suppliers', f.vendorCount], ['Total held back', f.totalWithheld]]
     : ret?.returnType === 'IT-RETURN'
-    ? [['Taxable income', f.taxableIncome], ['Tax chargeable', f.taxChargeable], ['Advance tax adjusted', f.advanceTaxAdjusted], ['Balance payable', f.balancePayable]]
+    ? [['Taxable income', f.taxableIncome], ['Tax due', f.taxChargeable], ['Tax already paid', f.advanceTaxAdjusted], ['Balance to pay', f.balancePayable]]
     : []
   return (
     <dl className="mt-3 rounded-xl border border-glass divide-y divide-glass">
@@ -43,7 +43,7 @@ function SummaryRows({ ret, currency }) {
         <div key={k} className="flex items-center justify-between px-3.5 py-2.5">
           <dt className="text-[12.5px] text-text-muted">{k}</dt>
           <dd className="num text-sm font-semibold text-text-primary">
-            {typeof v === 'number' && /tax|payable|withheld/i.test(k) ? compactMoney(v, currency) : (v ?? 0)}
+            {k === 'Suppliers' ? (v ?? 0) : compactMoney(v, currency)}
           </dd>
         </div>
       ))}
