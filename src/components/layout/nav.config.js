@@ -19,7 +19,7 @@ import {
   Users, FileText, Wallet,
   Briefcase, CreditCard, ShoppingBag, Truck,
   Landmark, BrainCircuit, ShieldAlert,
-  Boxes, Bot, Library, Sparkles, Scale,
+  Boxes, Bot, Library, Sparkles, Scale, Inbox,
   ArrowDownCircle, ArrowUpCircle,
   FileBarChart2, TrendingUp, Lightbulb,
   Settings, DollarSign, Percent, Palette,
@@ -77,6 +77,7 @@ export const NAV_SECTIONS = [
     label: 'Autopilot', key: 'autopilot', icon: Bot, accent: MINT,
     blurb: 'Let VousFin do the heavy lifting — AI-drafted entries, bank matching and live tax, with you in the approval seat.',
     items: [
+      { name: 'Command Center',      href: '/command-center',            icon: Inbox,        desc: 'Your one inbox — what needs you, and what VousFin is doing' },
       { name: 'Tax Autopilot',       href: '/tax',                       icon: Scale,        desc: 'Live tax position, deadlines and trends' },
       { name: 'AI Review Queue',     href: '/ai/review-queue',           icon: BrainCircuit, desc: 'AI-suggested entries to confirm' },
       { name: 'Bank Reconciliation', href: '/reconciliation/bank',       icon: Landmark,     desc: 'Match your books against the bank' },
