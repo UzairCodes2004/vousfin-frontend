@@ -61,6 +61,18 @@ export function useSavePayrollAccrual() {
   })
 }
 
+/**
+ * Legal tax-optimization advisories (FR-04.2). Shares the ['tax'] key so
+ * transaction mutations refresh the savings as the ledger changes.
+ */
+export function useTaxAdvisories() {
+  return useQuery({
+    queryKey: [...QUERY_KEY, 'advisories'],
+    queryFn:  () => taxService.getAdvisories().then(r => r.data?.data),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useUpdateTaxConfig() {
   const qc = useQueryClient()
   return useMutation({
