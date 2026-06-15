@@ -18,6 +18,7 @@ import TaxPositionCard   from '@/components/tax/TaxPositionCard'
 import DeadlineCountdown from '@/components/tax/DeadlineCountdown'
 import PayrollAccrualModal from '@/components/tax/PayrollAccrualModal'
 import AdvisoryCard      from '@/components/tax/AdvisoryCard'
+import ReturnsQueue      from '@/components/tax/ReturnsQueue'
 import { compactMoney, deadlineTone } from '@/components/tax/taxFormat'
 import { cn } from '@/utils/cn'
 
@@ -214,6 +215,9 @@ export default function TaxAutopilotPage() {
           </div>
         )}
       </div>
+
+      {/* ── File your returns (FR-04.3) ────────────────────────────── */}
+      {!isLoading && !isError && <ReturnsQueue taxes={taxes} currency={currency} />}
 
       {/* ── Footer link to the engine ──────────────────────────────── */}
       <Link

@@ -39,6 +39,14 @@ const taxService = {
   // ── Optimization advisor (FR-04.2) ─────────────────────────────────────────────
   getAdvisories:      ()         => api.get('/tax/advisories'),
 
+  // ── Return preparation & filing (FR-04.3) ──────────────────────────────────────
+  listReturns:    ()        => api.get('/tax/returns'),
+  prepareReturn:  (body)    => api.post('/tax/returns/prepare', body),
+  getReturn:      (id)      => api.get(`/tax/returns/${id}`),
+  validateReturn: (id)      => api.post(`/tax/returns/${id}/validate`),
+  submitReturn:   (id)      => api.post(`/tax/returns/${id}/submit`),
+  exportReturn:   (id)      => api.get(`/tax/returns/${id}/export?format=xml`, { responseType: 'blob' }),
+
   // ── Reports ───────────────────────────────────────────────────────────────────
   getLedger:    (params) => api.get('/tax/reports/ledger',  { params }),
   getSummary:   (params) => api.get('/tax/reports/summary', { params }),

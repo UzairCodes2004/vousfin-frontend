@@ -73,6 +73,43 @@ export function useTaxAdvisories() {
   })
 }
 
+// ── Returns (FR-04.3) ──────────────────────────────────────────────────────────
+
+export function useTaxReturns() {
+  return useQuery({
+    queryKey: [...QUERY_KEY, 'returns'],
+    queryFn:  () => taxService.listReturns().then(r => r.data?.data ?? []),
+    staleTime: 60 * 1000,
+  })
+}
+
+export function usePrepareReturn() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body) => taxService.prepareReturn(body).then(r => r.data?.data),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: [...QUERY_KEY, 'returns'] }),
+    onError:    (err) => toast.error(err.response?.data?.message || 'Failed to prepare return'),
+  })
+}
+
+export function useValidateReturn() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => taxService.validateReturn(id).then(r => r.data?.data),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: [...QUERY_KEY, 'returns'] }),
+    onError:    (err) => toast.error(err.response?.data?.message || 'Validation failed'),
+  })
+}
+
+export function useSubmitReturn() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => taxService.submitReturn(id).then(r => r.data),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: [...QUERY_KEY, 'returns'] }),
+    onError:    (err) => toast.error(err.response?.data?.message || 'Filing failed'),
+  })
+}
+
 export function useUpdateTaxConfig() {
   const qc = useQueryClient()
   return useMutation({
