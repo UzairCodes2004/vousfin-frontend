@@ -11,7 +11,7 @@ import {
   Check, X, Sparkles, RefreshCw,
 } from 'lucide-react'
 import {
-  useAutonomyInbox, useAutonomyPolicy, useSetCapability,
+  useAutonomyInbox, useAutonomyReport, useSetCapability,
   useApproveAction, useRejectAction,
 } from '@/hooks/useAutonomy'
 import { cn } from '@/utils/cn'
@@ -33,20 +33,32 @@ const LEVEL_TONE = {
   copilot:   'text-amber',
   autopilot: 'text-positive',
 }
+const LEVEL_NAME = Object.fromEntries(LEVELS.map(o => [o.v, o.l]))
 
 function AutonomyDials() {
-  const { data: policy, isLoading } = useAutonomyPolicy()
+  const { data: report, isLoading } = useAutonomyReport()
   const setCap = useSetCapability()
-  const caps = policy?.capabilities || {}
+  const caps = report?.capabilities || []
+  const summary = report?.summary || {}
 
   return (
     <div className="premium-card p-5">
-      <div className="flex items-center gap-2.5 mb-1">
-        <div className="p-1.5 rounded-lg bg-cyan/15"><Sparkles className="h-4 w-4 text-cyan" /></div>
-        <div>
-          <h2 className="text-sm font-bold text-text-primary">How much VousFin acts for you</h2>
-          <p className="text-[12.5px] text-text-muted">Turn each area up as you trust it. Everything starts at “Suggest”.</p>
+      <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-cyan/15"><Sparkles className="h-4 w-4 text-cyan" /></div>
+          <div>
+            <h2 className="text-sm font-bold text-text-primary">How much VousFin acts for you</h2>
+            <p className="text-[12.5px] text-text-muted">Turn each area up as you trust it. Everything starts at “Suggest”.</p>
+          </div>
         </div>
+        {summary.totalDecisions > 0 ? (
+          <div className="text-right shrink-0">
+            <p className="num text-base font-bold text-positive leading-none">{Math.round((summary.accuracy || 0) * 100)}%</p>
+            <p className="text-[12px] text-text-muted mt-0.5">accurate · {summary.totalDecisions} reviewed</p>
+          </div>
+        ) : (
+          <p className="text-[11.5px] text-text-muted max-w-[220px] text-right">As you approve or dismiss, VousFin learns and suggests where to trust it more.</p>
+        )}
       </div>
 
       {isLoading ? (
@@ -55,21 +67,33 @@ function AutonomyDials() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-3">
-          {Object.keys(CAP_LABEL).map((cap) => {
-            const level = caps[cap]?.level || 'suggest'
-            return (
-              <div key={cap} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-glass bg-glass-panel/40">
-                <span className="text-[13px] font-medium text-text-secondary">{CAP_LABEL[cap]}</span>
+          {caps.map((c) => (
+            <div key={c.capability} className="px-3 py-2 rounded-xl border border-glass bg-glass-panel/40">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[13px] font-medium text-text-secondary">{CAP_LABEL[c.capability]}</span>
                 <select
-                  value={level}
-                  onChange={(e) => setCap.mutate({ capability: cap, level: e.target.value })}
-                  className={cn('bg-transparent text-[12.5px] font-bold focus:outline-none cursor-pointer', LEVEL_TONE[level])}
+                  value={c.level}
+                  onChange={(e) => setCap.mutate({ capability: c.capability, level: e.target.value })}
+                  className={cn('bg-transparent text-[12.5px] font-bold focus:outline-none cursor-pointer', LEVEL_TONE[c.level])}
                 >
                   {LEVELS.map(o => <option key={o.v} value={o.v} className="bg-charcoal text-text-primary">{o.l}</option>)}
                 </select>
               </div>
-            )
-          })}
+              {c.total > 0 && (
+                <p className="text-[11px] text-text-muted mt-1">{Math.round((c.accuracy || 0) * 100)}% accurate · {c.total} decisions</p>
+              )}
+              {c.recommendation && (
+                <button
+                  type="button"
+                  onClick={() => setCap.mutate({ capability: c.capability, level: c.recommendation.to })}
+                  title={c.recommendation.reason}
+                  className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-semibold text-cyan hover:underline"
+                >
+                  <ArrowUpRight className="h-3 w-3" /> Try {LEVEL_NAME[c.recommendation.to]}
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

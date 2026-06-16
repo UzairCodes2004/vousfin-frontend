@@ -24,11 +24,20 @@ export function useAutonomyPolicy() {
   })
 }
 
+/** The Autonomy Report — per-capability level + accuracy + dial recommendation. */
+export function useAutonomyReport() {
+  return useQuery({
+    queryKey: [...KEY, 'report'],
+    queryFn:  () => autonomyService.getReport().then(r => r.data?.data),
+    staleTime: 60 * 1000,
+  })
+}
+
 export function useSetCapability() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ capability, ...body }) => autonomyService.setCapability(capability, body).then(r => r.data?.data),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: [...KEY, 'policy'] }); toast.success('Autonomy updated') },
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: KEY }); toast.success('Autonomy updated') },
     onError:    (err) => toast.error(err.response?.data?.message || 'Could not update autonomy'),
   })
 }
