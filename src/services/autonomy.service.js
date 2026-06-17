@@ -11,6 +11,11 @@ const autonomyService = {
   setCapability: (capability, body) => api.put(`/autonomy/policy/${capability}`, body),
   approveAction: (id)               => api.post(`/autonomy/actions/${id}/approve`),
   rejectAction:  (id)               => api.post(`/autonomy/actions/${id}/reject`),
+  reverseAction: (id)               => api.post(`/autonomy/actions/${id}/reverse`),
+
+  // Bookkeeper agent (Phase 2) — hand the books a document; list intake + outcomes
+  ingestDocument: (rawText, source) => api.post('/bookkeeping/ingest', { rawText, source }),
+  getDocuments:   ()                => api.get('/bookkeeping/documents'),
 }
 
 export default autonomyService

@@ -5,14 +5,15 @@
  * actionable proposed actions (approve / dismiss) first, then the insights it's
  * surfacing. Plus the autonomy dials — how much you trust each capability to act.
  */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Brain, CheckCircle2, AlertTriangle, AlertCircle, Info, ArrowUpRight,
-  Check, X, Sparkles, RefreshCw,
+  Check, X, Sparkles, RefreshCw, Receipt, Loader2,
 } from 'lucide-react'
 import {
   useAutonomyInbox, useAutonomyReport, useSetCapability,
-  useApproveAction, useRejectAction,
+  useApproveAction, useRejectAction, useIngestDocument,
 } from '@/hooks/useAutonomy'
 import { cn } from '@/utils/cn'
 
@@ -157,6 +158,46 @@ function ActionCard({ item }) {
   )
 }
 
+/* ── Hand it to your bookkeeper ─────────────────────────────────────────── */
+function BookkeeperIntake() {
+  const [text, setText] = useState('')
+  const ingest = useIngestDocument()
+
+  const submit = (e) => {
+    e.preventDefault()
+    const rawText = text.trim()
+    if (!rawText || ingest.isPending) return
+    ingest.mutate({ rawText, source: 'manual' }, { onSuccess: () => setText('') })
+  }
+
+  return (
+    <form onSubmit={submit} className="premium-card p-5">
+      <div className="flex items-center gap-2.5 mb-1">
+        <div className="p-1.5 rounded-lg bg-positive/15"><Receipt className="h-4 w-4 text-positive" /></div>
+        <div>
+          <h2 className="text-sm font-bold text-text-primary">Hand it to your bookkeeper</h2>
+          <p className="text-[12.5px] text-text-muted">Paste a bill, receipt or note — VousFin reads it and writes the entry for you.</p>
+        </div>
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={2}
+        placeholder='e.g. "Paid Rs 50,000 office rent to ABC Properties on 1 June"'
+        className="w-full mt-3 px-3 py-2.5 rounded-xl border border-glass bg-glass-panel/40 text-[13px] text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:border-cyan/40 resize-none"
+      />
+      <div className="flex items-center justify-between gap-3 mt-2.5">
+        <p className="text-[11.5px] text-text-muted">It won’t touch your books until you approve — unless you’ve dialed Bookkeeping up.</p>
+        <button type="submit" disabled={!text.trim() || ingest.isPending}
+          className="btn-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12.5px] font-semibold shrink-0">
+          {ingest.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {ingest.isPending ? 'Reading…' : 'Read it'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
 /* ══════════════════════════════════════════════════════════════════════ */
 export default function CommandCenterPage() {
   const { data, isLoading, isError, isFetching, refetch } = useAutonomyInbox()
@@ -179,6 +220,8 @@ export default function CommandCenterPage() {
       </div>
 
       <AutonomyDials />
+
+      <BookkeeperIntake />
 
       {/* Waiting for you */}
       <div>

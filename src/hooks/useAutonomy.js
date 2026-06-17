@@ -59,3 +59,30 @@ export function useRejectAction() {
     onError:    (err) => toast.error(err.response?.data?.message || 'Could not dismiss'),
   })
 }
+
+/* ── Bookkeeper agent (Phase 2) ───────────────────────────────────────────── */
+
+/** Recent intake the Bookkeeper has read, and what each became. */
+export function useBookkeepingDocuments() {
+  return useQuery({
+    queryKey: [...KEY, 'documents'],
+    queryFn:  () => autonomyService.getDocuments().then(r => r.data?.data),
+    staleTime: 30 * 1000,
+  })
+}
+
+/** Hand the books a document (typed / pasted) → a proposed journal entry. */
+export function useIngestDocument() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ rawText, source }) => autonomyService.ingestDocument(rawText, source).then(r => r.data?.data),
+    onSuccess:  (data) => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'inbox'] })
+      qc.invalidateQueries({ queryKey: [...KEY, 'documents'] })
+      const posted = data?.action?.status === 'executed'
+      if (data?.action) toast.success(posted ? 'Recorded for you' : 'Read — waiting for your OK')
+      else toast.error("Couldn't read that — try adding the amount and what it was for")
+    },
+    onError:    (err) => toast.error(err.response?.data?.message || 'Could not read that'),
+  })
+}
