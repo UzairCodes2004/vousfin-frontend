@@ -16,6 +16,20 @@ export function useAutonomyInbox() {
   })
 }
 
+/** Ask the agents to look for work (reconciliation + collections) → fills the inbox. */
+export function useAutonomyScan() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => autonomyService.scan().then(r => r.data?.data),
+    onSuccess:  (data) => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'inbox'] })
+      const n = data?.total || 0
+      if (n > 0) toast.success(`Found ${n} thing${n === 1 ? '' : 's'} for you`)
+    },
+    onError: () => {}, // silent — scanning is a background nicety
+  })
+}
+
 export function useAutonomyPolicy() {
   return useQuery({
     queryKey: [...KEY, 'policy'],

@@ -6,6 +6,7 @@ import api from './api'
 
 const autonomyService = {
   getInbox:      ()                 => api.get('/autonomy/inbox'),
+  scan:          ()                 => api.post('/autonomy/scan'),
   getReport:     ()                 => api.get('/autonomy/report'),
   getPolicy:     ()                 => api.get('/autonomy/policy'),
   setCapability: (capability, body) => api.put(`/autonomy/policy/${capability}`, body),

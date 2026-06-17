@@ -5,7 +5,7 @@
  * actionable proposed actions (approve / dismiss) first, then the insights it's
  * surfacing. Plus the autonomy dials — how much you trust each capability to act.
  */
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Brain, CheckCircle2, AlertTriangle, AlertCircle, Info, ArrowUpRight,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import {
   useAutonomyInbox, useAutonomyReport, useSetCapability,
-  useApproveAction, useRejectAction, useIngestDocument,
+  useApproveAction, useRejectAction, useIngestDocument, useAutonomyScan,
 } from '@/hooks/useAutonomy'
 import { cn } from '@/utils/cn'
 
@@ -201,10 +201,22 @@ function BookkeeperIntake() {
 /* ══════════════════════════════════════════════════════════════════════ */
 export default function CommandCenterPage() {
   const { data, isLoading, isError, isFetching, refetch } = useAutonomyInbox()
+  const scan = useAutonomyScan()
   const items = data?.items || []
   const counts = data?.counts || {}
   const actions  = items.filter(i => i.kind === 'action')
   const insights = items.filter(i => i.kind === 'insight')
+
+  // On open, quietly let the agents look for reconciliation + collections work.
+  const scannedOnce = useRef(false)
+  useEffect(() => {
+    if (scannedOnce.current) return
+    scannedOnce.current = true
+    scan.mutate()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const busy = isFetching || scan.isPending
+  const refreshAll = () => { scan.mutate(); refetch() }
 
   return (
     <div className="animate-fade-in pb-10 space-y-6">
@@ -213,9 +225,9 @@ export default function CommandCenterPage() {
           <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Command Center</h1>
           <p className="text-sm text-text-secondary mt-1">Everything that needs you — and what VousFin is handling for you.</p>
         </div>
-        <button onClick={() => refetch()} aria-label="Refresh"
-          className="p-2 rounded-lg border border-glass text-text-muted hover:text-cyan hover:border-cyan/40 transition-colors">
-          <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
+        <button onClick={refreshAll} aria-label="Refresh" disabled={busy}
+          className="p-2 rounded-lg border border-glass text-text-muted hover:text-cyan hover:border-cyan/40 transition-colors disabled:opacity-50">
+          <RefreshCw className={cn('h-4 w-4', busy && 'animate-spin')} />
         </button>
       </div>
 
